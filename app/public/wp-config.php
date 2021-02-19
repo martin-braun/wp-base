@@ -52,8 +52,7 @@ define( 'DISABLE_WP_CRON', false );
 /**
  * WP Mail SMTP settings.
  *
- * These constants should be used to configure a custom SMTP server 
- * when using 'Other SMTP' in the WP Mail SMTP settings.
+ * These constants should be used to configure a custom SMTP server.
  */
 // define( 'WPMS_ON', true );
 // define( 'WPMS_MAILER', 'smtp' );
