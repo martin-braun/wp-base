@@ -1,0 +1,11 @@
+.site-header, .site-main {
+	width: 80%;
+	max-width: 1600px !important;
+	margin: 0 auto;
+}
+
+@media (max-width: $mobile-max) {
+	.site-header, .site-main {
+		width: calc(100% - 20px);
+	}
+}

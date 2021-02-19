@@ -1,0 +1,7 @@
+# wordpress
+*.log
+/app/public/wp-content/build/*
+cache/
+
+# vscode
+/.favorites.json
