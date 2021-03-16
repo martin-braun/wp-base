@@ -6,7 +6,8 @@
  * Just to test, if shortcodes are working.
  */
 add_shortcode( 'custom_ping', function( $atts = [] ) {
-	if ( strpos( $_SERVER['REQUEST_URI'], 'elementor' ) !== false ) {
+	if ( strpos( $_SERVER['REQUEST_URI'], '/post.php' ) !== false || 
+        strpos( $_SERVER['REQUEST_URI'], 'elementor' ) !== false
 		return '&lt;CUSTOM PING&gt;';
 	} else {
 		$atts = shortcode_atts( [
