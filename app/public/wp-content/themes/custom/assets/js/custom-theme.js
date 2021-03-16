@@ -1,36 +1,77 @@
 (function () {
-  var preloaderClassName = 'preloader';
+  const preloaderClassName = null;
+
+  /**
+   * WAITER HELPER
+   */
+  window.waitFor = function (
+    conditionCallback,
+    resolveCallback,
+    samplingRate,
+    waitTimeout,
+    timeoutCallback
+  ) {
+    samplingRate = samplingRate || 100;
+    let timeToLive = waitTimeout || Number.POSITIVE_INFINITY;
+    const waitInterval = setInterval(function () {
+      if (timeToLive <= 0) {
+        clearInterval(waitInterval);
+        timeoutCallback && timeoutCallback();
+        return;
+      }
+      if (conditionCallback()) {
+        clearInterval(waitInterval);
+        resolveCallback();
+        return;
+      }
+      timeToLive -= samplingRate;
+    }, samplingRate);
+  };
 
   /**
    * RAISE READY EVENT
    */
-  var readyEvent = new Event("ready");
-  var readyInterval = setInterval(function () {
-    if (document.getElementsByClassName(preloaderClassName).length < 1) {
-      clearInterval(readyInterval);
-      if (
+  (function (preloaderClassName) {
+    function isPreloaderBlocking() {
+      return (
+        preloaderClassName &&
+        document.getElementsByClassName(preloaderClassName).length > 0
+      );
+    }
+    function isDocumentReady() {
+      return (
         document.readyState === "complete" ||
         document.readyState === "interactive"
-      ) {
+      );
+    }
+    function dispatchWhenDocumentReady(event) {
+      if (isDocumentReady()) {
         setTimeout(function () {
-          document.dispatchEvent(readyEvent);
+          document.dispatchEvent(event);
         }, 1);
       } else {
         document.addEventListener("DOMContentLoaded", function () {
-          document.dispatchEvent(readyEvent);
+          document.dispatchEvent(event);
         });
       }
     }
-	}, 100);
-  document.ready = function(fn) {
-    if(document.getElementsByClassName(preloaderClassName).length < 1 
-      && (document.readyState === "complete" || document.readyState === "interactive")) {
-      setTimeout(fn, 1);
+    const readyEvent = new Event("ready");
+    if (isPreloaderBlocking()) {
+      window.waitFor(
+        () => !isPreloaderBlocking(),
+        () => dispatchWhenDocumentReady(readyEvent)
+      );
+    } else {
+      dispatchWhenDocumentReady(readyEvent);
     }
-    else {
-      document.addEventListener("ready", fn);
-    }
-  }
+    document.ready = function (fn) {
+      if (!isPreloaderBlocking() && isDocumentReady()) {
+        setTimeout(fn, 1);
+      } else {
+        document.addEventListener("ready", fn);
+      }
+    };
+  })(preloaderClassName);
   
 })();
 

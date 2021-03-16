@@ -19,7 +19,12 @@ It uses Elementor as default page builder, but can be replaced. In fact, since t
 
 ### Local
 
-- Create a new site in Local.
+- Create a new site called `.WP-BASE` in Local with these settings:
+  - Web Server: nginx
+  - PHP Version: 7.4.1
+  - Database: MySQL 5.7.28
+  - Site Domain: wp-base.local
+  - Multisite: No
 - Quit Local
 - Replace Local Site directory with this directory
 - Restart Local

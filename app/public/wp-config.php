@@ -104,6 +104,18 @@ $table_prefix = 'wp_';
  */
 define( 'WP_DEBUG', true );
 
+/**
+ * For developers: WordPress logging.
+ *
+ * Change this to true to enable the logging of notices during development.
+ * This will create a debug.log in wp-content
+ *
+ * To manually log something, please use error_log.
+ *
+ * @link https://wordpress.org/support/article/debugging-in-wordpress/#wp_debug_log
+ */
+define( 'WP_DEBUG_LOG', true );
+
 /* That's all, stop editing! Happy publishing. */
 
 /** Absolute path to the WordPress directory. */
