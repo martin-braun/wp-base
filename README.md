@@ -28,11 +28,13 @@ It uses Elementor as default page builder, but can be replaced. In fact, since t
 - Quit Local
 - Replace Local Site directory with this directory
 - Restart Local
+- Import [_/sql/adminer_dump.gz_](./sql/adminer_dump) to database
 - Clone the site to start a project from this template
 - Remove the hidden `.git` folder from the cloned site
 - Trust the certificate of the cloned site
 - Start the cloned site
 - Login using `system` (Password: `$wpadmin1234`)
+- Have fun!
 
 ## Test
 
@@ -40,8 +42,8 @@ It uses Elementor as default page builder, but can be replaced. In fact, since t
 
 ## Build
 
-- Set `WP_DEBUG` to `false` in [_app/public/wp-config.php_](./app/public/wp-config.php)
-- Now deploy the [_app/public_](./app/public) folder and import the database that is stored at [_app/sql/local.sql_](./app/sql/local.sql) by Local
+- Set `WP_DEBUG` to `false` in [_/app/public/wp-config.php_](./app/public/wp-config.php)
+- Now deploy the [_/app/public_](./app/public) folder and import the database that is stored at [_/app/sql/local.sql_](./app/sql/local.sql) by Local
 
 ## Next steps
 
@@ -64,7 +66,7 @@ After cloning this blueprint, there are some recommend steps to do in any case. 
 ### General
 
 - Enable Page to be visible by search engines
-- Update [_app/public/wp-config.php_](./app/public/wp-config.php)
+- Update [_/app/public/wp-config.php_](./app/public/wp-config.php)
 
 ## Important notices
 
@@ -79,4 +81,4 @@ In this section you can read how this project was formed. Get inspired and creat
 ### WordPress
 
 - Create the WordPress page using [Local by Flywheel](https://localwp.com)
-- Apply new constants in [_wp-config.php_](./app/public/wp-config.php)
+- Apply new constants in [_/app/wp-config.php_](./app/public/wp-config.php)

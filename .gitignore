@@ -1,7 +1,20 @@
 # wordpress
 *.log
 /app/public/wp-content/build/*
-cache/
+!cache/
+**/cache/*
+!**/cache/**/.htaccess
+!**/cache/**/index.html
+!**/cache/**/index.php
+
+# localwp
+/app/sql/*
 
 # vscode
 /.favorites.json
+
+# idea
+/.idea/*
+
+# wordpress plugins
+/app/public/wp-content/uploads/sb-instagram-feed-images/*

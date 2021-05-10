@@ -32,4 +32,4 @@ add_action( 'wp_footer', function() { // add custom scripts
 /**
  * REST ENDPOINT CUSTOMIZATION
  */
-require_once 'rest/custom-rest-auth.php'; // add logout API endpoint 
+require_once 'rest/rest-auth-v1.php'; // add logout API endpoint 
