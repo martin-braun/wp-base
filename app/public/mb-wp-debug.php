@@ -1,35 +1,48 @@
 <?php if ( ! defined( 'ABSPATH' ) ) exit;
 
+set_error_handler( /**
+* @throws ErrorException
+*/ function( $severity, $message, $file, $line ) {
+   if ( ! ( error_reporting() & $severity ) ) {
+       // This error code is not included in error_reporting
+       return;
+   }
+   throw new ErrorException( $message, 0, $severity, $file, $line );
+} );
+
 function console_log(): string {
     list( , $caller ) = debug_backtrace( false );
     $action = current_action();
     $encoded_args = [];
     foreach ( func_get_args() as $arg ) try {
         if ( is_object( $arg ) ) {
-            function extract_props( $obj ): array {
+            $extract_props = function( $obj ) use ( &$extract_props ): array {
                 $members = [];
-                foreach ( ( new ReflectionClass( get_class( $obj ) ) )->getProperties() as $prop ) {
+                $class = get_class( $obj );
+                foreach ( ( new ReflectionClass( $class ) )->getProperties() as $prop ) {
                     $prop->setAccessible( true );
-                    $value = $prop->getValue( $obj );
                     $name = $prop->getName();
-                    if ( is_array( $value ) ) {
-                        $members[$name] = [];
-                        foreach ( $value as $item ) {
-                            if ( is_object( $item ) ) {
-                                $itemArray = extract_props( $item );
-                                $members[$name][] = $itemArray;
-                            } else {
-                                $members[$name][] = $item;
+                    if ( isset( $class->{$name} ) ) {
+                        $value = $prop->getValue( $obj );
+                        if ( is_array( $value ) ) {
+                            $members[$name] = [];
+                            foreach ( $value as $item ) {
+                                if ( is_object( $item ) ) {
+                                    $itemArray = $extract_props( $item );
+                                    $members[$name][] = $itemArray;
+                                } else {
+                                    $members[$name][] = $item;
+                                }
                             }
-                        }
-                    } else if ( is_object( $value ) ) {
-                        $members[$name] = extract_props( $value );
-                    } else $members[$name] = $value;
+                        } else if ( is_object( $value ) ) {
+                            $members[$name] = $extract_props( $value );
+                        } else $members[$name] = $value;
+                    }
                 }
                 return $members;
-            }
+            };
 
-            $encoded_args[] = json_encode( extract_props( $arg ) );
+            $encoded_args[] = json_encode( $extract_props( $arg ) );
         } else {
             $encoded_args[] = json_encode( $arg );
         }
@@ -37,7 +50,7 @@ function console_log(): string {
         $encoded_args[] = '`' . print_r( $arg, true ) . '`';
     }
     $msg = '`📜`, `'
-        . ( array_key_exists( 'class', $caller ) ? $caller['class'] : "<root>" )
+        . ( array_key_exists( 'class', $caller ) ? $caller['class'] : "\x3croot\x3e" )
         . '\\\\'
         . $caller['function'] . '()`, '
         . ( strlen( $action ) > 0 ? '`🪝`, `' . $action . '`, ' : '' )
@@ -52,3 +65,4 @@ function console_log(): string {
     error_log( $msg );
     return $html;
 }
+
