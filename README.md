@@ -1,4 +1,4 @@
-# WP-BASE Blueprint
+# WP-BASE Blueprint: A WordPress template for developers
 
 This is a localwp ([Local by Flywheel](https://localwp.com/)) project to use as blueprint for developers. It comes with some pre-installed plugins and changed settings to provide a better starter for WordPress.
 
@@ -20,9 +20,9 @@ It uses Elementor as default page builder, but can be replaced. In fact, since t
 ### Local
 
 - Create a new site called `.WP-BASE` in Local with these settings:
-  - Web Server: nginx
-  - PHP Version: 7.4.1
-  - Database: MySQL 5.7.28
+  - Web Server: nginx or Apache
+  - PHP Version: > 7.4
+  - Database: MySQL > 5.7
   - Site Domain: wp-base.local
   - Multisite: No
 - Quit Local
@@ -43,7 +43,8 @@ It uses Elementor as default page builder, but can be replaced. In fact, since t
 ## Build
 
 - Set `WP_DEBUG` to `false` in [_/app/public/wp-config.php_](./app/public/wp-config.php)
-- Now deploy the [_/app/public_](./app/public) folder and import the database that is stored at [_/app/sql/local.sql_](./app/sql/local.sql) by Local
+- Export database to [_/sql/adminer_dump.gz_](./sql/adminer_dump) with Adminer
+- Now deploy the [_/app/public_](./app/public) folder and import [_/sql/adminer_dump.gz_](./sql/adminer_dump) to database from Local to Live
 
 ## Next steps
 
@@ -56,7 +57,7 @@ After cloning this blueprint, there are some recommend steps to do in any case. 
 ### Wordfence
 
 - Change the E-Mail for security notifications in Wordfence
-- Enable Firewall, starting with Learning Mode
+- Enable Firewall, starting with Learning Mode (once you are live)
 - Add reCAPTCHA to Login Security
 
 ### Yoast SEO
@@ -73,12 +74,3 @@ After cloning this blueprint, there are some recommend steps to do in any case. 
 ### Avoid SCSS Library's development mode in production use
 
 The child theme uses SCSS files that compile to a bundled CSS file using the _SCSS Library_ plugin. The output CSS files should not be included in the caching system to avoid the requirement to clear the cache to see changes when being in development mode of _SCSS Library_.
-
-## Replicate
-
-In this section you can read how this project was formed. Get inspired and create your own.
-
-### WordPress
-
-- Create the WordPress page using [Local by Flywheel](https://localwp.com)
-- Apply new constants in [_/app/wp-config.php_](./app/public/wp-config.php)
