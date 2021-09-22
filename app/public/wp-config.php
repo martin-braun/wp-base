@@ -18,18 +18,27 @@
  * @package WordPress
  */
 
+/**
+ * For developers: The LocalWP debug mode.
+ *
+ * This this to “false” to let the website work in the live environment.
+ * Set this value only to “true” when the website runs in LocalWP, locally.
+ * Setting this value to “true” on a live instance will cause a database error!
+ */
+define( 'WP_LOCAL', true );
+
 // ** MySQL settings - You can get this info from your web host ** //
 /** The name of the database for WordPress */
-define( 'DB_NAME', 'local' );
+define( 'DB_NAME', defined( 'WP_LOCAL' ) && WP_LOCAL ? 'local' : 'database_name_here' );
 
 /** MySQL database username */
-define( 'DB_USER', 'root' );
+define( 'DB_USER',  defined( 'WP_LOCAL' ) && WP_LOCAL ? 'root' : 'username_here' );
 
 /** MySQL database password */
-define( 'DB_PASSWORD', 'root' );
+define( 'DB_PASSWORD',  defined( 'WP_LOCAL' ) && WP_LOCAL ? 'root' : 'password_here' );
 
 /** MySQL hostname */
-define( 'DB_HOST', 'localhost' );
+define( 'DB_HOST',  defined( 'WP_LOCAL' ) && WP_LOCAL ? 'localhost' : 'localhost' );
 
 /** Database Charset to use in creating database tables. */
 define( 'DB_CHARSET', 'utf8' );
@@ -102,7 +111,7 @@ $table_prefix = 'wp_';
  *
  * @link https://wordpress.org/support/article/debugging-in-wordpress/
  */
-define( 'WP_DEBUG', true );
+define( 'WP_DEBUG', defined( 'WP_LOCAL' ) && WP_LOCAL || false );
 
 /**
  * For developers: WordPress logging.
@@ -125,7 +134,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /** Include MB WP debug helper */
 if ( defined( 'WP_DEBUG' ) && WP_DEBUG && file_exists( ABSPATH . 'mb-wp-debug.php' ) ) {
-	include_once ABSPATH . 'mb-wp-debug.php';
+    include_once ABSPATH . 'mb-wp-debug.php';
+}
+if ( ! function_exists( 'console_log' ) ) {
+    function console_log() {
+    }
 }
 
 /** Sets up WordPress vars and included files. */

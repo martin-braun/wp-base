@@ -9,11 +9,9 @@ namespace HFE\WidgetsManager\Widgets;
 
 use Elementor\Controls_Manager;
 use Elementor\Group_Control_Typography;
-use Elementor\Scheme_Typography;
+use Elementor\Core\Kits\Documents\Tabs\Global_Typography;
 use Elementor\Widget_Base;
 use Elementor\Group_Control_Text_Shadow;
-use Elementor\Scheme_Color;
-use Elementor\Core\Schemes;
 use Elementor\Group_Control_Border;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -85,12 +83,23 @@ class Cart extends Widget_Base {
 	}
 
 	/**
-	 * Register cart controls controls.
+	 * Register cart controls.
 	 *
 	 * @since 1.4.0
 	 * @access protected
 	 */
-	protected function _register_controls() {
+	protected function _register_controls() { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore
+
+		$this->register_controls();
+	}
+
+	/**
+	 * Register cart controls.
+	 *
+	 * @since 1.5.7
+	 * @access protected
+	 */
+	protected function register_controls() {
 
 		$this->register_general_content_controls();
 		$this->register_cart_typo_content_controls();
@@ -239,7 +248,9 @@ class Cart extends Widget_Base {
 			Group_Control_Typography::get_type(),
 			[
 				'name'      => 'toggle_button_typography',
-				'scheme'    => Schemes\Typography::TYPOGRAPHY_1,
+				'global'    => [
+					'default' => Global_Typography::TYPOGRAPHY_PRIMARY,
+				],
 				'selector'  => '{{WRAPPER}} .hfe-menu-cart__toggle .elementor-button',
 				'condition' => [
 					'hfe_cart_type' => 'custom',
@@ -668,19 +679,5 @@ class Cart extends Widget_Base {
 	 * @access protected
 	 */
 	protected function content_template() {
-	}
-
-	/**
-	 * Render cart output in the editor.
-	 *
-	 * Written as a Backbone JavaScript template and used to generate the live preview.
-	 *
-	 * Remove this after Elementor v3.3.0
-	 *
-	 * @since 1.4.0
-	 * @access protected
-	 */
-	protected function _content_template() {
-		$this->content_template();
 	}
 }

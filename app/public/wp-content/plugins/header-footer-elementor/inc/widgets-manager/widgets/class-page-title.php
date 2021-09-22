@@ -11,8 +11,10 @@ use Elementor\Controls_Manager;
 use Elementor\Group_Control_Text_Shadow;
 use Elementor\Widget_Base;
 use Elementor\Group_Control_Typography;
-use Elementor\Scheme_Typography;
-use Elementor\Scheme_Color;
+use Elementor\Core\Kits\Documents\Tabs\Global_Typography;
+use Elementor\Core\Kits\Documents\Tabs\Global_Colors;
+
+use HFE\WidgetsManager\Widgets_Loader;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;   // Exit if accessed directly.
@@ -91,7 +93,17 @@ class Page_Title extends Widget_Base {
 	 * @since 1.3.0
 	 * @access protected
 	 */
-	protected function _register_controls() {
+	protected function _register_controls() { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore
+		$this->register_controls();
+	}
+
+	/**
+	 * Register Page Title controls.
+	 *
+	 * @since 1.5.7
+	 * @access protected
+	 */
+	protected function register_controls() {
 		$this->register_content_page_title_controls();
 		$this->register_page_title_style_controls();
 	}
@@ -287,7 +299,9 @@ class Page_Title extends Widget_Base {
 				Group_Control_Typography::get_type(),
 				[
 					'name'     => 'title_typography',
-					'scheme'   => Scheme_Typography::TYPOGRAPHY_1,
+					'global'   => [
+						'default' => Global_Typography::TYPOGRAPHY_PRIMARY,
+					],
 					'selector' => '{{WRAPPER}} .elementor-heading-title, {{WRAPPER}} .hfe-page-title a',
 				]
 			);
@@ -297,9 +311,8 @@ class Page_Title extends Widget_Base {
 				[
 					'label'     => __( 'Color', 'header-footer-elementor' ),
 					'type'      => Controls_Manager::COLOR,
-					'scheme'    => [
-						'type'  => Scheme_Color::get_type(),
-						'value' => Scheme_Color::COLOR_1,
+					'global'    => [
+						'default' => Global_Colors::COLOR_PRIMARY,
 					],
 					'selectors' => [
 						'{{WRAPPER}} .elementor-heading-title, {{WRAPPER}} .hfe-page-title a' => 'color: {{VALUE}};',
@@ -361,9 +374,8 @@ class Page_Title extends Widget_Base {
 			[
 				'label'     => __( 'Icon Color', 'header-footer-elementor' ),
 				'type'      => Controls_Manager::COLOR,
-				'scheme'    => [
-					'type'  => Scheme_Color::get_type(),
-					'value' => Scheme_Color::COLOR_1,
+				'global'    => [
+					'default' => Global_Colors::COLOR_PRIMARY,
 				],
 				'condition' => [
 					'new_page_title_select_icon[value]!' => '',
@@ -409,17 +421,10 @@ class Page_Title extends Widget_Base {
 		$this->add_inline_editing_attributes( 'page_title', 'basic' );
 
 		if ( ! empty( $settings['page_heading_link']['url'] ) ) {
-			$this->add_render_attribute( 'url', 'href', $settings['page_heading_link']['url'] );
-
-			if ( $settings['page_heading_link']['is_external'] ) {
-				$this->add_render_attribute( 'url', 'target', '_blank' );
-			}
-
-			if ( ! empty( $settings['page_heading_link']['nofollow'] ) ) {
-				$this->add_render_attribute( 'url', 'rel', 'nofollow' );
-			}
-			$link = $this->get_render_attribute_string( 'url' );
+			$this->add_link_attributes( 'url', $settings['page_heading_link'] );
 		}
+
+		$heading_size_tag = Widgets_Loader::validate_html_tag( $settings['heading_tag'] );
 		?>		
 		<div class="hfe-page-title hfe-page-title-wrapper elementor-widget-heading">
 
@@ -428,11 +433,11 @@ class Page_Title extends Widget_Base {
 		$head_custom_link = isset( $settings['page_custom_link'] ) ? $settings['page_custom_link'] : '';
 		?>
 			<?php if ( '' != $head_link_url && 'custom' === $head_custom_link ) { ?>
-						<a <?php echo $link; ?> >
+						<a <?php echo wp_kses_post( $this->get_render_attribute_string( 'url' ) ); ?>>
 			<?php } elseif ( 'default' === $head_custom_link ) { ?>
 						<a href="<?php echo esc_url( get_home_url() ); ?>">
 			<?php } ?>
-			<<?php echo wp_kses_post( $settings['heading_tag'] ); ?> class="elementor-heading-title elementor-size-<?php echo $settings['size']; ?>">
+			<<?php echo $heading_size_tag; ?> class="elementor-heading-title elementor-size-<?php echo $settings['size']; ?>">
 				<?php if ( '' !== $settings['new_page_title_select_icon']['value'] ) { ?>
 						<span class="hfe-page-title-icon">
 							<?php \Elementor\Icons_Manager::render_icon( $settings['new_page_title_select_icon'], [ 'aria-hidden' => 'true' ] ); ?>             </span>
@@ -452,7 +457,7 @@ class Page_Title extends Widget_Base {
 					?>
 					<?php echo wp_kses_post( $settings['after'] ); ?>
 				<?php } ?>  
-			</<?php echo wp_kses_post( $settings['heading_tag'] ); ?> > 
+			</<?php echo $heading_size_tag; ?> > 
 			<?php if ( ( '' != $head_link_url && 'custom' === $head_custom_link ) || 'default' === $head_custom_link ) { ?>
 						</a>
 			<?php } ?>
@@ -481,12 +486,21 @@ class Page_Title extends Widget_Base {
 			view.addRenderAttribute( 'url', 'href', settings.page_heading_link.url );
 		}
 		var iconHTML = elementor.helpers.renderIcon( view, settings.new_page_title_select_icon, { 'aria-hidden': true }, 'i' , 'object' );
+
+		var headingSizeTag = settings.heading_tag;
+
+		if ( typeof elementor.helpers.validateHTMLTag === "function" ) { 
+			headingSizeTag = elementor.helpers.validateHTMLTag( settings.heading_tag );
+		} else if( HfeWidgetsData.allowed_tags ) {
+			headingSizeTag = HfeWidgetsData.allowed_tags.includes( headingSizeTag.toLowerCase() ) ? headingSizeTag : 'div';
+		}
+
 		#>
 		<div class="hfe-page-title hfe-page-title-wrapper elementor-widget-heading">
 			<# if ( '' != settings.page_heading_link.url ) { #>
 					<a {{{ view.getRenderAttributeString( 'url' ) }}} >
 			<# } #>
-			<{{{ settings.heading_tag }}} class="elementor-heading-title elementor-size-{{{ settings.size }}}">		
+			<{{{ headingSizeTag }}} class="elementor-heading-title elementor-size-{{{ settings.size }}}">		
 				<# if( '' != settings.new_page_title_select_icon.value ){ #>
 					<span class="hfe-page-title-icon" data-elementor-setting-key="page_title" data-elementor-inline-editing-toolbar="basic">
 						{{{iconHTML.value}}}                    
@@ -505,25 +519,11 @@ class Page_Title extends Widget_Base {
 					<# if ( '' != settings.after ) { #>
 						{{{ settings.after }}}
 					<# } #>				
-			</{{{ settings.heading_tag }}}>
+			</{{{ headingSizeTag }}}>
 			<# if ( '' != settings.page_heading_link.url ) { #>
 					</a>
 			<# } #>			
 		</div>
 		<?php
-	}
-
-	/**
-	 * Render page title output in the editor.
-	 *
-	 * Written as a Backbone JavaScript template and used to generate the live preview.
-	 *
-	 * Remove this after Elementor v3.3.0
-	 *
-	 * @since 1.3.0
-	 * @access protected
-	 */
-	protected function _content_template() {
-		$this->content_template();
 	}
 }

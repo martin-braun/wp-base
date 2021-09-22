@@ -11,8 +11,8 @@ namespace HFE\WidgetsManager\Widgets;
 use Elementor\Controls_Manager;
 use Elementor\Utils;
 use Elementor\Group_Control_Typography;
-use Elementor\Scheme_Typography;
-use Elementor\Scheme_Color;
+use Elementor\Core\Kits\Documents\Tabs\Global_Typography;
+use Elementor\Core\Kits\Documents\Tabs\Global_Colors;
 use Elementor\Group_Control_Border;
 use Elementor\Group_Control_Box_Shadow;
 use Elementor\Group_Control_Background;
@@ -160,14 +160,24 @@ class Navigation_Menu extends Widget_Base {
 		}
 	}
 
-
 	/**
 	 * Register Nav Menu controls.
 	 *
 	 * @since 1.3.0
 	 * @access protected
 	 */
-	protected function _register_controls() {
+	protected function _register_controls() { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore
+
+		$this->register_controls();
+	}
+
+	/**
+	 * Register Nav Menu controls.
+	 *
+	 * @since 1.5.7
+	 * @access protected
+	 */
+	protected function register_controls() {
 
 		$this->register_general_content_controls();
 		$this->register_style_content_controls();
@@ -200,7 +210,6 @@ class Navigation_Menu extends Widget_Base {
 					'options'      => $menus,
 					'default'      => array_keys( $menus )[0],
 					'save_default' => true,
-					'separator'    => 'after',
 					/* translators: %s Nav menu URL */
 					'description'  => sprintf( __( 'Go to the <a href="%s" target="_blank">Menus screen</a> to manage your menus.', 'header-footer-elementor' ), admin_url( 'nav-menus.php' ) ),
 				]
@@ -212,7 +221,6 @@ class Navigation_Menu extends Widget_Base {
 					'type'            => Controls_Manager::RAW_HTML,
 					/* translators: %s Nav menu URL */
 					'raw'             => sprintf( __( '<strong>There are no menus in your site.</strong><br>Go to the <a href="%s" target="_blank">Menus screen</a> to create one.', 'header-footer-elementor' ), admin_url( 'nav-menus.php?action=edit&menu=0' ) ),
-					'separator'       => 'after',
 					'content_classes' => 'elementor-panel-alert elementor-panel-alert-info',
 				]
 			);
@@ -221,13 +229,16 @@ class Navigation_Menu extends Widget_Base {
 		$this->add_control(
 			'menu_last_item',
 			[
-				'label'   => __( 'Last Menu Item', 'header-footer-elementor' ),
-				'type'    => Controls_Manager::SELECT,
-				'options' => [
+				'label'     => __( 'Last Menu Item', 'header-footer-elementor' ),
+				'type'      => Controls_Manager::SELECT,
+				'options'   => [
 					'none' => __( 'Default', 'header-footer-elementor' ),
 					'cta'  => __( 'Button', 'header-footer-elementor' ),
 				],
-				'default' => 'none',
+				'default'   => 'none',
+				'condition' => [
+					'layout!' => 'expandible',
+				],
 			]
 		);
 
@@ -241,8 +252,26 @@ class Navigation_Menu extends Widget_Base {
 				'return_value' => 'yes',
 				'default'      => 'no',
 				'render_type'  => 'template',
+				'separator'    => 'before',
 			]
 		);
+
+		$current_theme = wp_get_theme();
+
+		if ( 'Twenty Twenty-One' === $current_theme->get( 'Name' ) ) {
+			$this->add_control(
+				'hide_theme_icons',
+				[
+					'label'        => __( 'Hide + & - Sign', 'header-footer-elementor' ),
+					'type'         => Controls_Manager::SWITCHER,
+					'label_on'     => __( 'Yes', 'header-footer-elementor' ),
+					'label_off'    => __( 'No', 'header-footer-elementor' ),
+					'return_value' => 'yes',
+					'default'      => 'no',
+					'prefix_class' => 'hfe-nav-menu__theme-icon-',
+				]
+			);
+		}
 
 		$this->end_controls_section();
 
@@ -894,7 +923,9 @@ class Navigation_Menu extends Widget_Base {
 			Group_Control_Typography::get_type(),
 			[
 				'name'      => 'menu_typography',
-				'scheme'    => Scheme_Typography::TYPOGRAPHY_1,
+				'global'    => [
+					'default' => Global_Typography::TYPOGRAPHY_PRIMARY,
+				],
 				'separator' => 'before',
 				'selector'  => '{{WRAPPER}} a.hfe-menu-item, {{WRAPPER}} a.hfe-sub-menu-item',
 			]
@@ -914,9 +945,8 @@ class Navigation_Menu extends Widget_Base {
 						[
 							'label'     => __( 'Text Color', 'header-footer-elementor' ),
 							'type'      => Controls_Manager::COLOR,
-							'scheme'    => [
-								'type'  => Scheme_Color::get_type(),
-								'value' => Scheme_Color::COLOR_3,
+							'global'    => [
+								'default' => Global_Colors::COLOR_TEXT,
 							],
 							'default'   => '',
 							'selectors' => [
@@ -954,9 +984,8 @@ class Navigation_Menu extends Widget_Base {
 						[
 							'label'     => __( 'Text Color', 'header-footer-elementor' ),
 							'type'      => Controls_Manager::COLOR,
-							'scheme'    => [
-								'type'  => Scheme_Color::get_type(),
-								'value' => Scheme_Color::COLOR_4,
+							'global'    => [
+								'default' => Global_Colors::COLOR_ACCENT,
 							],
 							'selectors' => [
 								'{{WRAPPER}} .menu-item a.hfe-menu-item:hover,
@@ -991,9 +1020,8 @@ class Navigation_Menu extends Widget_Base {
 						[
 							'label'     => __( 'Link Hover Effect Color', 'header-footer-elementor' ),
 							'type'      => Controls_Manager::COLOR,
-							'scheme'    => [
-								'type'  => Scheme_Color::get_type(),
-								'value' => Scheme_Color::COLOR_4,
+							'global'    => [
+								'default' => Global_Colors::COLOR_ACCENT,
 							],
 							'default'   => '',
 							'selectors' => [
@@ -1242,7 +1270,9 @@ class Navigation_Menu extends Widget_Base {
 				Group_Control_Typography::get_type(),
 				[
 					'name'      => 'dropdown_typography',
-					'scheme'    => Scheme_Typography::TYPOGRAPHY_4,
+					'global'    => [
+						'default' => Global_Typography::TYPOGRAPHY_ACCENT,
+					],
 					'separator' => 'before',
 					'selector'  => '
 							{{WRAPPER}} .sub-menu li a.hfe-sub-menu-item,
@@ -1259,8 +1289,8 @@ class Navigation_Menu extends Widget_Base {
 					'name'     => 'dropdown_border',
 					'selector' => '{{WRAPPER}} nav.hfe-nav-menu__layout-horizontal .sub-menu, 
 							{{WRAPPER}} nav:not(.hfe-nav-menu__layout-horizontal) .sub-menu.sub-menu-open,
-							{{WRAPPER}} nav.hfe-dropdown,
-						 	{{WRAPPER}} nav.hfe-dropdown-expandible',
+							{{WRAPPER}} nav.hfe-dropdown .hfe-nav-menu,
+						 	{{WRAPPER}} nav.hfe-dropdown-expandible .hfe-nav-menu',
 				]
 			);
 
@@ -1381,7 +1411,7 @@ class Navigation_Menu extends Widget_Base {
 						],
 					],
 					'selectors' => [
-						'{{WRAPPER}} nav.hfe-nav-menu__layout-horizontal ul.sub-menu, {{WRAPPER}} nav.hfe-nav-menu__layout-expandible.menu-is-active' => 'margin-top: {{SIZE}}px;',
+						'{{WRAPPER}} nav.hfe-nav-menu__layout-horizontal:not(.hfe-dropdown) ul.sub-menu, {{WRAPPER}} nav.hfe-nav-menu__layout-expandible.menu-is-active, {{WRAPPER}} nav.hfe-nav-menu__layout-vertical:not(.hfe-dropdown) ul.sub-menu' => 'margin-top: {{SIZE}}px;',
 						'{{WRAPPER}} .hfe-dropdown.menu-is-active' => 'margin-top: {{SIZE}}px;',
 					],
 					'condition' => [
@@ -1642,7 +1672,9 @@ class Navigation_Menu extends Widget_Base {
 				[
 					'name'     => 'all_typography',
 					'label'    => __( 'Typography', 'header-footer-elementor' ),
-					'scheme'   => Scheme_Typography::TYPOGRAPHY_4,
+					'global'   => [
+						'default' => Global_Typography::TYPOGRAPHY_ACCENT,
+					],
 					'selector' => '{{WRAPPER}} .menu-item a.hfe-menu-item.elementor-button',
 				]
 			);
@@ -1688,9 +1720,8 @@ class Navigation_Menu extends Widget_Base {
 							'selector'       => '{{WRAPPER}} .menu-item a.hfe-menu-item.elementor-button',
 							'fields_options' => [
 								'color' => [
-									'scheme' => [
-										'type'  => Scheme_Color::get_type(),
-										'value' => Scheme_Color::COLOR_4,
+									'global' => [
+										'default' => Global_Colors::COLOR_ACCENT,
 									],
 								],
 							],
@@ -1755,9 +1786,8 @@ class Navigation_Menu extends Widget_Base {
 							'selector'       => '{{WRAPPER}} .menu-item a.hfe-menu-item.elementor-button:hover',
 							'fields_options' => [
 								'color' => [
-									'scheme' => [
-										'type'  => Scheme_Color::get_type(),
-										'value' => Scheme_Color::COLOR_4,
+									'global' => [
+										'default' => Global_Colors::COLOR_ACCENT,
 									],
 								],
 							],
@@ -1797,12 +1827,25 @@ class Navigation_Menu extends Widget_Base {
 	 *
 	 * @since 1.5.2
 	 * @param string $atts link attributes.
-	 * @access protected
+	 * @access public
 	 */
 	public function handle_link_attrs( $atts ) {
 
 		$atts .= ' itemprop="url"';
 		return $atts;
+	}
+
+	/**
+	 * Add itemprop to the li tag of Navigation Schema.
+	 *
+	 * @since 1.6.0
+	 * @param string $value link attributes.
+	 * @access public
+	 */
+	public function handle_li_values( $value ) {
+
+		$value .= ' itemprop="name"';
+		return $value;
 	}
 
 	/**
@@ -1852,7 +1895,14 @@ class Navigation_Menu extends Widget_Base {
 	 */
 	protected function render() {
 
-		$settings         = $this->get_settings_for_display();
+		$menus = $this->get_available_menus();
+
+		if ( empty( $menus ) ) {
+			return false;
+		}
+
+		$settings = $this->get_settings_for_display();
+
 		$menu_close_icons = [];
 		$menu_close_icons = $this->get_menu_close_icon( $settings );
 
@@ -1871,6 +1921,7 @@ class Navigation_Menu extends Widget_Base {
 			$this->add_render_attribute( 'hfe-nav-menu', 'itemtype', 'http://schema.org/SiteNavigationElement' );
 
 			add_filter( 'hfe_nav_menu_attrs', [ $this, 'handle_link_attrs' ] );
+			add_filter( 'nav_menu_li_values', [ $this, 'handle_li_values' ] );
 		}
 
 		$menu_html = wp_nav_menu( $args );

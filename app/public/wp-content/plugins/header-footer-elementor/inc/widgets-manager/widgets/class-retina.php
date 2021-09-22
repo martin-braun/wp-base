@@ -13,8 +13,8 @@ use Elementor\Utils;
 use Elementor\Group_Control_Border;
 use Elementor\Group_Control_Typography;
 use Elementor\Group_Control_Box_Shadow;
-use Elementor\Scheme_Typography;
-use Elementor\Scheme_Color;
+use Elementor\Core\Kits\Documents\Tabs\Global_Typography;
+use Elementor\Core\Kits\Documents\Tabs\Global_Colors;
 use Elementor\Group_Control_Image_Size;
 use Elementor\Group_Control_Css_Filter;
 use Elementor\Group_Control_Text_Shadow;
@@ -96,7 +96,18 @@ class Retina extends Widget_Base {
 	 * @since 1.2.0
 	 * @access protected
 	 */
-	protected function _register_controls() {
+	protected function _register_controls() { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore
+
+		$this->register_controls();
+	}
+
+	/**
+	 * Register Retina Logo controls.
+	 *
+	 * @since 1.5.7
+	 * @access protected
+	 */
+	protected function register_controls() {
 		$this->register_content_retina_image_controls();
 		$this->register_retina_image_styling_controls();
 		$this->register_retina_caption_styling_controls();
@@ -369,9 +380,8 @@ class Retina extends Widget_Base {
 			[
 				'label'     => __( 'Border Color', 'header-footer-elementor' ),
 				'type'      => Controls_Manager::COLOR,
-				'scheme'    => [
-					'type'  => Scheme_Color::get_type(),
-					'value' => Scheme_Color::COLOR_1,
+				'global'    => [
+					'default' => Global_Colors::COLOR_PRIMARY,
 				],
 				'condition' => [
 					'retina_image_border!' => 'none',
@@ -532,9 +542,8 @@ class Retina extends Widget_Base {
 				'selectors' => [
 					'{{WRAPPER}} .widget-image-caption' => 'color: {{VALUE}};',
 				],
-				'scheme'    => [
-					'type'  => Scheme_Color::get_type(),
-					'value' => Scheme_Color::COLOR_3,
+				'global'    => [
+					'default' => Global_Colors::COLOR_TEXT,
 				],
 			]
 		);
@@ -555,7 +564,9 @@ class Retina extends Widget_Base {
 			[
 				'name'     => 'caption_typography',
 				'selector' => '{{WRAPPER}} .widget-image-caption',
-				'scheme'   => Scheme_Typography::TYPOGRAPHY_3,
+				'global'   => [
+					'default' => Global_Typography::TYPOGRAPHY_TEXT,
+				],
 			]
 		);
 
@@ -684,12 +695,6 @@ class Retina extends Widget_Base {
 		$link = $this->get_link_url( $settings );
 
 		if ( $link ) {
-			$this->add_render_attribute(
-				'link',
-				[
-					'href' => $link['url'],
-				]
-			);
 
 			if ( Plugin::$instance->editor->is_edit_mode() ) {
 				$this->add_render_attribute(
@@ -700,13 +705,7 @@ class Retina extends Widget_Base {
 				);
 			}
 
-			if ( ! empty( $link['is_external'] ) ) {
-				$this->add_render_attribute( 'link', 'target', '_blank' );
-			}
-
-			if ( ! empty( $link['nofollow'] ) ) {
-				$this->add_render_attribute( 'link', 'rel', 'nofollow' );
-			}
+			$this->add_link_attributes( 'link', $link );
 		}
 
 		?>

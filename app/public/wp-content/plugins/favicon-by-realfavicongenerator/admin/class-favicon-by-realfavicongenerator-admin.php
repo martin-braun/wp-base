@@ -120,7 +120,7 @@ class Favicon_By_RealFaviconGenerator_Admin extends Favicon_By_RealFaviconGenera
 			// New favicon to install:
 			// Parameters will be processed with an Ajax call
 
-			$new_favicon_params_url = $_REQUEST['json_result_url'];
+			$new_favicon_params_url = filter_var ( $_REQUEST['json_result_url'], FILTER_SANITIZE_URL );
 			$ajax_url = admin_url( 'admin-ajax.php', isset( $_SERVER['HTTPS'] ) ? 'https://' : 'http://' );
 		}
 		else {
@@ -148,7 +148,7 @@ class Favicon_By_RealFaviconGenerator_Admin extends Favicon_By_RealFaviconGenera
 	private function download_result_json( $url ) {
 		$resp = wp_remote_get( $url );
 		if ( is_wp_error( $resp )) {
-			throw new InvalidArgumentException( "Cannot download JSON file at " . $url . ": " . $resp->get_error_message() );
+			throw new InvalidArgumentException( "Cannot download JSON file at " . htmlspecialchars( $url ) . ": " . $resp->get_error_message() );
 		}
 
 		$json = wp_remote_retrieve_body( $resp );

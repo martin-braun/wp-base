@@ -3,8 +3,8 @@ Contributors: phbernard
 Donate link: http://realfavicongenerator.net/donate
 Tags: favicon, favicon icon, favicon image, favicon code, favicon change, favicon manager, short icon, addressbar logo, apple touch icon, icon, iphone, admin, wordpress, realfavicongenerator, real favicon generator
 Requires at least: 3.5
-Tested up to: 5.6
-Stable tag: 1.3.20
+Tested up to: 5.8
+Stable tag: 1.3.22
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -79,6 +79,15 @@ This screen presents you a preview of the favicon you various platforms, so you 
 5. You can also trigger RealFaviconGenerator's favicon checker, to make sure your favicon is correctly setup.
 
 == Changelog ==
+
+= 1.3.22 =
+
+- Fix inconsistency in previous deploy
+
+= 1.3.21 =
+
+- Plugin was tested up to WordPress 5.8
+- Fix XSS security issue, reported by WPSpan.com. See https://wpscan.com/vulnerability/ed9d26be-cc96-4274-a05b-0b7ad9d8cfd9?fbclid=IwAR2aRMXRjbGm9ppoI9tM-OHm26Q0ax4yt0MkcP5sp0-pz9D4eVIEHQwvG1Y
 
 = 1.3.20 =
 

@@ -9,11 +9,11 @@ namespace HFE\WidgetsManager\Widgets;
 use Elementor\Controls_Manager;
 use Elementor\Group_Control_Typography;
 use Elementor\Group_Control_Background;
-use Elementor\Scheme_Typography;
+use Elementor\Core\Kits\Documents\Tabs\Global_Typography;
 use Elementor\Widget_Base;
 use Elementor\Group_Control_Text_Shadow;
 use Elementor\Group_Control_Box_Shadow;
-use Elementor\Scheme_Color;
+use Elementor\Core\Kits\Documents\Tabs\Global_Colors;
 use Elementor\Group_Control_Border;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -105,7 +105,18 @@ class Search_Button extends Widget_Base {
 	 * @since 1.5.0
 	 * @access protected
 	 */
-	protected function _register_controls() {
+	protected function _register_controls() { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore
+
+		$this->register_controls();
+	}
+
+	/**
+	 * Register Search Button controls.
+	 *
+	 * @since 1.5.7
+	 * @access protected
+	 */
+	protected function register_controls() {
 		$this->register_general_content_controls();
 		$this->register_search_style_controls();
 	}
@@ -193,7 +204,9 @@ class Search_Button extends Widget_Base {
 			[
 				'name'     => 'input_typography',
 				'selector' => '{{WRAPPER}} input[type="search"].hfe-search-form__input,{{WRAPPER}} .hfe-search-icon-toggle',
-				'scheme'   => Scheme_Typography::TYPOGRAPHY_1,
+				'global'   => [
+					'default' => Global_Typography::TYPOGRAPHY_PRIMARY,
+				],
 			]
 		);
 
@@ -237,9 +250,8 @@ class Search_Button extends Widget_Base {
 			[
 				'label'     => __( 'Text Color', 'header-footer-elementor' ),
 				'type'      => Controls_Manager::COLOR,
-				'scheme'    => [
-					'type'  => Scheme_Color::get_type(),
-					'value' => Scheme_Color::COLOR_3,
+				'global'    => [
+					'default' => Global_Colors::COLOR_TEXT,
 				],
 				'selectors' => [
 					'{{WRAPPER}} .hfe-search-form__input' => 'color: {{VALUE}}',
@@ -255,9 +267,8 @@ class Search_Button extends Widget_Base {
 			[
 				'label'     => __( 'Placeholder Color', 'header-footer-elementor' ),
 				'type'      => Controls_Manager::COLOR,
-				'scheme'    => [
-					'type'  => Scheme_Color::get_type(),
-					'value' => Scheme_Color::COLOR_3,
+				'global'    => [
+					'default' => Global_Colors::COLOR_TEXT,
 				],
 				'selectors' => [
 					'{{WRAPPER}} .hfe-search-form__input::placeholder' => 'color: {{VALUE}}',
@@ -323,9 +334,8 @@ class Search_Button extends Widget_Base {
 			[
 				'label'     => __( 'Border Color', 'header-footer-elementor' ),
 				'type'      => Controls_Manager::COLOR,
-				'scheme'    => [
-					'type'  => Scheme_Color::get_type(),
-					'value' => Scheme_Color::COLOR_1,
+				'global'    => [
+					'default' => Global_Colors::COLOR_PRIMARY,
 				],
 				'condition' => [
 					'border_style!' => 'none',
@@ -422,9 +432,8 @@ class Search_Button extends Widget_Base {
 			[
 				'label'     => __( 'Placeholder Color', 'header-footer-elementor' ),
 				'type'      => Controls_Manager::COLOR,
-				'scheme'    => [
-					'type'  => Scheme_Color::get_type(),
-					'value' => Scheme_Color::COLOR_3,
+				'global'    => [
+					'default' => Global_Colors::COLOR_TEXT,
 				],
 				'selectors' => [
 					'{{WRAPPER}} .hfe-search-form__input:focus::placeholder' => 'color: {{VALUE}}',
@@ -655,14 +664,21 @@ class Search_Button extends Widget_Base {
 			]
 		);
 
-		$this->add_control(
-			'button_background_color',
+		$this->add_group_control(
+			Group_Control_Background::get_type(),
 			[
-				'label'     => __( 'Background Color', 'header-footer-elementor' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '#818a91',
-				'selectors' => [
-					'{{WRAPPER}} .hfe-search-submit' => 'background-color: {{VALUE}}',
+				'name'           => 'button_background',
+				'label'          => __( 'Background', 'header-footer-elementor' ),
+				'types'          => [ 'classic', 'gradient' ],
+				'exclude'        => [ 'image' ],
+				'selector'       => '{{WRAPPER}} .hfe-search-submit',
+				'fields_options' => [
+					'background' => [
+						'default' => 'classic',
+					],
+					'color'      => [
+						'default' => '#818a91',
+					],
 				],
 			]
 		);
@@ -679,7 +695,7 @@ class Search_Button extends Widget_Base {
 		$this->add_control(
 			'button_text_color_hover',
 			[
-				'label'     => __( 'Text Color', 'header-footer-elementor' ),
+				'label'     => __( 'Icon Color', 'header-footer-elementor' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .hfe-search-submit:hover' => 'color: {{VALUE}}',
@@ -694,6 +710,23 @@ class Search_Button extends Widget_Base {
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .hfe-search-submit:hover' => 'background-color: {{VALUE}}',
+				],
+				'condition' => [
+					'button_background_color_hover!' => '',
+				],
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Background::get_type(),
+			[
+				'name'      => 'button_background_hover',
+				'label'     => __( 'Background', 'header-footer-elementor' ),
+				'types'     => [ 'classic', 'gradient' ],
+				'exclude'   => [ 'image' ],
+				'selector'  => '{{WRAPPER}} .hfe-search-submit:hover',
+				'condition' => [
+					'button_background_color_hover' => '',
 				],
 			]
 		);
@@ -879,9 +912,8 @@ class Search_Button extends Widget_Base {
 			[
 				'label'     => __( 'Color', 'header-footer-elementor' ),
 				'type'      => Controls_Manager::COLOR,
-				'scheme'    => [
-					'type'  => Scheme_Color::get_type(),
-					'value' => Scheme_Color::COLOR_3,
+				'global'    => [
+					'default' => Global_Colors::COLOR_TEXT,
 				],
 				'default'   => '#7a7a7a',
 				'selectors' => [

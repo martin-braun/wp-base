@@ -16,5 +16,12 @@
 # idea
 /.idea/*
 
+# macos
+._.DS_Store
+.DS_Store
+
+# windows
+thumbs.db
+
 # wordpress plugins
-/app/public/wp-content/uploads/sb-instagram-feed-images/*
+

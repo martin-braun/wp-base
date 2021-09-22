@@ -3,8 +3,8 @@ Contributors: wfryan, wfmattr, mmaunder, wfmatt
 Tags: security, login security, 2fa, two factor authentication, captcha, xml-rpc, mfa, 2 factor
 Requires at least: 4.5
 Requires PHP: 5.3
-Tested up to: 5.6
-Stable tag: 1.0.6
+Tested up to: 5.8
+Stable tag: 1.0.8
 
 Secure your website with Wordfence Login Security, providing two-factor authentication, login and registration CAPTCHA, and XML-RPC protection.
 
@@ -57,6 +57,17 @@ Secure your website with Wordfence Login Security.
 3. Configuration options include XML-RPC protection and login page CAPTCHA.
 
 == Changelog ==
+
+= 1.0.8 - July 19, 2021 =
+* Fix: WooCommerce integration notice can now be dismissed on any admin page
+* Change: Updated messaging around 2FA for WooCommerce roles
+
+= 1.0.7 - July 8, 2021 =
+* Improvement: Added 2FA and reCAPTCHA support for WooCommerce login and registration forms
+* Improvement: Added option to require 2FA for any role
+* Improvement: Added logic to automatically disable NTP after repeated failures and option to manually disable NTP
+* Change: Updated reCAPTCHA setup note
+* Change: Updated plugin headers for compatibility with WordPress 5.8
 
 = 1.0.6 - January 14, 2021 =
 * Improvement: Made a number of WordPress 5.6 and jQuery 3.x compatibility improvements.

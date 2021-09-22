@@ -1,4 +1,4 @@
-/*! elementor - v3.1.1 - 31-01-2021 */
+/*! elementor - v3.4.4 - 13-09-2021 */
 .dialog-widget-content {
   background-color: #fff;
   position: absolute;
@@ -293,7 +293,8 @@
   -webkit-box-shadow: 0 0 13px inset rgba(0, 0, 0, 0.05);
           box-shadow: 0 0 13px inset rgba(0, 0, 0, 0.05); }
 
-#wpadminbar #wp-admin-bar-elementor_app_site_editor a.ab-item {
+/* Will select next element after last '.elementor-general-section' */
+#wpadminbar #wp-admin-bar-elementor_edit_page .elementor-general-section + .elementor-second-section {
   border-top: 1px solid #464b50;
   margin-top: 6px; }
 

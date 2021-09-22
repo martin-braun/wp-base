@@ -178,25 +178,6 @@ class Indexable_Post_Watcher implements Integration_Interface {
 	}
 
 	/**
-	 * Determines if the post can be indexed.
-	 *
-	 * @param int $post_id Post ID to check.
-	 *
-	 * @return bool True if the post can be indexed.
-	 */
-	protected function is_post_indexable( $post_id ) {
-		if ( \wp_is_post_revision( $post_id ) ) {
-			return false;
-		}
-
-		if ( \wp_is_post_autosave( $post_id ) ) {
-			return false;
-		}
-
-		return true;
-	}
-
-	/**
 	 * Saves post meta.
 	 *
 	 * @param int $post_id Post ID.
@@ -209,10 +190,6 @@ class Indexable_Post_Watcher implements Integration_Interface {
 			return;
 		}
 
-		if ( ! $this->is_post_indexable( $post_id ) ) {
-			return;
-		}
-
 		try {
 			$indexable = $this->repository->find_by_id_and_type( $post_id, 'post', false );
 			$indexable = $this->builder->build_for_id_and_type( $post_id, 'post', $indexable );
@@ -220,7 +197,7 @@ class Indexable_Post_Watcher implements Integration_Interface {
 			$post = $this->post->get_post( $post_id );
 
 			// Build links for this post.
-			if ( $post && $indexable ) {
+			if ( $post && $indexable && \in_array( $post->post_status, $this->post->get_public_post_statuses(), true ) ) {
 				$this->link_builder->build( $indexable, $post->post_content );
 				// Save indexable to persist the updated link count.
 				$indexable->save();

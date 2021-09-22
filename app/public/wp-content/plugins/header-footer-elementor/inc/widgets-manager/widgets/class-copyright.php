@@ -10,8 +10,8 @@ namespace HFE\WidgetsManager\Widgets;
 use Elementor\Controls_Manager;
 use Elementor\Utils;
 use Elementor\Group_Control_Typography;
-use Elementor\Scheme_Typography;
-use Elementor\Scheme_Color;
+use Elementor\Core\Kits\Documents\Tabs\Global_Typography;
+use Elementor\Core\Kits\Documents\Tabs\Global_Colors;
 use Elementor\Widget_Base;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -80,13 +80,25 @@ class Copyright extends Widget_Base {
 	public function get_categories() {
 		return [ 'hfe-widgets' ];
 	}
+
 	/**
 	 * Register Copyright controls.
 	 *
 	 * @since 1.2.0
 	 * @access protected
 	 */
-	protected function _register_controls() { //phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore
+	protected function _register_controls() { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore
+
+		$this->register_controls();
+	}
+
+	/**
+	 * Register Copyright controls.
+	 *
+	 * @since 1.5.7
+	 * @access protected
+	 */
+	protected function register_controls() {
 		$this->register_content_copy_right_controls();
 	}
 	/**
@@ -154,9 +166,8 @@ class Copyright extends Widget_Base {
 			[
 				'label'     => __( 'Text Color', 'header-footer-elementor' ),
 				'type'      => Controls_Manager::COLOR,
-				'scheme'    => [
-					'type'  => Scheme_Color::get_type(),
-					'value' => Scheme_Color::COLOR_3,
+				'global'    => [
+					'default' => Global_Colors::COLOR_TEXT,
 				],
 				'selectors' => [
 					// Stronger selector to avoid section style from overwriting.
@@ -170,7 +181,9 @@ class Copyright extends Widget_Base {
 			[
 				'name'     => 'caption_typography',
 				'selector' => '{{WRAPPER}} .hfe-copyright-wrapper, {{WRAPPER}} .hfe-copyright-wrapper a',
-				'scheme'   => Scheme_Typography::TYPOGRAPHY_3,
+				'global'   => [
+					'default' => Global_Typography::TYPOGRAPHY_TEXT,
+				],
 			]
 		);
 	}
@@ -187,17 +200,14 @@ class Copyright extends Widget_Base {
 		$settings = $this->get_settings_for_display();
 		$link     = isset( $settings['link']['url'] ) ? $settings['link']['url'] : '';
 
-		if ( ! empty( $settings['link']['nofollow'] ) ) {
-			$this->add_render_attribute( 'link', 'rel', 'nofollow' );
-		}
-		if ( ! empty( $settings['link']['is_external'] ) ) {
-			$this->add_render_attribute( 'link', 'target', '_blank' );
+		if ( ! empty( $link ) ) {
+			$this->add_link_attributes( 'link', $settings['link'] );
 		}
 
 		$copy_right_shortcode = do_shortcode( shortcode_unautop( $settings['shortcode'] ) ); ?>
 		<div class="hfe-copyright-wrapper">
 			<?php if ( ! empty( $link ) ) { ?>
-				<a href="<?php echo esc_url( $link ); ?>" <?php echo $this->get_render_attribute_string( 'link' ); ?>>
+				<a <?php echo wp_kses_post( $this->get_render_attribute_string( 'link' ) ); ?>>
 					<span><?php echo wp_kses_post( $copy_right_shortcode ); ?></span>
 				</a>
 			<?php } else { ?>
@@ -229,18 +239,4 @@ class Copyright extends Widget_Base {
 	 * @access protected
 	 */
 	protected function content_template() {}
-
-	/**
-	 * Render shortcode output in the editor.
-	 *
-	 * Written as a Backbone JavaScript template and used to generate the live preview.
-	 *
-	 * Remove this after Elementor v3.3.0
-	 *
-	 * @since 1.2.0
-	 * @access protected
-	 */
-	protected function _content_template() {
-		$this->content_template();
-	}
 }
