@@ -1,0 +1,6 @@
+#wpadminbar {
+	background-color: #9c3e3d !important;
+}
+#wpadminbar li:hover > .ab-item {
+	background-color: #00000033 !important;
+}
