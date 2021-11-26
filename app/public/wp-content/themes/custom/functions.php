@@ -1,6 +1,13 @@
 <?php if ( ! defined( 'ABSPATH' ) ) exit;
 
-$child_theme_dist_version = '20211110_021122';
+$child_theme_dist_version = '20211126_171549';
+
+/**
+ * LOCAL-WP ADJUSTMENTS
+ */
+if (defined('WP_LOCAL') && WP_LOCAL) {
+	require_once 'local-wp-admin.php';
+}
 
 /**
  * COMMON CUSTOMIZATION

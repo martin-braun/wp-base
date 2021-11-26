@@ -21,7 +21,7 @@
 /**
  * For developers: The LocalWP debug mode.
  *
- * This this to “false” to let the website work in the live environment.
+ * Set this to “false” to let the website work in the live environment.
  * Set this value only to “true” when the website runs in LocalWP, locally.
  * Setting this value to “true” on a live instance will cause a database error!
  */
@@ -57,6 +57,21 @@ define( 'DISALLOW_FILE_EDIT', true );
 
 /** Define CRON DIY setting. */
 define( 'DISABLE_WP_CRON', ! ( defined( 'WP_LOCAL' ) && WP_LOCAL ) );
+
+/**
+ * WP Mail SMTP settings.
+ *
+ * These constants should be used to configure a custom SMTP server.
+ */
+// define( 'WPMS_ON', true );
+// define( 'WPMS_MAILER', 'smtp' );
+// define( 'WPMS_SSL', 'tls' ); // Possible values '', 'ssl', 'tls'
+// define( 'WPMS_SMTP_AUTH', true );
+// define( 'WPMS_SMTP_HOST', '' ); // The SMTP mail host.
+// define( 'WPMS_SMTP_PORT', 587 ); // The SMTP server port number.
+// define( 'WPMS_MAIL_FROM', '' );
+// define( 'WPMS_SMTP_USER', '' );
+// define( 'WPMS_SMTP_PASS', '' );
 
 /**
  * Authentication Unique Keys and Salts.
