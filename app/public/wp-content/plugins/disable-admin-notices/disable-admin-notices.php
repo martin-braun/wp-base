@@ -4,11 +4,11 @@
  * Plugin URI: https://clearfy.pro/disable-admin-notices
  * Description: Disable admin notices plugin gives you the option to hide updates warnings and inline notices in the admin panel.
  * Author: Creative Motion <info@cm-wp.com>
- * Version: 1.2.6
+ * Version: 1.2.7
  * Text Domain: disable-admin-notices
  * Domain Path: /languages/
  * Author URI: https://webcraftic.com
- * Framework Version: FACTORY_443_VERSION
+ * Framework Version: FACTORY_450_VERSION
  */
 
 /**
@@ -51,7 +51,7 @@ require_once( dirname( __FILE__ ) . '/libs/factory/core/includes/class-factory-r
 $wdan_plugin_info = array(
 	'prefix'               => 'wbcr_dan_',
 	'plugin_name'          => 'wbcr_dan',
-	'plugin_title'         => __( 'Disable admin notices', 'disable-admin-notices' ),
+	'plugin_title'         => __( 'Webcraftic disable admin notices', 'disable-admin-notices' ),
 
 	// PLUGIN SUPPORT
 	'support_details'      => array(
@@ -93,17 +93,17 @@ $wdan_plugin_info = array(
 
 	// FRAMEWORK MODULES
 	'load_factory_modules' => array(
-		array( 'libs/factory/bootstrap', 'factory_bootstrap_443', 'admin' ),
-		array( 'libs/factory/forms', 'factory_forms_440', 'admin' ),
-		array( 'libs/factory/pages', 'factory_pages_442', 'admin' ),
-		array( 'libs/factory/clearfy', 'factory_clearfy_234', 'all' ),
-		array( 'libs/factory/freemius', 'factory_freemius_131', 'all' ),
-		array( 'libs/factory/adverts', 'factory_adverts_121', 'admin' ),
-		//array('libs/factory/logger', 'factory_logger_101', 'all')
+		array( 'libs/factory/bootstrap', 'factory_bootstrap_450', 'admin' ),
+		array( 'libs/factory/forms', 'factory_forms_447', 'admin' ),
+		array( 'libs/factory/pages', 'factory_pages_449', 'admin' ),
+		array( 'libs/factory/templates', 'factory_templates_100', 'all' ),
+		array( 'libs/factory/freemius', 'factory_freemius_138', 'all' ),
+		array( 'libs/factory/adverts', 'factory_adverts_128', 'admin' ),
+		//array('libs/factory/logger', 'factory_logger_115', 'all')
 	)
 );
 
-$wdan_compatibility = new Wbcr_Factory443_Requirements( __FILE__, array_merge( $wdan_plugin_info, array(
+$wdan_compatibility = new Wbcr_Factory450_Requirements( __FILE__, array_merge( $wdan_plugin_info, array(
 	'plugin_already_activate'          => defined( 'WDN_PLUGIN_ACTIVE' ),
 	'required_php_version'             => '7.0',
 	'required_wp_version'              => '4.8.0',

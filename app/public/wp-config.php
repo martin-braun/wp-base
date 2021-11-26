@@ -56,22 +56,7 @@ define( 'FORCE_SSL_ADMIN', true );
 define( 'DISALLOW_FILE_EDIT', true );
 
 /** Define CRON DIY setting. */
-define( 'DISABLE_WP_CRON', false );
-
-/**
- * WP Mail SMTP settings.
- *
- * These constants should be used to configure a custom SMTP server.
- */
-// define( 'WPMS_ON', true );
-// define( 'WPMS_MAILER', 'smtp' );
-// define( 'WPMS_SSL', 'tls' ); // Possible values '', 'ssl', 'tls'
-// define( 'WPMS_SMTP_AUTH', true );
-// define( 'WPMS_SMTP_HOST', '' ); // The SMTP mail host.
-// define( 'WPMS_SMTP_PORT', 587 ); // The SMTP server port number.
-// define( 'WPMS_MAIL_FROM', '' );
-// define( 'WPMS_SMTP_USER', '' );
-// define( 'WPMS_SMTP_PASS', '' );
+define( 'DISABLE_WP_CRON', ! ( defined( 'WP_LOCAL' ) && WP_LOCAL ) );
 
 /**
  * Authentication Unique Keys and Salts.
@@ -90,6 +75,20 @@ define('AUTH_SALT',        '4u8nDPhteJ8x55l/sK4WFIx3zzLmYF0wOUc04QjgjSv4h13vPsOU
 define('SECURE_AUTH_SALT', '0aQNkSdie+tztRcjN5c6n6rf8kBj+U7y0P99TbFCP3NwHIPFqiFYOr8VCDXDT9t59NW3FDSN6PMRJyI6gWs4jA==');
 define('LOGGED_IN_SALT',   'fTXknPfAJO2zAFb0TZG26dSHs1rKBDALYSIYB25Fbs9H4+uUicG8wAM9ls2+ZkY+zTax/tOHPXCUYTfJed1ebg==');
 define('NONCE_SALT',       '/ARBkolc/iUUnWpIgPM4Gf8seVeyUuA0oMOLHanIt6N7oG08FlipjeeZpULIUeW6pkr9cfAl3O6oKkYxZjiZXQ==');
+
+/**
+ * Constant to Configure Core Updates.
+ * 
+ * To enable automatic updates for major releases or development purposes, 
+ * the place to start is with the WP_AUTO_UPDATE_CORE constant. 
+ * Defining this constant one of three ways allows you to blanket-enable, 
+ * or blanket-disable several types of core updates at once.
+ * 
+ * Value of true – Development, minor, and major updates are all enabled
+ * Value of false – Development, minor, and major updates are all disabled
+ * Value of 'minor' – Minor updates are enabled, development, and major updates are disabled
+ */
+define( 'WP_AUTO_UPDATE_CORE', defined( 'WP_LOCAL' ) && WP_LOCAL || 'minor' );
 
 /**
  * WordPress Database Table prefix.
@@ -123,7 +122,7 @@ define( 'WP_DEBUG', defined( 'WP_LOCAL' ) && WP_LOCAL || false );
  *
  * @link https://wordpress.org/support/article/debugging-in-wordpress/#wp_debug_log
  */
-define( 'WP_DEBUG_LOG', true );
+define( 'WP_DEBUG_LOG', defined( 'WP_LOCAL' ) && WP_LOCAL || false );
 
 /* That's all, stop editing! Happy publishing. */
 

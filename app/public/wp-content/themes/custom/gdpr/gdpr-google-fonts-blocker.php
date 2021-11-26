@@ -76,4 +76,6 @@ add_action( 'wp_print_styles', function() {
     wp_deregister_style( 'yith-wcwl-material-icons' );
     wp_deregister_style( 'raleway-font' );
 }, 1001 );
-
+add_action( 'wp_enqueue_scripts', function() {
+    wp_dequeue_style( 'googleFontsOpenSans' );
+}, 1001 );

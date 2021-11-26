@@ -1,0 +1,48 @@
+# Translation of Plugins - Slim Maintenance Mode - Development (trunk) in German
+# This file is distributed under the same license as the Plugins - Slim Maintenance Mode - Development (trunk) package.
+msgid ""
+msgstr ""
+"PO-Revision-Date: 2018-09-17 17:51:28+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: GlotPress/3.0.0-alpha.2\n"
+"Language: de\n"
+"Project-Id-Version: Plugins - Slim Maintenance Mode - Development (trunk)\n"
+
+#. Plugin URI of the plugin
+msgid "https://wpdoc.de/plugins/"
+msgstr "https://wpdoc.de/plugins/"
+
+#. Author URI of the plugin
+msgid "https://wpdoc.de"
+msgstr "https://wpdoc.de"
+
+#. Author of the plugin
+msgid "Johannes Ries"
+msgstr "Johannes Ries"
+
+#. Description of the plugin
+msgid "A lightweight solution for scheduled maintenance. Simply activate the plugin and only administrators can see the website."
+msgstr "Eine simple Lösung für planmässige Wartungsarbeiten. Einfach aktivieren und nur noch Administratoren sehen die Website."
+
+#. Plugin Name of the plugin
+msgid "Slim Maintenance Mode"
+msgstr "Slim Maintenance Mode"
+
+#: slim-maintenance-mode.php:136 slim-maintenance-mode.php:145
+msgid "Please check back soon."
+msgstr "Bitte versuchen Sie es später noch einmal."
+
+#: slim-maintenance-mode.php:136 slim-maintenance-mode.php:145
+msgid "Maintenance"
+msgstr "Wartungsarbeiten"
+
+#: slim-maintenance-mode.php:119
+msgid "Deactivate it, when work is done."
+msgstr "Bitte deaktivieren, wenn die Arbeit getan ist."
+
+#: slim-maintenance-mode.php:119 slim-maintenance-mode.php:126
+msgid "<strong>Maintenance mode</strong> is <strong>active</strong>!"
+msgstr "Der <strong>Wartungsmodus</strong> ist <strong>aktiviert</strong>!"

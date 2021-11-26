@@ -1,6 +1,6 @@
 <?php
 
-namespace WBCR\Factory_Logger_101;
+namespace WBCR\Factory_Logger_115;
 
 // Exit if accessed directly
 if ( ! defined( 'ABSPATH' ) ) {
@@ -48,7 +48,7 @@ class Logger {
 	const LEVEL_DEBUG = 'debug';
 
 	/**
-	 * @var \Wbcr_Factory443_Plugin Plugin class.
+	 * @var \Wbcr_Factory450_Plugin Plugin class.
 	 */
 	public $plugin;
 
@@ -73,16 +73,16 @@ class Logger {
 	public $flush_interval = 1000;
 
 	/**
-	 * @var int Rotate size in bytes. Default: 5 Mb.
+	 * @var int Rotate size in bytes. Default: 500 Kb.
 	 */
-	public $rotate_size = 5000000;
+	public $rotate_size = 512000;
 
 	/**
 	 * @var int Number of rotated files. When size of $rotate_size matches current file, current file would be rotated.
-	 * For example, there are 3 files, current file became size of $rotate_size, third file would be deleted, two first
+	 * For example, there are 10 files, current file became size of $rotate_size, third file would be deleted, two first
 	 * shifted and empty one created.
 	 */
-	public $rotate_limit = 3;
+	public $rotate_limit = 10;
 
 	/**
 	 * @var array List of logs to be dumped.
@@ -92,7 +92,7 @@ class Logger {
 	/**
 	 * Logger constructor.
 	 *
-	 * @param \Wbcr_Factory443_Plugin $plugin
+	 * @param \Wbcr_Factory450_Plugin $plugin
 	 * @param array $settings
 	 */
 	public function __construct( $plugin, $settings = [] ) {
@@ -127,9 +127,7 @@ class Logger {
 	 * @return string|false false on failure, string on success.
 	 */
 	public function get_dir() {
-
 		$base_dir = $this->get_base_dir();
-
 		if ( $base_dir === null ) {
 			return false;
 		}
@@ -144,7 +142,6 @@ class Logger {
 				$name_split[0] = trim( $name_split[0] );
 
 				for ( $i = $this->rotate_limit; $i >= 0; $i -- ) {
-
 					$cur_name = $name_split[0] . $i;
 					$cur_path = $base_dir . $cur_name . '.log';
 
@@ -177,8 +174,8 @@ class Logger {
 			$base_path = wp_normalize_path( trailingslashit( $this->dir ) . "{$plugin_slug}/" );
 		}
 
+		/*
 		$folders = glob( $base_path . 'logs-*' );
-
 		if ( ! empty( $folders ) ) {
 			$exploded_path        = explode( '/', trim( $folders[0] ) );
 			$selected_logs_folder = array_pop( $exploded_path );
@@ -193,7 +190,9 @@ class Logger {
 		}
 
 		$path = $base_path . $selected_logs_folder . '/';
+		*/
 
+		$path = $base_path;
 		if ( ! file_exists( $path ) ) {
 			@mkdir( $path, 0755, true );
 		}
@@ -333,11 +332,11 @@ class Logger {
 	 */
 	public function get_format( $level, $message ) {
 
-		// Example: 2019-01-14 12:03:29.0593  [127.0.0.1][ee6a12][info] {message}
-		$template = '%s [%s][:%s:] %s';
-		$date     = date( 'd-m-Y H:i:s' );
+		// Example: 17-03-2021 13:44:23 [site.com][info] Message
+		$template = '%s [%s][%s] %s';
+		$date     = date_i18n( 'd-m-Y H:i:s' );
 
-		$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? $_SERVER['REMOTE_ADDR'] : '';
+		$ip = isset( $_SERVER['SERVER_NAME'] ) ? $_SERVER['SERVER_NAME'] : '';
 
 		return sprintf( $template, $date, $ip, $level, $message );
 	}
@@ -358,7 +357,7 @@ class Logger {
 	/**
 	 * Get Export object.
 	 *
-	 * @return bool|string
+	 * @return bool|Log_Export
 	 */
 	public function get_export() {
 		return new Log_Export( $this, "{$this->plugin->plugin_slug}_log_export-{datetime}.zip" );
@@ -382,7 +381,7 @@ class Logger {
 		//}
 		//}
 
-		$this->_logs[] = $this->get_format( $level, $message );
+		$this->_logs[] = $this->get_format( $level, htmlspecialchars( $message ) );
 
 		if ( count( $this->_logs ) >= $this->flush_interval ) {
 			$this->flush();
@@ -452,42 +451,10 @@ class Logger {
 	 */
 	public function prettify() {
 		$content = $this->get_content();
+		$replace = "<div class='wbcr-log-row wbcr_logger_level_$4'><strong>$1 $2</strong> [$3]<div class='wbcr_logger_level'>$4</div>$5</div>";
 
-		$search = [
-			"\r\n",
-			"\n\r",
-			"\025",
-			"\n",
-			"\r",
-			"\t",
-		];
-
-		$replacement = [
-			'<br>',
-			'<br>',
-			'<br>',
-			'<br>',
-			'<br>',
-			str_repeat( '&nbsp;', 4 ),
-		];
-
-		$content = str_replace( $search, $replacement, $content );
-
-
-		$color_map = [
-			self::LEVEL_INFO    => [ 'color' => '#fff', 'bg' => '#52d130' ],
-			self::LEVEL_ERROR   => [ 'color' => '#fff', 'bg' => '#ff5e5e' ],
-			self::LEVEL_WARNING => [ 'color' => '#fff', 'bg' => '#ef910a' ],
-			self::LEVEL_DEBUG   => [ 'color' => '#fff', 'bg' => '#8f8d8b' ],
-		];
-
-		/**
-		 * Highlight log levels
-		 */
-		foreach ( $color_map as $level => $item ) {
-			$content = preg_replace( "/(\[:$level:\])/",
-				"<span class='wbcr_logger_level' style='color: {$item['color']};background-color: {$item['bg']}'>$level</span>", $content );
-		}
+		$content = str_replace( [ "\n", "\r<br>" ], [ "<br>", "\r\n" ], $content );
+		$content = preg_replace( "/^(\S+)\s*(\S+)\s*\[(.+)\]\s*\[(.+)\]\s*(.*)$/m", $replace, $content );
 
 		return $content;
 	}

@@ -7,9 +7,10 @@ extension_dir="{{extensionsDir}}"
 ; Maxes
 max_execution_time = 1200
 max_input_time = 600
-max_input_vars = 4000
-memory_limit = 256M
-post_max_size = 1000M
+max_input_vars = 6000
+memory_limit = 512M
+upload_max_filesize = 2048M
+post_max_size = 2048M
 max_file_uploads = 20
 output_buffering = 4096
 
@@ -68,7 +69,6 @@ user_dir =
 enable_dl = Off
 cgi.fix_pathinfo=1
 file_uploads = On
-upload_max_filesize = 300M
 allow_url_fopen = On
 allow_url_include = Off
 default_socket_timeout = 60

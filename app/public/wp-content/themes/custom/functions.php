@@ -12,7 +12,7 @@ add_action( 'wp_enqueue_scripts', function() {
 	if ( defined( 'WP_LOCAL' ) && WP_LOCAL ) {
 		wp_enqueue_style( 'local-wp-style', get_stylesheet_directory_uri() .'/local-wp.css?v=' . $child_theme_dist_version ); // load local-wp css
 	}
-} );
+}, 1001 );
 require_once 'custom-shortcodes.php'; // add shortcodes
 
 /**
@@ -25,7 +25,7 @@ if ( is_user_logged_in() && current_user_can( 'administrator' ) ) { // current u
 		if ( defined( 'WP_LOCAL' ) && WP_LOCAL ) {
 			echo '<link rel="stylesheet" href="' . get_stylesheet_directory_uri() . '/local-wp-admin.css?v=' . $child_theme_dist_version . '" />';
 		}
-	});
+	}, 1001 );
 }
 
 /**
@@ -39,7 +39,7 @@ add_action( 'wp_footer', function() { // add custom scripts
 		wp_enqueue_style( 'child-style', get_stylesheet_directory_uri() .'/assets/scss/_index.scss' );
 	}
 	echo '<script async="" defer="" src="' . get_stylesheet_directory_uri() . '/assets/js/custom-theme.js?v=' . $child_theme_dist_version . '"></script>';
-} );
+}, 1001 );
 
 /**
  * REST ENDPOINT CUSTOMIZATION
