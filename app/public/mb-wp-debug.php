@@ -22,7 +22,7 @@ function console_log(): string {
                 foreach ( ( new ReflectionClass( $class ) )->getProperties() as $prop ) {
                     $prop->setAccessible( true );
                     $name = $prop->getName();
-                    if ( isset( $class->{$name} ) ) {
+                    if ( isset( $obj->{$name} ) ) {
                         $value = $prop->getValue( $obj );
                         if ( is_array( $value ) ) {
                             $members[$name] = [];
