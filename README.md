@@ -10,6 +10,8 @@ It uses Elementor as default page builder, but can be replaced. In fact, since t
 - Custom pre-selected and implemented child theme with SCSS support (using [SCSS-Library](https://wordpress.org/support/plugin/scss-library/)) that awaits your custom edits
 - Security plugins like [Wordfence](https://wordpress.org/plugins/wordfence/) and [Wordfence Login Security](https://wordpress.org/plugins/wordfence-login-security/)
 - Quality of life plugins like [WP Admin Cache](https://wordpress.org/plugins/wp-admin-cache/) and [Admin Menu Search](https://wordpress.org/plugins/admin-menu-search/)
+- Essential E-commerce plugins such as [WooCommerce](https://woocommerce.com/) and [WooCommerce Germanized](https://vendidero.de/woocommerce-germanized)
+- Useful predefined functions in the child theme to play with
 
 ## Requirements
 

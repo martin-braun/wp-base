@@ -58,6 +58,15 @@ define( 'DISALLOW_FILE_EDIT', true );
 /** Define CRON DIY setting. */
 define( 'DISABLE_WP_CRON', ! ( defined( 'WP_LOCAL' ) && WP_LOCAL ) );
 
+/** Define free product on free product campaign. */
+define( 'WOOCOMMERCE_FREE_PRODUCT_CAMPAIGN_FREE_PRODUCT_ID', 0 );
+
+/** Define price trigger on free product campaign. */
+define( 'WOOCOMMERCE_FREE_PRODUCT_CAMPAIGN_PRICE_TRIGGER', 0 );
+
+/** Define product trigger on free product campaign. */
+define( 'WOOCOMMERCE_FREE_PRODUCT_CAMPAIGN_PRODUCT_TRIGGER_PRODUCT_ID', 0 );
+
 /**
  * WP Mail SMTP settings.
  *
