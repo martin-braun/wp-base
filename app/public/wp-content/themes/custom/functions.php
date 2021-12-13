@@ -40,6 +40,9 @@ if ( is_user_logged_in() && current_user_can( 'administrator' ) ) { // current u
  */
 require_once 'gdpr/gdpr-google-fonts-blocker.php'; // block Google Fonts everywhere
 require_once 'custom-menu.php'; // modify nav menu
+if( is_plugin_active( 'woocommerce/woocommerce.php' ) ) { // WooCommerce is active?
+	require_once 'custom-woocommerce-cart.php'; // modify WooCommerce cart behavior
+}
 add_action( 'wp_footer', function() { // add custom scripts
 	global $child_theme_dist_version;
 	if ( is_plugin_active( 'scss-library/scss-library.php' ) ) { // scss_library active?

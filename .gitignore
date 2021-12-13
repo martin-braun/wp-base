@@ -25,3 +25,5 @@
 thumbs.db
 
 # wordpress plugins
+/app/public/wp-content/uploads/sb-instagram-feed-images/*
+/app/public/wp-content/uploads/storeabill-*/**/*.pdf
