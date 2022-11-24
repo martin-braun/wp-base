@@ -26,11 +26,12 @@ require_once 'custom-shortcodes.php'; // add shortcodes
  * ADMIN CUSTOMIZATION
  */
 if ( is_user_logged_in() && current_user_can( 'administrator' ) ) { // current user is admin?
-	add_action('admin_print_scripts', function() { // add admin scripts
+	add_action( 'admin_print_scripts', function() { // add admin scripts
 		global $child_theme_dist_version;
+    echo '<link rel="stylesheet" href="' . get_stylesheet_directory_uri() . '/assets/css/custom-admin.css?v=' . $child_theme_dist_version . '" />';
 		echo '<script async="" defer="" type="text/javascript" src="' . get_stylesheet_directory_uri() . '/assets/js/custom-admin.js?v=' . $child_theme_dist_version . '"></script>';
 		if ( defined( 'WP_LOCAL' ) && WP_LOCAL ) {
-			echo '<link rel="stylesheet" href="' . get_stylesheet_directory_uri() . '/local-wp-admin.css?v=' . $child_theme_dist_version . '" />';
+			echo '<link rel="stylesheet" href="' . get_stylesheet_directory_uri() . '/assets/css/local-wp-admin.css?v=' . $child_theme_dist_version . '" />';
 		}
 	}, 1001 );
 }

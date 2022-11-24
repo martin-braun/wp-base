@@ -25,5 +25,10 @@
 thumbs.db
 
 # wordpress plugins
+/app/public/wp-content/uploads/backup-*/*
+/app/public/wp-content/backups-*/*
+/app/public/wp-content/cache/*
+/app/public/wp-content/cache-*/*
+/app/public/wp-content/w3tc-cache/*
 /app/public/wp-content/uploads/sb-instagram-feed-images/*
 /app/public/wp-content/uploads/storeabill-*/**/*.pdf
