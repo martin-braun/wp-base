@@ -1,0 +1,6 @@
+body.dark-mode #wpcontent {
+	filter: invert(1);
+	background-color: #eee;
+	padding-top: 32px;
+	margin-top: -32px;
+}
