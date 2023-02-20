@@ -8,6 +8,10 @@
  * DO NOT CHANGE THIS FILE
  * to override any of the settings in this section, add your styling code in the custom directory.
  */
+.page-content a,
+.comments-area a {
+  text-decoration: underline; }
+
 .alignright {
   float: right;
   margin-left: 1rem; }
@@ -68,6 +72,14 @@
 
 .hide {
   display: none !important; }
+
+.post-password-form p {
+  width: 100%;
+  display: flex;
+  align-items: flex-end; }
+
+.post-password-form [type=submit] {
+  margin-left: 3px; }
 
 /*
 DO NOT CHANGE THIS FILE
@@ -218,6 +230,9 @@ to override any of the settings in this section, add your styling code in the cu
 /**
  * Post Item in Archive
  */
+.post .entry-title a {
+  text-decoration: none; }
+
 .post .wp-post-image {
   width: 100%;
   max-height: 500px;
@@ -379,6 +394,8 @@ to override any of the settings in this section, add your styling code in the cu
           top: 50%;
           transform: translateY(-50%);
           text-decoration: none; }
+        .site-navigation ul.menu li.menu-item-has-children:focus-within > ul {
+          display: block; }
       .site-navigation ul.menu li ul {
         background: #fff;
         display: none;
@@ -481,18 +498,18 @@ footer .site-navigation ul.menu a {
 /**
  * Basic responsive layout
  */
-.site-header .header-inner, .site-header:not(.dynamic-header), .site-footer .footer-inner, .site-footer:not(.dynamic-footer), body:not([class*="elementor-page-"]) .site-main {
+.site-header .header-inner, .site-header:not(.dynamic-header), .site-footer .footer-inner, .site-footer:not(.dynamic-footer), body:not([class*="elementor-page-"]) .site-main, .page-header .entry-title {
   margin-right: auto;
   margin-left: auto;
   width: 100%; }
 
 @media (max-width: 575px) {
-  .site-header .header-inner, .site-header:not(.dynamic-header), .site-footer .footer-inner, .site-footer:not(.dynamic-footer), body:not([class*="elementor-page-"]) .site-main {
+  .site-header .header-inner, .site-header:not(.dynamic-header), .site-footer .footer-inner, .site-footer:not(.dynamic-footer), body:not([class*="elementor-page-"]) .site-main, .page-header .entry-title {
     padding-right: 10px;
     padding-left: 10px; } }
 
 @media (min-width: 576px) {
-  .site-header .header-inner, .site-header:not(.dynamic-header), .site-footer .footer-inner, .site-footer:not(.dynamic-footer), body:not([class*="elementor-page-"]) .site-main {
+  .site-header .header-inner, .site-header:not(.dynamic-header), .site-footer .footer-inner, .site-footer:not(.dynamic-footer), body:not([class*="elementor-page-"]) .site-main, .page-header .entry-title {
     max-width: 500px; }
   .site-header.header-full-width .header-inner {
     max-width: 100%; }
@@ -500,7 +517,7 @@ footer .site-navigation ul.menu a {
     max-width: 100%; } }
 
 @media (min-width: 768px) {
-  .site-header .header-inner, .site-header:not(.dynamic-header), .site-footer .footer-inner, .site-footer:not(.dynamic-footer), body:not([class*="elementor-page-"]) .site-main {
+  .site-header .header-inner, .site-header:not(.dynamic-header), .site-footer .footer-inner, .site-footer:not(.dynamic-footer), body:not([class*="elementor-page-"]) .site-main, .page-header .entry-title {
     max-width: 600px; }
   .site-header.header-full-width {
     max-width: 100%; }
@@ -508,7 +525,7 @@ footer .site-navigation ul.menu a {
     max-width: 100%; } }
 
 @media (min-width: 992px) {
-  .site-header .header-inner, .site-header:not(.dynamic-header), .site-footer .footer-inner, .site-footer:not(.dynamic-footer), body:not([class*="elementor-page-"]) .site-main {
+  .site-header .header-inner, .site-header:not(.dynamic-header), .site-footer .footer-inner, .site-footer:not(.dynamic-footer), body:not([class*="elementor-page-"]) .site-main, .page-header .entry-title {
     max-width: 800px; }
   .site-header.header-full-width {
     max-width: 100%; }
@@ -516,10 +533,7 @@ footer .site-navigation ul.menu a {
     max-width: 100%; } }
 
 @media (min-width: 1200px) {
-  .site-header .header-inner, .site-header:not(.dynamic-header), .site-footer .footer-inner, .site-footer:not(.dynamic-footer), body:not([class*="elementor-page-"]) .site-main {
-    max-width: 960px; }
-  /* Override the default width for the dynamic header and footer */
-  .site-header .header-inner, .site-footer .footer-inner {
+  .site-header .header-inner, .site-header:not(.dynamic-header), .site-footer .footer-inner, .site-footer:not(.dynamic-footer), body:not([class*="elementor-page-"]) .site-main, .page-header .entry-title {
     max-width: 1140px; }
   .site-header.header-full-width {
     max-width: 100%; }

@@ -36,7 +36,7 @@ function hello_elementor_get_setting( $setting_id ) {
 	$return = '';
 
 	if ( ! isset( $hello_elementor_settings['kit_settings'] ) ) {
-		$kit = \Elementor\Plugin::$instance->documents->get( \Elementor\Plugin::$instance->kits_manager->get_active_id(), false );
+		$kit = \Elementor\Plugin::$instance->kits_manager->get_active_kit();
 		$hello_elementor_settings['kit_settings'] = $kit->get_settings();
 	}
 
@@ -206,7 +206,7 @@ add_action( 'elementor/experiments/default-features-registered', function( \Elem
 		'name' => 'hello-theme-header-footer',
 		'title' => __( 'Hello Theme Header & Footer', 'hello-elementor' ),
 		'description' => sprintf( __( 'Use this experiment to design header and footer using Elementor Site Settings. <a href="%s" target="_blank">Learn More</a>', 'hello-elementor' ), 'https://go.elementor.com/wp-dash-header-footer' ),
-		'release_status' => $experiments_manager::RELEASE_STATUS_BETA,
+		'release_status' => $experiments_manager::RELEASE_STATUS_STABLE,
 		'new_site' => [
 			'minimum_installation_version' => '3.3.0',
 			'default_active' => $experiments_manager::STATE_ACTIVE,

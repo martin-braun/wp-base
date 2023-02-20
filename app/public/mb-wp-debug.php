@@ -1,7 +1,7 @@
 <?php
 
 if (!defined('ABSPATH')) {
-    phpinfo();
+    // phpinfo();
     exit;
 }
 

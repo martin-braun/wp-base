@@ -2,17 +2,14 @@
 
 Contributors: elemntor, KingYes, ariel.k, jzaltzberg, mati1000, bainternet
 Requires at least: 4.7
-Tested up to: 5.6
-Stable tag: 2.4.1
-Version: 2.4.1
+Tested up to: 5.9
+Stable tag: 2.6.1
+Version: 2.6.1
 Requires PHP: 5.6
 License: GNU General Public License v3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
-Tags: custom-menu, custom-logo, featured-images, rtl-language-support, threaded-comments, translation-ready
 
 A lightweight, plain-vanilla theme for Elementor page builder.
-
-***Hello Elementor*** is distributed under the terms of the GNU GPL v3 or later.
 
 == Description ==
 
@@ -92,6 +89,34 @@ License: CC0 1.0 Universal (CC0 1.0)
 Source: https://stocksnap.io/photo/4B83RD7BV9
 
 == Changelog ==
+
+= 2.6.1 - 2022-07-11 =
+* Tweak: Tables looks weird on dark backgrounds ([#126](https://github.com/elementor/hello-theme/issues/126))
+* Fix: Remove unnecessary PHP tags ([#213](https://github.com/elementor/hello-theme/issues/213))
+
+= 2.6.0 - 2022-07-10 =
+* Tweak: Added `theme_support` for `script` and `style` to avoid validation warnings ([#184](https://github.com/elementor/hello-theme/issues/184))
+* Tweak: Sanitized content for allowed HTML tags in post title ([#118](https://github.com/elementor/hello-theme/issues/118))
+* Tweak: Changed the containers to `max-width: 1140px` instead of `960px` to align with the header-footer width
+* Tweak: Centering the page title for better consistency in all cases
+* Tweak: Added link between the customizer to Elementor global settings
+* Tweak: Added Skip Links to custom or dynamic header for better accessibility
+* Fix: Added output escaping in several places ([#194](https://github.com/elementor/hello-theme/issues/194))
+* Fix: Post Password Form Submit button alignment (Props [@romanbondar](https://github.com/romanbondar))
+* Fix: Fatal error when kit doesn't exist or needs to be recreated ([#175](https://github.com/elementor/hello-theme/issues/175))
+
+= 2.5.0 - 2022-01-26 =
+* Tweak: Added keyboard navigation to Hello theme menus
+* Tweak: Added Skip Links and `#content` for the main wrapper for better accessibility ([#133](https://github.com/elementor/hello-theme/issues/133))
+* Tweak: Added underline for text links in Post Content for better accessibility
+* Tweak: Removed `outline: none` from inputs for better accessibility
+* Fix: Footer menu location is not being presented on sites that are not running Elementor
+
+= 2.4.2 - 2021-12-20 =
+* Tweak: Use HTTPS in XFN profile link to prevent mixed content error ([Topic](https://wordpress.org/support/topic/url-scheme-in-xfn-profile-link/))
+* Tweak: Remove comments in `style.min.css` output ([#179](https://github.com/elementor/hello-theme/issues/179))
+* Tweak: Promoted Hello Theme Header & Footer experiment status to Stable
+* Tweak: Added compatibility for upcoming WordPress version 5.9
 
 = 2.4.1 - 2021-07-07 =
 * Fix: Hello Theme Header & Footer experiment should be inactive for existing sites
