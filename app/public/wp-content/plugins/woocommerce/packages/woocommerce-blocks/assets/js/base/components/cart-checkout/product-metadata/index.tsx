@@ -1,8 +1,7 @@
 /**
  * External dependencies
  */
-import { ProductResponseItemData } from '@woocommerce/type-defs/product-response';
-import { CartVariationItem } from '@woocommerce/type-defs/cart';
+import { ProductResponseItemData, CartVariationItem } from '@woocommerce/types';
 
 /**
  * Internal dependencies
@@ -34,7 +33,7 @@ const ProductMetadata = ( {
 			<ProductDetails details={ itemData } />
 			<ProductDetails
 				details={ variation.map( ( { attribute = '', value } ) => ( {
-					name: attribute,
+					key: attribute,
 					value,
 				} ) ) }
 			/>

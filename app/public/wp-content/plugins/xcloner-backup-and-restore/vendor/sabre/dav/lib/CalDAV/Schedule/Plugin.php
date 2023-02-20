@@ -486,6 +486,7 @@ class Plugin extends ServerPlugin
 
         $currentObject = null;
         $objectNode = null;
+        $oldICalendarData = null;
         $isNewNode = false;
 
         $result = $home->getCalendarObjectByUID($uid);
@@ -609,7 +610,7 @@ class Plugin extends ServerPlugin
      * @param bool             $modified  a marker to indicate that the original object
      *                                    modified by this process
      */
-    protected function processICalendarChange($oldObject = null, VCalendar $newObject, array $addresses, array $ignore = [], &$modified = false)
+    protected function processICalendarChange($oldObject, VCalendar $newObject, array $addresses, array $ignore = [], &$modified = false)
     {
         $broker = new ITip\Broker();
         $messages = $broker->parseEvent($newObject, $addresses, $oldObject);
@@ -734,9 +735,7 @@ class Plugin extends ServerPlugin
 
     /**
      * This method is responsible for parsing a free-busy query request and
-     * returning it's result.
-     *
-     * @return string
+     * returning its result in $response.
      */
     protected function handleFreeBusyRequest(IOutbox $outbox, VObject\Component $vObject, RequestInterface $request, ResponseInterface $response)
     {

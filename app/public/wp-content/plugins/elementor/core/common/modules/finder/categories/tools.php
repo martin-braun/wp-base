@@ -28,6 +28,10 @@ class Tools extends Base_Category {
 		return esc_html__( 'Tools', 'elementor' );
 	}
 
+	public function get_id() {
+		return 'tools';
+	}
+
 	/**
 	 * Get category items.
 	 *
@@ -59,6 +63,12 @@ class Tools extends Base_Category {
 				'icon' => 'tools',
 				'url' => $tools_url . '#tab-maintenance_mode',
 				'keywords' => [ 'tools', 'maintenance', 'coming soon', 'elementor' ],
+			],
+			'import-export' => [
+				'title' => esc_html__( 'Import Export', 'elementor' ),
+				'icon' => 'import-export',
+				'url' => $tools_url . '#tab-import-export-kit',
+				'keywords' => [ 'tools', 'import export', 'import', 'export', 'kit' ],
 			],
 		];
 

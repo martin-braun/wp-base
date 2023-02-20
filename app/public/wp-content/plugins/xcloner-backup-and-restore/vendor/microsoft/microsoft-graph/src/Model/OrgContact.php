@@ -7,10 +7,9 @@
 *
 * @category  Library
 * @package   Microsoft.Graph
-* @copyright © Microsoft Corporation. All rights reserved.
+* @copyright (c) Microsoft Corporation. All rights reserved.
 * @license   https://opensource.org/licenses/MIT MIT License
-* @version   GIT: 1.4.0
-* @link      https://graph.microsoft.io/
+* @link      https://graph.microsoft.com
 */
 namespace Microsoft\Graph\Model;
 
@@ -19,18 +18,17 @@ namespace Microsoft\Graph\Model;
 *
 * @category  Model
 * @package   Microsoft.Graph
-* @copyright © Microsoft Corporation. All rights reserved.
+* @copyright (c) Microsoft Corporation. All rights reserved.
 * @license   https://opensource.org/licenses/MIT MIT License
-* @version   Release: 1.4.0
-* @link      https://graph.microsoft.io/
+* @link      https://graph.microsoft.com
 */
 class OrgContact extends DirectoryObject
 {
 
-     /** 
+     /**
      * Gets the addresses
      *
-     * @return array The addresses
+     * @return array|null The addresses
      */
     public function getAddresses()
     {
@@ -40,24 +38,24 @@ class OrgContact extends DirectoryObject
             return null;
         }
     }
-    
-    /** 
+
+    /**
     * Sets the addresses
     *
-    * @param PhysicalOfficeAddress $val The addresses
+    * @param PhysicalOfficeAddress[] $val The addresses
     *
     * @return OrgContact
     */
     public function setAddresses($val)
     {
-		$this->_propDict["addresses"] = $val;
+        $this->_propDict["addresses"] = $val;
         return $this;
     }
-    
+
     /**
     * Gets the companyName
     *
-    * @return string The companyName
+    * @return string|null The companyName
     */
     public function getCompanyName()
     {
@@ -67,7 +65,7 @@ class OrgContact extends DirectoryObject
             return null;
         }
     }
-    
+
     /**
     * Sets the companyName
     *
@@ -80,11 +78,11 @@ class OrgContact extends DirectoryObject
         $this->_propDict["companyName"] = $val;
         return $this;
     }
-    
+
     /**
     * Gets the department
     *
-    * @return string The department
+    * @return string|null The department
     */
     public function getDepartment()
     {
@@ -94,7 +92,7 @@ class OrgContact extends DirectoryObject
             return null;
         }
     }
-    
+
     /**
     * Sets the department
     *
@@ -107,11 +105,11 @@ class OrgContact extends DirectoryObject
         $this->_propDict["department"] = $val;
         return $this;
     }
-    
+
     /**
     * Gets the displayName
     *
-    * @return string The displayName
+    * @return string|null The displayName
     */
     public function getDisplayName()
     {
@@ -121,7 +119,7 @@ class OrgContact extends DirectoryObject
             return null;
         }
     }
-    
+
     /**
     * Sets the displayName
     *
@@ -134,11 +132,11 @@ class OrgContact extends DirectoryObject
         $this->_propDict["displayName"] = $val;
         return $this;
     }
-    
+
     /**
     * Gets the givenName
     *
-    * @return string The givenName
+    * @return string|null The givenName
     */
     public function getGivenName()
     {
@@ -148,7 +146,7 @@ class OrgContact extends DirectoryObject
             return null;
         }
     }
-    
+
     /**
     * Sets the givenName
     *
@@ -161,11 +159,11 @@ class OrgContact extends DirectoryObject
         $this->_propDict["givenName"] = $val;
         return $this;
     }
-    
+
     /**
     * Gets the jobTitle
     *
-    * @return string The jobTitle
+    * @return string|null The jobTitle
     */
     public function getJobTitle()
     {
@@ -175,7 +173,7 @@ class OrgContact extends DirectoryObject
             return null;
         }
     }
-    
+
     /**
     * Sets the jobTitle
     *
@@ -188,11 +186,11 @@ class OrgContact extends DirectoryObject
         $this->_propDict["jobTitle"] = $val;
         return $this;
     }
-    
+
     /**
     * Gets the mail
     *
-    * @return string The mail
+    * @return string|null The mail
     */
     public function getMail()
     {
@@ -202,7 +200,7 @@ class OrgContact extends DirectoryObject
             return null;
         }
     }
-    
+
     /**
     * Sets the mail
     *
@@ -215,11 +213,11 @@ class OrgContact extends DirectoryObject
         $this->_propDict["mail"] = $val;
         return $this;
     }
-    
+
     /**
     * Gets the mailNickname
     *
-    * @return string The mailNickname
+    * @return string|null The mailNickname
     */
     public function getMailNickname()
     {
@@ -229,7 +227,7 @@ class OrgContact extends DirectoryObject
             return null;
         }
     }
-    
+
     /**
     * Sets the mailNickname
     *
@@ -242,43 +240,16 @@ class OrgContact extends DirectoryObject
         $this->_propDict["mailNickname"] = $val;
         return $this;
     }
-    
-    /**
-    * Gets the onPremisesSyncEnabled
-    *
-    * @return bool The onPremisesSyncEnabled
-    */
-    public function getOnPremisesSyncEnabled()
-    {
-        if (array_key_exists("onPremisesSyncEnabled", $this->_propDict)) {
-            return $this->_propDict["onPremisesSyncEnabled"];
-        } else {
-            return null;
-        }
-    }
-    
-    /**
-    * Sets the onPremisesSyncEnabled
-    *
-    * @param bool $val The onPremisesSyncEnabled
-    *
-    * @return OrgContact
-    */
-    public function setOnPremisesSyncEnabled($val)
-    {
-        $this->_propDict["onPremisesSyncEnabled"] = boolval($val);
-        return $this;
-    }
-    
+
     /**
     * Gets the onPremisesLastSyncDateTime
     *
-    * @return \DateTime The onPremisesLastSyncDateTime
+    * @return \DateTime|null The onPremisesLastSyncDateTime
     */
     public function getOnPremisesLastSyncDateTime()
     {
         if (array_key_exists("onPremisesLastSyncDateTime", $this->_propDict)) {
-            if (is_a($this->_propDict["onPremisesLastSyncDateTime"], "\DateTime")) {
+            if (is_a($this->_propDict["onPremisesLastSyncDateTime"], "\DateTime") || is_null($this->_propDict["onPremisesLastSyncDateTime"])) {
                 return $this->_propDict["onPremisesLastSyncDateTime"];
             } else {
                 $this->_propDict["onPremisesLastSyncDateTime"] = new \DateTime($this->_propDict["onPremisesLastSyncDateTime"]);
@@ -287,7 +258,7 @@ class OrgContact extends DirectoryObject
         }
         return null;
     }
-    
+
     /**
     * Sets the onPremisesLastSyncDateTime
     *
@@ -300,12 +271,12 @@ class OrgContact extends DirectoryObject
         $this->_propDict["onPremisesLastSyncDateTime"] = $val;
         return $this;
     }
-    
 
-     /** 
+
+     /**
      * Gets the onPremisesProvisioningErrors
      *
-     * @return array The onPremisesProvisioningErrors
+     * @return array|null The onPremisesProvisioningErrors
      */
     public function getOnPremisesProvisioningErrors()
     {
@@ -315,25 +286,52 @@ class OrgContact extends DirectoryObject
             return null;
         }
     }
-    
-    /** 
+
+    /**
     * Sets the onPremisesProvisioningErrors
     *
-    * @param OnPremisesProvisioningError $val The onPremisesProvisioningErrors
+    * @param OnPremisesProvisioningError[] $val The onPremisesProvisioningErrors
     *
     * @return OrgContact
     */
     public function setOnPremisesProvisioningErrors($val)
     {
-		$this->_propDict["onPremisesProvisioningErrors"] = $val;
+        $this->_propDict["onPremisesProvisioningErrors"] = $val;
         return $this;
     }
-    
 
-     /** 
+    /**
+    * Gets the onPremisesSyncEnabled
+    *
+    * @return bool|null The onPremisesSyncEnabled
+    */
+    public function getOnPremisesSyncEnabled()
+    {
+        if (array_key_exists("onPremisesSyncEnabled", $this->_propDict)) {
+            return $this->_propDict["onPremisesSyncEnabled"];
+        } else {
+            return null;
+        }
+    }
+
+    /**
+    * Sets the onPremisesSyncEnabled
+    *
+    * @param bool $val The onPremisesSyncEnabled
+    *
+    * @return OrgContact
+    */
+    public function setOnPremisesSyncEnabled($val)
+    {
+        $this->_propDict["onPremisesSyncEnabled"] = boolval($val);
+        return $this;
+    }
+
+
+     /**
      * Gets the phones
      *
-     * @return array The phones
+     * @return array|null The phones
      */
     public function getPhones()
     {
@@ -343,24 +341,24 @@ class OrgContact extends DirectoryObject
             return null;
         }
     }
-    
-    /** 
+
+    /**
     * Sets the phones
     *
-    * @param Phone $val The phones
+    * @param Phone[] $val The phones
     *
     * @return OrgContact
     */
     public function setPhones($val)
     {
-		$this->_propDict["phones"] = $val;
+        $this->_propDict["phones"] = $val;
         return $this;
     }
-    
+
     /**
     * Gets the proxyAddresses
     *
-    * @return string The proxyAddresses
+    * @return array|null The proxyAddresses
     */
     public function getProxyAddresses()
     {
@@ -370,11 +368,11 @@ class OrgContact extends DirectoryObject
             return null;
         }
     }
-    
+
     /**
     * Sets the proxyAddresses
     *
-    * @param string $val The proxyAddresses
+    * @param string[] $val The proxyAddresses
     *
     * @return OrgContact
     */
@@ -383,11 +381,11 @@ class OrgContact extends DirectoryObject
         $this->_propDict["proxyAddresses"] = $val;
         return $this;
     }
-    
+
     /**
     * Gets the surname
     *
-    * @return string The surname
+    * @return string|null The surname
     */
     public function getSurname()
     {
@@ -397,7 +395,7 @@ class OrgContact extends DirectoryObject
             return null;
         }
     }
-    
+
     /**
     * Sets the surname
     *
@@ -410,16 +408,44 @@ class OrgContact extends DirectoryObject
         $this->_propDict["surname"] = $val;
         return $this;
     }
-    
+
+
+     /**
+     * Gets the directReports
+     *
+     * @return array|null The directReports
+     */
+    public function getDirectReports()
+    {
+        if (array_key_exists("directReports", $this->_propDict)) {
+           return $this->_propDict["directReports"];
+        } else {
+            return null;
+        }
+    }
+
+    /**
+    * Sets the directReports
+    *
+    * @param DirectoryObject[] $val The directReports
+    *
+    * @return OrgContact
+    */
+    public function setDirectReports($val)
+    {
+        $this->_propDict["directReports"] = $val;
+        return $this;
+    }
+
     /**
     * Gets the manager
     *
-    * @return DirectoryObject The manager
+    * @return DirectoryObject|null The manager
     */
     public function getManager()
     {
         if (array_key_exists("manager", $this->_propDict)) {
-            if (is_a($this->_propDict["manager"], "Microsoft\Graph\Model\DirectoryObject")) {
+            if (is_a($this->_propDict["manager"], "\Microsoft\Graph\Model\DirectoryObject") || is_null($this->_propDict["manager"])) {
                 return $this->_propDict["manager"];
             } else {
                 $this->_propDict["manager"] = new DirectoryObject($this->_propDict["manager"]);
@@ -428,7 +454,7 @@ class OrgContact extends DirectoryObject
         }
         return null;
     }
-    
+
     /**
     * Sets the manager
     *
@@ -441,40 +467,12 @@ class OrgContact extends DirectoryObject
         $this->_propDict["manager"] = $val;
         return $this;
     }
-    
 
-     /** 
-     * Gets the directReports
-     *
-     * @return array The directReports
-     */
-    public function getDirectReports()
-    {
-        if (array_key_exists("directReports", $this->_propDict)) {
-           return $this->_propDict["directReports"];
-        } else {
-            return null;
-        }
-    }
-    
-    /** 
-    * Sets the directReports
-    *
-    * @param DirectoryObject $val The directReports
-    *
-    * @return OrgContact
-    */
-    public function setDirectReports($val)
-    {
-		$this->_propDict["directReports"] = $val;
-        return $this;
-    }
-    
 
-     /** 
+     /**
      * Gets the memberOf
      *
-     * @return array The memberOf
+     * @return array|null The memberOf
      */
     public function getMemberOf()
     {
@@ -484,25 +482,25 @@ class OrgContact extends DirectoryObject
             return null;
         }
     }
-    
-    /** 
+
+    /**
     * Sets the memberOf
     *
-    * @param DirectoryObject $val The memberOf
+    * @param DirectoryObject[] $val The memberOf
     *
     * @return OrgContact
     */
     public function setMemberOf($val)
     {
-		$this->_propDict["memberOf"] = $val;
+        $this->_propDict["memberOf"] = $val;
         return $this;
     }
-    
 
-     /** 
+
+     /**
      * Gets the transitiveMemberOf
      *
-     * @return array The transitiveMemberOf
+     * @return array|null The transitiveMemberOf
      */
     public function getTransitiveMemberOf()
     {
@@ -512,18 +510,18 @@ class OrgContact extends DirectoryObject
             return null;
         }
     }
-    
-    /** 
+
+    /**
     * Sets the transitiveMemberOf
     *
-    * @param DirectoryObject $val The transitiveMemberOf
+    * @param DirectoryObject[] $val The transitiveMemberOf
     *
     * @return OrgContact
     */
     public function setTransitiveMemberOf($val)
     {
-		$this->_propDict["transitiveMemberOf"] = $val;
+        $this->_propDict["transitiveMemberOf"] = $val;
         return $this;
     }
-    
+
 }

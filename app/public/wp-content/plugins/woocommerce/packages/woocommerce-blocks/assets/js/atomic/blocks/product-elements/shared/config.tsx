@@ -2,9 +2,9 @@
  * External dependencies
  */
 import { __ } from '@wordpress/i18n';
-import { Icon, grid } from '@woocommerce/icons';
-import { isExperimentalBuild } from '@woocommerce/block-settings';
+import { Icon, grid } from '@wordpress/icons';
 import type { BlockConfiguration } from '@wordpress/blocks';
+
 /**
  * Internal dependencies
  */
@@ -18,15 +18,17 @@ const sharedConfig: Omit< BlockConfiguration, 'attributes' | 'title' > = {
 	category: 'woocommerce-product-elements',
 	keywords: [ __( 'WooCommerce', 'woo-gutenberg-products-block' ) ],
 	icon: {
-		src: <Icon srcElement={ grid } />,
-		foreground: '#96588a',
+		src: (
+			<Icon
+				icon={ grid }
+				className="wc-block-editor-components-block-icon"
+			/>
+		),
 	},
 	supports: {
 		html: false,
 	},
-	parent: isExperimentalBuild()
-		? undefined
-		: [ '@woocommerce/all-products', '@woocommerce/single-product' ],
+	ancestor: [ 'woocommerce/all-products', 'woocommerce/single-product' ],
 	save,
 	deprecated: [
 		{

@@ -3,13 +3,13 @@
     var GermanizedUnitPriceObserver = function( $form ) {
         var self = this;
 
-        self.$form      = $form;
-        self.params     = wc_gzd_unit_price_observer_params;
-        self.$wrapper   = $form.closest( self.params.wrapper );
-        self.$product   = $form.closest( '.product' );
-        self.requests   = [];
-        self.observer   = {};
-        self.timeout    = false;
+        self.$form    = $form;
+        self.params   = wc_gzd_unit_price_observer_params;
+        self.$wrapper = $form.closest( self.params.wrapper );
+        self.$product = $form.closest( '.product' );
+        self.requests = [];
+        self.observer = {};
+        self.timeout  = false;
 
         if ( self.$wrapper.length <= 0 ) {
             self.$wrapper = self.$product;
@@ -32,7 +32,40 @@
             } else {
                 self.productId = $form.find( '*[name=add-to-cart][type=submit]' ).length > 0 ? $form.find( '*[name=add-to-cart][type=submit]' ).val() : self.params.product_id;
             }
+
+            if ( self.params.refresh_on_load ) {
+                $.each( self.params.price_selector, function( priceSelector, priceArgs ) {
+                    var isPrimary    = priceArgs.hasOwnProperty( 'is_primary_selector' ) ? priceArgs['is_primary_selector'] : false,
+                        $price       = self.getPriceNode( self, priceSelector, isPrimary ),
+                        $unitPrice   = self.getUnitPriceNode( self, $price );
+
+                    if ( $unitPrice.length > 0 ) {
+                        self.setUnitPriceLoading( self, $unitPrice );
+
+                        setTimeout( function() {
+                            var priceData = self.getCurrentPriceData( self, priceSelector, priceArgs['is_total_price'], isPrimary, priceArgs['quantity_selector'] );
+
+                            if ( priceData ) {
+                                self.refreshUnitPrice( self, priceData.price, priceData.unit_price, priceData.sale_price, priceData.quantity );
+                            } else if ( $unitPrice.length > 0 ) {
+                                self.unsetUnitPriceLoading( self, $unitPrice );
+                            }
+                        }, 250 );
+                    }
+                } );
+            }
         }
+    };
+
+    GermanizedUnitPriceObserver.prototype.getTextWidth = function( $element ) {
+        var htmlOrg = $element.html();
+        var html_calc = '<span>' + htmlOrg + '</span>';
+
+        $element.html( html_calc );
+        var textWidth = $element.find( 'span:first' ).width();
+        $element.html( htmlOrg );
+
+        return textWidth;
     };
 
     GermanizedUnitPriceObserver.prototype.getPriceNode = function( self, priceSelector, isPrimarySelector ) {
@@ -45,6 +78,14 @@
         }
 
         return $node;
+    };
+
+    GermanizedUnitPriceObserver.prototype.getUnitPriceNode = function( self, $price ) {
+        if ( $price.length <= 0 ) {
+            return [];
+        }
+
+        return $price.parents( self.params.wrapper ).find( '.price-unit:not(.wc-gzd-additional-info-placeholder, .wc-gzd-additional-info-loop)' );
     };
 
     GermanizedUnitPriceObserver.prototype.initObserver = function( self ) {
@@ -70,20 +111,32 @@
                         self.abortAjaxRequests( self );
                     }
 
+                    var $unitPrice   = self.getUnitPriceNode( self, $node ),
+                        hasRefreshed = false;
+
+                    if ( $unitPrice.length > 0 ) {
+                        self.setUnitPriceLoading( self, $unitPrice );
+                    }
+
                     /**
                      * Need to use a tweak here to make sure our variation listener
                      * has already adjusted the variationId (in case necessary).
                      */
                     self.timeout = setTimeout(function() {
-                        var priceData = self.getCurrentPriceData( self, priceSelector, priceArgs['is_total_price'], isPrimary );
+                        var priceData = self.getCurrentPriceData( self, priceSelector, priceArgs['is_total_price'], isPrimary, priceArgs['quantity_selector'] );
 
                         if ( priceData ) {
                             /**
                              * Do only fire AJAX requests in case no other requests (e.g. from other plugins) are currently running.
                              */
                             if ( $.active <= 0 ) {
+                                hasRefreshed = true;
                                 self.refreshUnitPrice( self, priceData.price, priceData.unit_price, priceData.sale_price, priceData.quantity );
                             }
+                        }
+
+                        if ( ! hasRefreshed && $unitPrice.length > 0 ) {
+                            self.unsetUnitPriceLoading( self, $unitPrice );
                         }
                     }, 500 );
                 };
@@ -145,14 +198,20 @@
         self.initObserver( self );
     };
 
-    GermanizedUnitPriceObserver.prototype.getCurrentPriceData = function( self, priceSelector, isTotalPrice, isPrimary ) {
-        var $price = self.getPriceNode( self, priceSelector, isPrimary );
+    GermanizedUnitPriceObserver.prototype.getCurrentPriceData = function( self, priceSelector, isTotalPrice, isPrimary, quantitySelector ) {
+        quantitySelector = quantitySelector && '' !== quantitySelector ? quantitySelector : self.params.qty_selector;
+        var $price       = self.getPriceNode( self, priceSelector, isPrimary );
 
         if ( $price.length > 0 ) {
-            var $unit_price = $price.parents( self.params.wrapper ).find( '.price-unit:first' ),
-                sale_price  = '',
-                $priceInner = $price.find( '.amount:first' ),
-                $qty        = $( self.params.wrapper + ' ' + self.params.qty_selector + ':first' ),
+            var $unit_price = self.getUnitPriceNode( self, $price ),
+                $priceCloned = $price.clone();
+
+            // Remove price suffix from cloned DOM element to prevent finding the wrong price within suffix
+            $priceCloned.find( '.woocommerce-price-suffix' ).remove();
+
+            var sale_price  = '',
+                $priceInner = $priceCloned.find( '.amount:first' ),
+                $qty        = $( self.params.wrapper + ' ' + quantitySelector + ':first' ),
                 qty         = 1;
 
             if ( $qty.length > 0 ) {
@@ -164,10 +223,10 @@
              * search the whole element.
              */
             if ( $priceInner.length <= 0 ) {
-                if ( $price.find( '.price' ).length > 0 ) {
-                    $priceInner = $price.find( '.price' );
+                if ( $priceCloned.find( '.price' ).length > 0 ) {
+                    $priceInner = $priceCloned.find( '.price' );
                 } else {
-                    $priceInner = $price;
+                    $priceInner = $priceCloned;
                 }
             }
 
@@ -176,8 +235,11 @@
             /**
              * Is sale?
              */
-            if ( $price.find( '.amount' ).length > 1 ) {
-                sale_price = self.getRawPrice( $price.find( '.amount:last' ), self.params.price_decimal_sep );
+            if ( $priceCloned.find( '.amount' ).length > 1 ) {
+                // The second .amount element is the sale price
+                var $sale_price = $( $priceCloned.find( '.amount' )[1] );
+
+                sale_price = self.getRawPrice( $sale_price, self.params.price_decimal_sep );
             }
 
             if ( $unit_price.length > 0 && price ) {
@@ -224,8 +286,38 @@
         return price;
     };
 
+    GermanizedUnitPriceObserver.prototype.setUnitPriceLoading = function( self, $unit_price ) {
+        var unitPriceOrg = $unit_price.html();
+
+        if ( ! $unit_price.hasClass( 'wc-gzd-loading' ) ) {
+            var textWidth  = self.getTextWidth( $unit_price ),
+                textHeight = $unit_price.find( 'span' ).length > 0 ? $unit_price.find( 'span' ).innerHeight() : $unit_price.height();
+            /**
+             * @see https://github.com/zalog/placeholder-loading
+             */
+            $unit_price.html( '<span class="wc-gzd-placeholder-loading"><span class="wc-gzd-placeholder-row" style="height: ' + $unit_price.height() + 'px;"><span class="wc-gzd-placeholder-row-col-4" style="width: ' + textWidth + 'px; height: ' + textHeight + 'px;"></span></span></span>' );
+            $unit_price.addClass( 'wc-gzd-loading' );
+            $unit_price.data( 'org-html', unitPriceOrg );
+        } else {
+            unitPriceOrg = $unit_price.data( 'org-html' );
+        }
+
+        return unitPriceOrg;
+    };
+
+    GermanizedUnitPriceObserver.prototype.unsetUnitPriceLoading = function( self, $unit_price, newHtml ) {
+        newHtml = newHtml || $unit_price.data( 'org-html' );
+
+        if ( $unit_price.hasClass( 'wc-gzd-loading' ) ) {
+            $unit_price.html( newHtml );
+            $unit_price.removeClass( 'wc-gzd-loading' ).show();
+        }
+    };
+
     GermanizedUnitPriceObserver.prototype.refreshUnitPrice = function( self, price, $unit_price, sale_price, quantity ) {
         self.abortAjaxRequests( self );
+
+        var unitPriceOrgHtml = self.setUnitPriceLoading( self, $unit_price );
 
         self.requests.push( $.ajax({
             type: "POST",
@@ -244,11 +336,17 @@
                  */
                 if ( parseInt( data.product_id ) === self.getCurrentProductId( self ) ) {
                     if ( data.hasOwnProperty( 'unit_price_html' ) ) {
-                        $unit_price.html( data.unit_price_html );
+                        self.unsetUnitPriceLoading( self, $unit_price, data.unit_price_html );
+                    } else {
+                        self.unsetUnitPriceLoading( self, $unit_price );
                     }
+                } else {
+                    self.unsetUnitPriceLoading( self, $unit_price );
                 }
             },
-            error: function( data ) {},
+            error: function( data ) {
+                self.unsetUnitPriceLoading( self, $unit_price );
+            },
             dataType: 'json'
         } ) );
     };

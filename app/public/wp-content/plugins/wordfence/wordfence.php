@@ -4,7 +4,7 @@ Plugin Name: Wordfence Security
 Plugin URI: http://www.wordfence.com/
 Description: Wordfence Security - Anti-virus, Firewall and Malware Scan
 Author: Wordfence
-Version: 7.5.7
+Version: 7.9.0
 Author URI: http://www.wordfence.com/
 Text Domain: wordfence
 Domain Path: /languages
@@ -14,7 +14,7 @@ Requires PHP: 5.3
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
-@copyright Copyright (C) 2021 Defiant Inc.
+@copyright Copyright (C) 2012-2023 Defiant Inc.
 @license http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License, version 3 or higher
 
 This program is free software: you can redistribute it and/or modify
@@ -38,8 +38,8 @@ if(defined('WP_INSTALLING') && WP_INSTALLING){
 if (!defined('ABSPATH')) {
 	exit;
 }
-define('WORDFENCE_VERSION', '7.5.7');
-define('WORDFENCE_BUILD_NUMBER', '1637598990');
+define('WORDFENCE_VERSION', '7.9.0');
+define('WORDFENCE_BUILD_NUMBER', '1676401566');
 define('WORDFENCE_BASENAME', function_exists('plugin_basename') ? plugin_basename(__FILE__) :
 	basename(dirname(__FILE__)) . '/' . basename(__FILE__));
 
@@ -59,6 +59,9 @@ if (!defined('WORDFENCE_FCPATH')) {
 }
 if (!defined('WF_IS_WP_ENGINE')) {
 	define('WF_IS_WP_ENGINE', isset($_SERVER['IS_WPE']));
+}
+if (!defined('WF_IS_FLYWHEEL')) {
+	define('WF_IS_FLYWHEEL', isset($_SERVER['SERVER_SOFTWARE']) && strpos($_SERVER['SERVER_SOFTWARE'], 'Flywheel/') === 0);
 }
 if (!defined('WF_IS_PRESSABLE')) {
 	define('WF_IS_PRESSABLE', (defined('IS_ATOMIC') && IS_ATOMIC) || (defined('IS_PRESSABLE') && IS_PRESSABLE));

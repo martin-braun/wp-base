@@ -7,7 +7,7 @@ import type {
 	Supports,
 	CanMakePaymentCallback,
 	ExpressPaymentMethodConfigInstance,
-} from '@woocommerce/type-defs/payments';
+} from '@woocommerce/types';
 
 /**
  * Internal dependencies
@@ -16,7 +16,8 @@ import { getCanMakePayment } from './payment-method-config-helper';
 import { assertConfigHasProperties, assertValidElement } from './assertions';
 
 export default class ExpressPaymentMethodConfig
-	implements ExpressPaymentMethodConfigInstance {
+	implements ExpressPaymentMethodConfigInstance
+{
 	public name: string;
 	public content: ReactNode;
 	public edit: ReactNode;

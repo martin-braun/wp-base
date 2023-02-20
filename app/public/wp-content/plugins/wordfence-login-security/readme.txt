@@ -3,8 +3,8 @@ Contributors: wfryan, wfmattr, mmaunder, wfmatt
 Tags: security, login security, 2fa, two factor authentication, captcha, xml-rpc, mfa, 2 factor
 Requires at least: 4.5
 Requires PHP: 5.3
-Tested up to: 5.8
-Stable tag: 1.0.9
+Tested up to: 6.1
+Stable tag: 1.1.0
 
 Secure your website with Wordfence Login Security, providing two-factor authentication, login and registration CAPTCHA, and XML-RPC protection.
 
@@ -57,6 +57,30 @@ Secure your website with Wordfence Login Security.
 3. Configuration options include XML-RPC protection and login page CAPTCHA.
 
 == Changelog ==
+
+= 1.1.0 - February 14, 2023 =
+* Improvement: Added 2FA management shortcode and WooCommerce account integration
+* Improvement: Improved performance when viewing 2FA settings on sites with many users
+* Fix: Ensured Captcha and 2FA scripts load on WooCommerce when activated on a sub-site in multisite
+* Fix: Prevented reCAPTCHA logo from being obscured by some themes
+* Fix: Enabled wfls_registration_blocked_message filter support for WooCommerce integration
+
+= 1.0.12 - November 28, 2022 =
+* Improvement: Added feedback when login form is submitted with 2FA
+* Fix: Restored click support on login button when using 2FA with WooCommerce
+* Fix: Corrected display issue with reCAPTCHA score history graph
+* Fix: Prevented errors on PHP caused by corrupted login timestamps
+
+= 1.0.11 - September 19, 2022 =
+* Improvement: Hardened 2FA login flow to reduce exposure in cases where an attacker is able to obtain privileged information from the database
+
+= 1.0.10 - June 2, 2022 =
+* Improvement: Added option to toggle display of last login column on WP Users page
+* Improvement: Improved autocomplete support for 2FA code on Apple devices
+* Fix: Corrected issue that prevented reCAPTCHA scores from being recorded
+* Fix: Prevented invalid JSON setting values from triggering fatal errors
+* Fix: Made text domains consistent for translation support
+* Fix: Clarified that allowlisted IP addresses also bypass reCAPTCHA
 
 = 1.0.9 - October 12, 2021 =
 * Fix: Prevented login errors with WooCommerce integration when manual username entry is enabled on the WooCommerce registration form

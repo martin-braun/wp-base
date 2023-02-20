@@ -3,6 +3,7 @@
 namespace WPMailSMTP\Providers\Sendinblue;
 
 use WPMailSMTP\Admin\DebugEvents\DebugEvents;
+use WPMailSMTP\Helpers\Helpers;
 use WPMailSMTP\MailCatcherInterface;
 use WPMailSMTP\Providers\MailerAbstract;
 use WPMailSMTP\Vendor\SendinBlue\Client\ApiException;
@@ -48,22 +49,6 @@ class Mailer extends MailerAbstract {
 	// @formatter:off
 	protected $allowed_attach_ext = array( 'xlsx', 'xls', 'ods', 'docx', 'docm', 'doc', 'csv', 'pdf', 'txt', 'gif', 'jpg', 'jpeg', 'png', 'tif', 'tiff', 'rtf', 'bmp', 'cgm', 'css', 'shtml', 'html', 'htm', 'zip', 'xml', 'ppt', 'pptx', 'tar', 'ez', 'ics', 'mobi', 'msg', 'pub', 'eps', 'odt', 'mp3', 'm4a', 'm4v', 'wma', 'ogg', 'flac', 'wav', 'aif', 'aifc', 'aiff', 'mp4', 'mov', 'avi', 'mkv', 'mpeg', 'mpg', 'wmv' );
 	// @formatter:on
-
-	/**
-	 * Mailer constructor.
-	 *
-	 * @since 1.6.0
-	 *
-	 * @param MailCatcherInterface $phpmailer The MailCatcher object.
-	 */
-	public function __construct( $phpmailer ) {
-
-		parent::__construct( $phpmailer );
-
-		if ( ! $this->is_php_compatible() ) {
-			return;
-		}
-	}
 
 	/**
 	 * @inheritDoc
@@ -268,14 +253,14 @@ class Mailer extends MailerAbstract {
 			}
 
 			$this->body['attachment'][] = [
-				'name'    => $attachment[2],
+				'name'    => $this->get_attachment_file_name( $attachment ),
 				'content' => base64_encode( $file ), // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 			];
 		}
 	}
 
 	/**
-	 * @inheritDoc
+	 * Get the email body.
 	 *
 	 * @since 1.6.0
 	 *
@@ -283,7 +268,16 @@ class Mailer extends MailerAbstract {
 	 */
 	public function get_body() {
 
-		return new SendSmtpEmail( $this->body );
+		/**
+		 * Filters Sendinblue email body.
+		 *
+		 * @since 3.5.0
+		 *
+		 * @param array $body Email body.
+		 */
+		$body = apply_filters( 'wp_mail_smtp_providers_sendinblue_mailer_get_body', $this->body );
+
+		return new SendSmtpEmail( $body );
 	}
 
 	/**
@@ -294,12 +288,12 @@ class Mailer extends MailerAbstract {
 	public function send() {
 
 		try {
-			$api = new Api();
+			$api = new Api( $this->connection );
 
 			$response = $api->get_smtp_client()->sendTransacEmail( $this->get_body() );
 
 			DebugEvents::add_debug(
-				esc_html__( 'An email request was sent to the Sendinblue API.' )
+				esc_html__( 'An email request was sent to the Sendinblue API.', 'wp-mail-smtp' )
 			);
 
 			$this->process_response( $response );
@@ -307,7 +301,7 @@ class Mailer extends MailerAbstract {
 			$error = json_decode( $e->getResponseBody() );
 
 			if ( json_last_error() === JSON_ERROR_NONE && ! empty( $error ) ) {
-				$message = '[' . sanitize_key( $error->code ) . ']: ' . esc_html( $error->message );
+				$message = Helpers::format_error_message( $error->message, $error->code );
 			} else {
 				$message = $e->getMessage();
 			}
@@ -378,7 +372,7 @@ class Mailer extends MailerAbstract {
 	 */
 	public function is_mailer_complete() {
 
-		$options = $this->options->get_group( $this->mailer );
+		$options = $this->connection_options->get_group( $this->mailer );
 
 		// API key is the only required option.
 		if ( ! empty( $options['api_key'] ) ) {

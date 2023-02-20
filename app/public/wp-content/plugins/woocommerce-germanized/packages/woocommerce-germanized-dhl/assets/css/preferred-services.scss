@@ -75,6 +75,12 @@
 }
 
 .dhl-preferred-service-content {
+  margin-top: 1em;
+
+  .dhl-hidden {
+    display: none;
+  }
+
   .dhl-preferred-service-cost {
     font-size: .9em;
   }
@@ -201,7 +207,7 @@
       }
     }
 
-    .dhl-preferred-location-types {
+    .dhl-preferred-location-types, .dhl-preferred-delivery-types {
       list-style: none;
       margin: 0;
       margin-bottom: 1em;

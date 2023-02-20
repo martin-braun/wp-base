@@ -2,10 +2,10 @@
 Contributors: vendidero, vdwoocommercesupport
 Tags: one stop shop, woocommerce, OSS, EU, compliance
 Requires at least: 5.4
-Tested up to: 5.8
+Tested up to: 6.1
 WC requires at least: 3.9
-WC tested up to: 5.9
-Stable tag: 1.1.7
+WC tested up to: 7.1
+Stable tag: 1.3.4
 Requires PHP: 5.6
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -60,6 +60,44 @@ Bug reports may be filed via our [GitHub repository](https://github.com/vendider
 3. Create a new report
 
 == Changelog ==
+= 1.3.4 =
+* Fix: Update textdomain to reflect plugin slug
+* Fix: Fallback language file path
+
+= 1.3.3 =
+* Improvement: Switch plugin locale to de_DE when using de_CH or de_AT
+
+= 1.3.2 =
+* Fix: Jetpack autoloader version constraint in composer.json
+
+= 1.3.1 =
+* Fix: Explicitly exclude base country in reports
+
+= 1.3.0 =
+* Improvement: Refactored EU VAT checks to shared library
+* Fix: Use EL instead of GR for BOP exports
+
+= 1.2.4 =
+* Improvement: PHP Code sniffer refactoring
+
+= 1.2.3 =
+* Improvement: Harden URL escaping
+
+= 1.2.2 =
+* Improvement: Fallback to standard tax class for countries which are missing the reduced tax class.
+
+= 1.2.1 =
+* Feature: Added BOP (BZSt-Online-Portal) export for Germany
+
+= 1.2.0 =
+* Improvement: Do not skip refunded parent orders
+
+= 1.1.9 =
+* Improvement: BOP CSV export (new format with Satzart)
+
+= 1.1.8 =
+* Fix: Decimal tax rates within reports
+
 = 1.1.7 =
 * Fix: Tax rate import for disabled OSS status
 

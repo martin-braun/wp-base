@@ -39,19 +39,19 @@ function wc_gzd_dhl_get_shipment_customs_data( $label, $max_desc_length = 255 ) 
 
 	$customs_data = $label->get_customs_data( $max_desc_length );
 
-	foreach( $customs_data['items'] as $key => $item ) {
+	foreach ( $customs_data['items'] as $key => $item ) {
 		if ( $shipment_item = $shipment->get_item( $key ) ) {
 			/**
 			 * Apply legacy filters
 			 */
-			$item['description'] = apply_filters( "woocommerce_gzd_dhl_customs_item_description", $item['description'], $shipment_item, $label, $shipment );
-			$item['category']    = apply_filters( "woocommerce_gzd_dhl_customs_item_category", $item['category'], $shipment_item, $label, $shipment );
+			$item['description'] = apply_filters( 'woocommerce_gzd_dhl_customs_item_description', $item['description'], $shipment_item, $label, $shipment );
+			$item['category']    = apply_filters( 'woocommerce_gzd_dhl_customs_item_category', $item['category'], $shipment_item, $label, $shipment );
 
 			$customs_data['items'][ $key ] = apply_filters( 'woocommerce_gzd_dhl_customs_item', $item, $shipment_item, $shipment, $label );
 		}
 	}
 
-	return apply_filters( "woocommerce_gzd_dhl_customs_data", $customs_data, $label, $shipment );
+	return apply_filters( 'woocommerce_gzd_dhl_customs_data', $customs_data, $label, $shipment );
 }
 
 function wc_gzd_dhl_format_preferred_api_time( $time ) {
@@ -64,11 +64,14 @@ function wc_gzd_dhl_format_preferred_api_time( $time ) {
  * @return array
  */
 function wc_gzd_dhl_get_label_payment_ref_placeholder( $shipment = false ) {
-	return apply_filters( 'woocommerce_gzd_dhl_label_payment_ref_placeholder', array(
-		'{shipment_id}' => $shipment ? $shipment->get_shipment_number() : '',
-		'{order_id}'    => $shipment ? $shipment->get_order_number() : '',
-		'{email}'       => $shipment ? $shipment->get_email() : ''
-	) );
+	return apply_filters(
+		'woocommerce_gzd_dhl_label_payment_ref_placeholder',
+		array(
+			'{shipment_id}' => $shipment ? $shipment->get_shipment_number() : '',
+			'{order_id}'    => $shipment ? $shipment->get_order_number() : '',
+			'{email}'       => $shipment ? $shipment->get_email() : '',
+		)
+	);
 }
 
 function wc_gzd_dhl_get_preferred_days_select_options( $days, $current = '' ) {
@@ -77,7 +80,7 @@ function wc_gzd_dhl_get_preferred_days_select_options( $days, $current = '' ) {
 	if ( ! empty( $days ) ) {
 		$days = array_keys( $days );
 
-		foreach( $days as $day ) {
+		foreach ( $days as $day ) {
 
 			if ( empty( $day ) ) {
 				continue;
@@ -106,7 +109,7 @@ function wc_gzd_dhl_get_duties() {
 		'DDU' => _x( 'Delivery Duty Unpaid', 'dhl', 'woocommerce-germanized' ),
 		'DDP' => _x( 'Delivery Duty Paid', 'dhl', 'woocommerce-germanized' ),
 		'DXV' => _x( 'Delivery Duty Paid (excl. VAT )', 'dhl', 'woocommerce-germanized' ),
-		'DDX' => _x( 'Delivery Duty Paid (excl. Duties, taxes and VAT)', 'dhl', 'woocommerce-germanized' )
+		'DDX' => _x( 'Delivery Duty Paid (excl. Duties, taxes and VAT)', 'dhl', 'woocommerce-germanized' ),
 	);
 
 	return $duties;
@@ -115,7 +118,7 @@ function wc_gzd_dhl_get_duties() {
 function wc_gzd_dhl_is_valid_visual_min_age( $min_age ) {
 	$ages = wc_gzd_dhl_get_visual_min_ages();
 
-	if ( empty( $min_age ) || ( ! array_key_exists( $min_age, $ages ) && ! in_array( $min_age, $ages ) ) ) {
+	if ( empty( $min_age ) || ( ! array_key_exists( $min_age, $ages ) && ! in_array( $min_age, $ages, true ) ) ) {
 		return false;
 	}
 
@@ -125,7 +128,7 @@ function wc_gzd_dhl_is_valid_visual_min_age( $min_age ) {
 function wc_gzd_dhl_is_valid_ident_min_age( $min_age ) {
 	$ages = wc_gzd_dhl_get_ident_min_ages();
 
-	if ( empty( $min_age ) || ( ! array_key_exists( $min_age, $ages ) && ! in_array( $min_age, $ages ) ) ) {
+	if ( empty( $min_age ) || ( ! array_key_exists( $min_age, $ages ) && ! in_array( $min_age, $ages, true ) ) ) {
 		return false;
 	}
 
@@ -136,7 +139,7 @@ function wc_gzd_dhl_get_visual_min_ages() {
 	$visual_age = array(
 		'0'   => _x( 'None', 'age context', 'woocommerce-germanized' ),
 		'A16' => _x( 'Minimum age of 16', 'dhl', 'woocommerce-germanized' ),
-		'A18' => _x( 'Minimum age of 18', 'dhl', 'woocommerce-germanized' )
+		'A18' => _x( 'Minimum age of 18', 'dhl', 'woocommerce-germanized' ),
 	);
 
 	return $visual_age;
@@ -167,7 +170,18 @@ function wc_gzd_dhl_get_label_customer_reference( $label, $shipment ) {
 	 * @since 3.0.0
 	 * @package Vendidero/Germanized/DHL
 	 */
-	$ref = apply_filters( 'woocommerce_gzd_dhl_label_customer_reference', wc_gzd_dhl_get_label_reference( _x( 'Shipment #{shipment_id} to order {order_id}', 'dhl', 'woocommerce-germanized' ), array( '{shipment_id}' => $shipment->get_shipment_number(), '{order_id}' => $shipment->get_order_number() ) ), $label, $shipment );
+	$ref = apply_filters(
+		'woocommerce_gzd_dhl_label_customer_reference',
+		wc_gzd_dhl_get_label_reference(
+			_x( 'Shipment #{shipment_id} to order {order_id}', 'dhl', 'woocommerce-germanized' ),
+			array(
+				'{shipment_id}' => $shipment->get_shipment_number(),
+				'{order_id}'    => $shipment->get_order_number(),
+			)
+		),
+		$label,
+		$shipment
+	);
 
 	return sanitize_text_field( substr( $ref, 0, 35 ) );
 }
@@ -176,7 +190,7 @@ function wc_gzd_dhl_get_label_endorsement_type( $label, $shipment ) {
 	/**
 	 * Filter to adjust the endorsement type for internation shipments.
 	 *
-	 * @param string         $text The endorsement type: IMMEDIATE or AFTER_DEADLINE.
+	 * @param string         $text The endorsement type: IMMEDIATE or ABANDONMENT.
 	 * @param Label\Label    $label The label instance.
 	 * @param SimpleShipment $shipment The shipment instance.
 	 *
@@ -185,7 +199,7 @@ function wc_gzd_dhl_get_label_endorsement_type( $label, $shipment ) {
 	 */
 	$type = strtoupper( apply_filters( 'woocommerce_gzd_dhl_label_endorsement_type', 'IMMEDIATE', $label, $shipment ) );
 
-	if ( ! in_array( $type, array( 'IMMEDIATE', 'AFTER_DEADLINE' ) ) ) {
+	if ( ! in_array( $type, array( 'IMMEDIATE', 'ABANDONMENT' ), true ) ) {
 		$type = 'IMMEDIATE';
 	}
 
@@ -203,7 +217,18 @@ function wc_gzd_dhl_get_return_label_customer_reference( $label, $shipment ) {
 	 * @since 3.0.0
 	 * @package Vendidero/Germanized/DHL
 	 */
-	$ref = apply_filters( 'woocommerce_gzd_dhl_return_label_customer_reference', wc_gzd_dhl_get_label_reference( _x( 'Return #{shipment_id} to order {order_id}', 'dhl', 'woocommerce-germanized' ), array( '{shipment_id}' => $shipment->get_id(), '{order_id}' => $shipment->get_order_number() ) ), $label, $shipment );
+	$ref = apply_filters(
+		'woocommerce_gzd_dhl_return_label_customer_reference',
+		wc_gzd_dhl_get_label_reference(
+			_x( 'Return #{shipment_id} to order {order_id}', 'dhl', 'woocommerce-germanized' ),
+			array(
+				'{shipment_id}' => $shipment->get_id(),
+				'{order_id}'    => $shipment->get_order_number(),
+			)
+		),
+		$label,
+		$shipment
+	);
 
 	return sanitize_text_field( substr( $ref, 0, 30 ) );
 }
@@ -219,7 +244,18 @@ function wc_gzd_dhl_get_inlay_return_label_reference( $label, $shipment ) {
 	 * @since 3.0.0
 	 * @package Vendidero/Germanized/DHL
 	 */
-	$ref = apply_filters( 'woocommerce_gzd_dhl_inlay_return_label_reference', wc_gzd_dhl_get_label_reference( _x( 'Return shipment #{shipment_id} to order #{order_id}', 'dhl', 'woocommerce-germanized' ), array( '{shipment_id}' => $shipment->get_id(), '{order_id}' => $shipment->get_order_number() ) ), $label, $shipment );
+	$ref = apply_filters(
+		'woocommerce_gzd_dhl_inlay_return_label_reference',
+		wc_gzd_dhl_get_label_reference(
+			_x( 'Return shipment #{shipment_id} to order #{order_id}', 'dhl', 'woocommerce-germanized' ),
+			array(
+				'{shipment_id}' => $shipment->get_id(),
+				'{order_id}'    => $shipment->get_order_number(),
+			)
+		),
+		$label,
+		$shipment
+	);
 
 	return sanitize_text_field( substr( $ref, 0, 35 ) );
 }
@@ -228,12 +264,8 @@ function wc_gzd_dhl_get_inlay_return_label_reference( $label, $shipment ) {
  * @return false|\Vendidero\Germanized\DHL\ShippingProvider\ShippingMethod
  */
 function wc_gzd_dhl_get_current_shipping_method() {
-	$chosen_shipping_methods = WC()->session ? WC()->session->get( 'chosen_shipping_methods' ) : array();
-
-	if ( ! empty( $chosen_shipping_methods ) ) {
-		$method = wc_gzd_dhl_get_shipping_method( $chosen_shipping_methods[0] );
-
-		return $method;
+	if ( $current = wc_gzd_get_current_shipping_method_id() ) {
+		return wc_gzd_dhl_get_shipping_method( $current );
 	}
 
 	return false;
@@ -241,30 +273,36 @@ function wc_gzd_dhl_get_current_shipping_method() {
 
 function wc_gzd_dhl_get_international_services() {
 	return array(
-		'Premium',
 		'GoGreen',
-		'AdditionalInsurance'
+		'AdditionalInsurance',
+		'CDP',
+		'Economy',
+		'Premium',
+		'PDDP',
 	);
 }
 
 function wc_gzd_dhl_get_services() {
-    return array(
-        'PreferredTime',
-        'PreferredLocation',
-        'PreferredNeighbour',
-        'PreferredDay',
-	    'VisualCheckOfAge',
-        'Personally',
-        'NoNeighbourDelivery',
-        'NamedPersonOnly',
-        'Premium',
-        'AdditionalInsurance',
-        'BulkyGoods',
-        'IdentCheck',
-        'CashOnDelivery',
-	    'ParcelOutletRouting',
-	    'GoGreen'
-    );
+	return array(
+		'PreferredTime',
+		'PreferredLocation',
+		'PreferredNeighbour',
+		'PreferredDay',
+		'VisualCheckOfAge',
+		'Personally',
+		'NoNeighbourDelivery',
+		'NamedPersonOnly',
+		'Premium',
+		'CDP',
+		'PDDP',
+		'Economy',
+		'AdditionalInsurance',
+		'BulkyGoods',
+		'IdentCheck',
+		'CashOnDelivery',
+		'ParcelOutletRouting',
+		'GoGreen',
+	);
 }
 
 /**
@@ -291,11 +329,11 @@ function wc_gzd_dhl_get_preferred_services() {
 }
 
 function wc_gzd_dhl_get_pickup_types() {
-    return array(
-    	'packstation' => _x( 'Packstation', 'dhl', 'woocommerce-germanized' ),
-	    'postoffice'  => _x( 'Postfiliale', 'dhl', 'woocommerce-germanized' ),
-	    'parcelshop'  => _x( 'Postfiliale', 'dhl', 'woocommerce-germanized' )
-    );
+	return array(
+		'packstation' => _x( 'Packstation', 'dhl', 'woocommerce-germanized' ),
+		'postoffice'  => _x( 'Postfiliale', 'dhl', 'woocommerce-germanized' ),
+		'parcelshop'  => _x( 'Postfiliale', 'dhl', 'woocommerce-germanized' ),
+	);
 }
 
 function wc_gzd_dhl_is_pickup_type( $maybe_type, $type = 'packstation' ) {
@@ -322,7 +360,7 @@ function wc_gzd_dhl_get_excluded_working_days() {
 		'wed',
 		'thu',
 		'fri',
-		'sat'
+		'sat',
 	);
 
 	$excluded = array();
@@ -345,7 +383,7 @@ function wc_gzd_dhl_get_pickup_type( $type ) {
 
 	if ( array_key_exists( $type, $types ) ) {
 		return $types[ $type ];
-	} elseif( in_array( $type, $types ) ) {
+	} elseif ( in_array( $type, $types, true ) ) {
 		return $type;
 	} else {
 		return false;
@@ -379,7 +417,7 @@ function wc_gzd_dhl_is_valid_datetime( $maybe_datetime, $format = 'Y-m-d' ) {
 
 function wc_gzd_dhl_format_label_state( $state, $country ) {
 	// If not USA or Australia, then change state from ISO code to name
-	if ( ! in_array( $country, array( 'US', 'AU' ) ) ) {
+	if ( ! in_array( $country, array( 'US', 'AU' ), true ) ) {
 
 		// Get all states for a country
 		$states = WC()->countries->get_states( $country );
@@ -390,7 +428,7 @@ function wc_gzd_dhl_format_label_state( $state, $country ) {
 			$state = $states[ $state ];
 
 			// Remove anything in parentheses (e.g. TH)
-			$ind = strpos( $state, " (" );
+			$ind = strpos( $state, ' (' );
 
 			if ( false !== $ind ) {
 				$state = substr( $state, 0, $ind );
@@ -469,8 +507,14 @@ function wc_gzd_dhl_get_return_label_sender_street_number( $label ) {
 	return $street_number;
 }
 
-function wc_gzd_dhl_get_product_services( $product ) {
-	if ( in_array( $product, array_keys( wc_gzd_dhl_get_products_domestic() ) ) ) {
+/**
+ * @param $product
+ * @param false|Shipment $shipment
+ *
+ * @return string[]
+ */
+function wc_gzd_dhl_get_product_services( $product, $shipment = false ) {
+	if ( in_array( $product, array_keys( wc_gzd_dhl_get_products_domestic() ), true ) ) {
 		$services = wc_gzd_dhl_get_services();
 	} else {
 		$services = wc_gzd_dhl_get_international_services();
@@ -480,40 +524,77 @@ function wc_gzd_dhl_get_product_services( $product ) {
 	 * Warenpost does only support certain services
 	 */
 	if ( 'V62WP' === $product ) {
-		$services = array_intersect( $services, array(
-			'PreferredTime',
-			'PreferredLocation',
-			'PreferredNeighbour',
-			'PreferredDay',
-			'ParcelOutletRouting',
-			'GoGreen'
-		) );
+		$services = array_intersect(
+			$services,
+			array(
+				'PreferredTime',
+				'PreferredLocation',
+				'PreferredNeighbour',
+				'PreferredDay',
+				'ParcelOutletRouting',
+				'GoGreen',
+			)
+		);
+	} elseif ( 'V66WPI' === $product ) {
+		$services = array_intersect(
+			$services,
+			array(
+				'Premium',
+			)
+		);
+	}
+
+	/**
+	 * Economy, CDP, PDDP are available for Paket International only
+	 */
+	if ( 'V53WPAK' === $product ) {
+		/**
+		 * Economy is not available for EU countries. Premium is booked by default.
+		 */
+		if ( $shipment && $shipment->is_shipping_inner_eu() ) {
+			$services = array_diff( $services, array( 'Economy', 'Premium' ) );
+		}
+	} else {
+		$services = array_diff( $services, array( 'Economy', 'CDP', 'PDDP' ) );
 	}
 
 	return $services;
 }
 
-function wc_gzd_dhl_product_supports_service( $product, $service ) {
-	$services = wc_gzd_dhl_get_product_services( $product );
+/**
+ * @param $product
+ * @param $service
+ * @param false|Shipment $shipment
+ *
+ * @return bool
+ */
+function wc_gzd_dhl_product_supports_service( $product, $service, $shipment = false ) {
+	$services = wc_gzd_dhl_get_product_services( $product, $shipment );
 
-	if ( ! in_array( $service, $services ) ) {
+	if ( ! in_array( $service, $services, true ) ) {
 		return false;
 	}
 
 	return true;
 }
 
-function wc_gzd_dhl_get_service_product_attributes( $service ) {
+/**
+ * @param $service
+ * @param false|Shipment $shipment
+ *
+ * @return array
+ */
+function wc_gzd_dhl_get_service_product_attributes( $service, $shipment = false ) {
 	$products_supported = array();
 
-	foreach( array_keys( array_merge( wc_gzd_dhl_get_products_domestic(), wc_gzd_dhl_get_products_eu(), wc_gzd_dhl_get_products_international() ) ) as $product ) {
-		if ( wc_gzd_dhl_product_supports_service( $product, $service ) ) {
+	foreach ( array_keys( array_merge( wc_gzd_dhl_get_products_domestic(), wc_gzd_dhl_get_products_eu(), wc_gzd_dhl_get_products_international() ) ) as $product ) {
+		if ( wc_gzd_dhl_product_supports_service( $product, $service, $shipment ) ) {
 			$products_supported[] = $product;
 		}
 	}
 
 	return array(
-		'data-products-supported' => implode( ',', $products_supported )
+		'data-products-supported' => implode( ',', $products_supported ),
 	);
 }
 
@@ -546,10 +627,12 @@ function wc_gzd_dhl_get_deutsche_post_products( $shipment, $parent_only = true )
  * @return array
  */
 function wc_gzd_dhl_get_deutsche_post_products_domestic( $shipment = false, $parent_only = true ) {
-	$dom = Package::get_internetmarke_api()->get_available_products( array(
-		'product_destination' => 'national',
-		'shipment_weight'     => $shipment ? wc_gzd_dhl_get_shipment_weight( $shipment, 'g' ) : false,
-	) );
+	$dom = Package::get_internetmarke_api()->get_available_products(
+		array(
+			'product_destination' => 'national',
+			'shipment_weight'     => $shipment ? wc_gzd_dhl_get_shipment_weight( $shipment, 'g' ) : false,
+		)
+	);
 
 	return wc_gzd_dhl_im_get_product_list( $dom, $parent_only );
 }
@@ -558,7 +641,7 @@ function wc_gzd_dhl_im_get_product_list( $products, $parent_only = true ) {
 	$list                       = array();
 	$additional_parent_products = array();
 
-	foreach( $products as $product ) {
+	foreach ( $products as $product ) {
 		if ( $parent_only && $product->product_parent_id > 0 ) {
 			$additional_parent_products[] = $product->product_parent_id;
 			continue;
@@ -570,7 +653,7 @@ function wc_gzd_dhl_im_get_product_list( $products, $parent_only = true ) {
 	$additional_parent_products = array_unique( $additional_parent_products );
 
 	if ( ! empty( $additional_parent_products ) ) {
-		foreach( $additional_parent_products as $product_id ) {
+		foreach ( $additional_parent_products as $product_id ) {
 			$product = Package::get_internetmarke_api()->get_product_data( $product_id );
 
 			if ( ! array_key_exists( $product->product_code, $list ) ) {
@@ -583,17 +666,21 @@ function wc_gzd_dhl_im_get_product_list( $products, $parent_only = true ) {
 }
 
 function wc_gzd_dhl_get_deutsche_post_products_eu( $shipment = false, $parent_only = true ) {
-	$non_warenpost = Package::get_internetmarke_api()->get_available_products( array(
-		'product_destination' => 'international',
-		'product_is_wp_int'   => 0,
-		'shipment_weight'     => $shipment ? wc_gzd_dhl_get_shipment_weight( $shipment, 'g' ) : false,
-	) );
+	$non_warenpost = Package::get_internetmarke_api()->get_available_products(
+		array(
+			'product_destination' => 'international',
+			'product_is_wp_int'   => 0,
+			'shipment_weight'     => $shipment ? wc_gzd_dhl_get_shipment_weight( $shipment, 'g' ) : false,
+		)
+	);
 
-	$warenpost = Package::get_internetmarke_api()->get_available_products( array(
-		'product_destination' => 'eu',
-		'product_is_wp_int'   => 1,
-		'shipment_weight'     => $shipment ? wc_gzd_dhl_get_shipment_weight( $shipment, 'g' ) : false,
-	) );
+	$warenpost = Package::get_internetmarke_api()->get_available_products(
+		array(
+			'product_destination' => 'eu',
+			'product_is_wp_int'   => 1,
+			'shipment_weight'     => $shipment ? wc_gzd_dhl_get_shipment_weight( $shipment, 'g' ) : false,
+		)
+	);
 
 	$international = array_merge( $non_warenpost, $warenpost );
 
@@ -609,10 +696,12 @@ function wc_gzd_dhl_get_deutsche_post_products_international( $shipment = false,
 	if ( $shipment && Package::is_eu_shipment( $shipment->get_country(), $shipment->get_postcode() ) ) {
 		return wc_gzd_dhl_get_deutsche_post_products_eu( $shipment );
 	} else {
-		$international = Package::get_internetmarke_api()->get_available_products( array(
-			'product_destination' => 'international',
-			'shipment_weight'     => $shipment ? wc_gzd_dhl_get_shipment_weight( $shipment, 'g' ) : false,
-		) );
+		$international = Package::get_internetmarke_api()->get_available_products(
+			array(
+				'product_destination' => 'international',
+				'shipment_weight'     => $shipment ? wc_gzd_dhl_get_shipment_weight( $shipment, 'g' ) : false,
+			)
+		);
 
 		return wc_gzd_dhl_im_get_product_list( $international, $parent_only );
 	}
@@ -623,15 +712,19 @@ function wc_gzd_dhl_get_deutsche_post_products_international( $shipment = false,
  * @param string $type
  *
  * @return mixed|string|void
+ * @see https://entwickler.dhl.de/group/ep/grundlagen2
  */
 function wc_gzd_dhl_get_custom_label_format( $label, $type = '' ) {
 	$available = array(
 		'A4',
 		'910-300-700',
 		'910-300-700-oZ',
+		'910-300-710',
 		'910-300-600',
 		'910-300-610',
-		'910-300-710',
+		'910-300-400',
+		'910-300-410',
+		'910-300-300',
 	);
 
 	/**
@@ -660,11 +753,11 @@ function wc_gzd_dhl_get_custom_label_format( $label, $type = '' ) {
 	/**
 	 * Warenpost format
 	 */
-	if ( 'V62WP' === $label->get_product_id() ) {
+	if ( in_array( $label->get_product_id(), array( 'V62WP', 'V66WPI' ), true ) ) {
 		$available[] = '100x70mm';
 	}
 
-	if ( ! empty( $format ) && ! in_array( $format, $available ) ) {
+	if ( ! empty( $format ) && ! in_array( $format, $available, true ) ) {
 		$format = '';
 	}
 
@@ -673,14 +766,14 @@ function wc_gzd_dhl_get_custom_label_format( $label, $type = '' ) {
 
 function wc_gzd_dhl_get_order( $order ) {
 	if ( is_numeric( $order ) ) {
-		$order = wc_get_order( $order);
+		$order = wc_get_order( $order );
 	}
 
 	if ( is_a( $order, 'WC_Order' ) ) {
 		try {
 			return new Vendidero\Germanized\DHL\Order( $order );
 		} catch ( Exception $e ) {
-			wc_caught_exception( $e, __FUNCTION__, func_get_args() );
+			wc_caught_exception( $e, __FUNCTION__, array( $order ) );
 			return false;
 		}
 	}
@@ -693,13 +786,13 @@ function wc_gzd_dhl_get_inlay_return_products() {
 		'V01PAK',
 		'V01PRIO',
 		'V86PARCEL',
-		'V55PAK'
+		'V55PAK',
 	);
 }
 
 function wc_gzd_dhl_get_return_products_international() {
 
-	$retoure =  array(
+	$retoure = array(
 		'retoure_international_a' => _x( 'DHL Retoure International A', 'dhl', 'woocommerce-germanized' ),
 		'retoure_international_b' => _x( 'DHL Retoure International B', 'dhl', 'woocommerce-germanized' ),
 	);
@@ -709,8 +802,8 @@ function wc_gzd_dhl_get_return_products_international() {
 
 function wc_gzd_dhl_get_return_products_domestic() {
 
-	$retoure =  array(
-		'retoure_online'  => _x( 'DHL Retoure Online', 'dhl', 'woocommerce-germanized' ),
+	$retoure = array(
+		'retoure_online' => _x( 'DHL Retoure Online', 'dhl', 'woocommerce-germanized' ),
 	);
 
 	return $retoure;
@@ -722,12 +815,20 @@ function wc_gzd_dhl_get_im_product_title( $product_name ) {
 	return $title;
 }
 
+function wc_gzd_dhl_is_warenpost_international_available() {
+	return true;
+}
+
 function wc_gzd_dhl_get_products_international() {
 	$country = Package::get_base_country();
 
 	$germany_int = array(
 		'V53WPAK' => _x( 'DHL Paket International', 'dhl', 'woocommerce-germanized' ),
 	);
+
+	if ( wc_gzd_dhl_is_warenpost_international_available() ) {
+		$germany_int['V66WPI'] = _x( 'DHL Warenpost International', 'dhl', 'woocommerce-germanized' );
+	}
 
 	$dhl_prod_int = array();
 
@@ -742,14 +843,24 @@ function wc_gzd_dhl_get_products_international() {
 	return $dhl_prod_int;
 }
 
+function wc_gzd_dhl_get_product_title( $product_id ) {
+	$products = wc_gzd_dhl_get_products_domestic() + wc_gzd_dhl_get_products_eu() + wc_gzd_dhl_get_products_international();
+
+	return array_key_exists( $product_id, $products ) ? $products[ $product_id ] : $product_id;
+}
+
 function wc_gzd_dhl_get_products_eu() {
 	$country = Package::get_base_country();
 
-	$germany_int =  array(
+	$germany_int = array(
 		'V53WPAK' => _x( 'DHL Paket International', 'dhl', 'woocommerce-germanized' ),
 		'V55PAK'  => _x( 'DHL Paket Connect', 'dhl', 'woocommerce-germanized' ),
 		'V54EPAK' => _x( 'DHL Europaket (B2B)', 'dhl', 'woocommerce-germanized' ),
 	);
+
+	if ( wc_gzd_dhl_is_warenpost_international_available() ) {
+		$germany_int['V66WPI'] = _x( 'DHL Warenpost International', 'dhl', 'woocommerce-germanized' );
+	}
 
 	$dhl_prod_int = array();
 
@@ -786,7 +897,7 @@ function wc_gzd_dhl_get_return_receivers() {
 	$receivers = Package::get_return_receivers();
 	$select    = array();
 
-	foreach( $receivers as $receiver ) {
+	foreach ( $receivers as $receiver ) {
 		$select[ $receiver['slug'] ] = esc_attr( $receiver['id'] ) . ' (' . ( ! empty( esc_attr( $receiver['country'] ) ) ? $receiver['country'] : '*' ) . ')';
 	}
 
@@ -820,7 +931,7 @@ function wc_gzd_dhl_get_products_domestic() {
 		'V01PAK'  => _x( 'DHL Paket', 'dhl', 'woocommerce-germanized' ),
 		'V01PRIO' => _x( 'DHL Paket PRIO', 'dhl', 'woocommerce-germanized' ),
 		'V06PAK'  => _x( 'DHL Paket Taggleich', 'dhl', 'woocommerce-germanized' ),
-		'V62WP'   => _x( 'DHL Warenpost', 'dhl', 'woocommerce-germanized' )
+		'V62WP'   => _x( 'DHL Warenpost', 'dhl', 'woocommerce-germanized' ),
 	);
 
 	$dhl_prod_dom = array();

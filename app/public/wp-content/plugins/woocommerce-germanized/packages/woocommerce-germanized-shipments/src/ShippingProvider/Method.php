@@ -1,6 +1,7 @@
 <?php
 
 namespace Vendidero\Germanized\Shipments\ShippingProvider;
+
 use Exception;
 use Vendidero\Germanized\Shipments\Package;
 use WC_Shipping_Method;
@@ -10,9 +11,9 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Shipment Order
  *
- * @class 		WC_GZD_Shipment_Order
- * @version		1.0.0
- * @author 		Vendidero
+ * @class       WC_GZD_Shipment_Order
+ * @version     1.0.0
+ * @author      Vendidero
  */
 class Method {
 
@@ -55,12 +56,19 @@ class Method {
 			if ( strpos( $id, ':' ) === false ) {
 				$id = $id . ':' . $instance_id;
 			}
+		} elseif ( is_a( $id, 'WC_Shipping_Method' ) ) {
+			$instance_id = $id->get_instance_id();
+			$id          = $id->id;
+
+			if ( strpos( $id, ':' ) === false ) {
+				$id = $id . ':' . $instance_id;
+			}
 		}
 
 		if ( ! is_numeric( $id ) ) {
 			$expl        = explode( ':', $id );
-			$instance_id = ( ( ! empty( $expl ) && sizeof( $expl ) > 1 ) ? $expl[1] : 0 );
-			$id          = ( ( ! empty( $expl ) && sizeof( $expl ) > 1 ) ? $expl[0] : $id );
+			$instance_id = ( ( ! empty( $expl ) && count( $expl ) > 1 ) ? $expl[1] : 0 );
+			$id          = ( ( ! empty( $expl ) && count( $expl ) > 1 ) ? $expl[0] : $id );
 		} else {
 			$instance_id = $id;
 		}
@@ -101,14 +109,14 @@ class Method {
 		if ( $this->is_placeholder() ) {
 			return false;
 		} else {
-			$supports_settings = ( $this->method->supports( 'instance-settings' ) && $this->method->supports( 'instance-settings-modal' ) ) ? true : false;
+			$supports_settings = ( $this->method->supports( 'instance-settings' ) ) ? true : false;
 
 			return apply_filters( 'woocommerce_gzd_shipping_provider_method_supports_instance_settings', $supports_settings, $this );
 		}
 	}
 
 	public function is_placeholder() {
-		return $this->is_placeholder === true;
+		return true === $this->is_placeholder;
 	}
 
 	/**
@@ -129,51 +137,57 @@ class Method {
 		 * @since 3.0.6
 		 * @package Vendidero/Germanized/Shipments
 		 */
-		$settings = apply_filters( 'woocommerce_gzd_shipping_provider_method_admin_settings', array(
-			'shipping_provider_title' => array(
-				'title'       => _x( 'Shipping Provider Settings', 'shipments', 'woocommerce-germanized' ),
-				'type'        => 'title',
-				'default'     => '',
-				'description' => _x( 'Adjust shipping provider settings used for managing shipments.', 'shipments', 'woocommerce-germanized' ),
-			),
-			'shipping_provider' => array(
-				'title'       => _x( 'Shipping Provider', 'shipments', 'woocommerce-germanized' ),
-				'type'        => 'select',
-				/**
-				 * Filter to adjust default shipping provider pre-selected within shipping provider method settings.
-				 *
-				 * @param string $provider_name The shipping provider name e.g. dhl.
-				 *
-				 * @since 3.0.6
-				 * @package Vendidero/Germanized/Shipments
-				 */
-				'default'     => apply_filters( 'woocommerce_gzd_shipping_provider_method_default_provider', '' ),
-				'options'     => wc_gzd_get_shipping_provider_select(),
-				'description' => _x( 'Choose a shipping provider which will be selected by default for an eligible shipment.', 'shipments', 'woocommerce-germanized' ),
-			),
-		) );
+		$settings = apply_filters(
+			'woocommerce_gzd_shipping_provider_method_admin_settings',
+			array(
+				'shipping_provider_title' => array(
+					'title'       => _x( 'Shipping Provider Settings', 'shipments', 'woocommerce-germanized' ),
+					'type'        => 'title',
+					'default'     => '',
+					'description' => _x( 'Adjust shipping provider settings used for managing shipments.', 'shipments', 'woocommerce-germanized' ),
+				),
+				'shipping_provider'       => array(
+					'title'       => _x( 'Shipping Provider', 'shipments', 'woocommerce-germanized' ),
+					'type'        => 'select',
+					/**
+					 * Filter to adjust default shipping provider pre-selected within shipping provider method settings.
+					 *
+					 * @param string $provider_name The shipping provider name e.g. dhl.
+					 *
+					 * @since 3.0.6
+					 * @package Vendidero/Germanized/Shipments
+					 */
+					'default'     => apply_filters( 'woocommerce_gzd_shipping_provider_method_default_provider', '' ),
+					'options'     => wc_gzd_get_shipping_provider_select(),
+					'description' => _x( 'Choose a shipping provider which will be selected by default for an eligible shipment.', 'shipments', 'woocommerce-germanized' ),
+				),
+			)
+		);
 
-		foreach( wc_gzd_get_shipping_providers() as $provider ) {
+		foreach ( wc_gzd_get_shipping_providers() as $provider ) {
 			if ( ! $provider->is_activated() ) {
 				continue;
 			}
 
 			$additional_settings = $provider->get_shipping_method_settings();
-			$settings = array_merge( $settings, $additional_settings );
+			$settings            = array_merge( $settings, $additional_settings );
 		}
 
 		/**
 		 * Append a stop title to make sure the table is closed within settings.
 		 */
-		$settings = array_merge( $settings, array(
-			'shipping_provider_stop_title' => array(
-				'title'       => '',
-				'type'        => 'title',
-				'default'     => '',
-			),
-		) );
+		$settings = array_merge(
+			$settings,
+			array(
+				'shipping_provider_stop_title' => array(
+					'title'   => '',
+					'type'    => 'title',
+					'default' => '',
+				),
+			)
+		);
 
-		return apply_filters( "woocommerce_gzd_shipping_provider_method_admin_settings_wrapped", $settings );
+		return apply_filters( 'woocommerce_gzd_shipping_provider_method_admin_settings_wrapped', $settings );
 	}
 
 	protected function init() {
@@ -190,7 +204,7 @@ class Method {
 	}
 
 	protected function get_hook_prefix() {
-		$prefix = "woocommerce_gzd_shipping_provider_method_";
+		$prefix = 'woocommerce_gzd_shipping_provider_method_';
 
 		return $prefix;
 	}
@@ -291,7 +305,7 @@ class Method {
 			 * @since 3.0.6
 			 * @package Vendidero/Germanized/Shipments
 			 */
-			$this->provider_slug = apply_filters( "woocommerce_gzd_shipping_provider_method_provider", $provider_slug, $this->get_id(), $this );
+			$this->provider_slug = apply_filters( 'woocommerce_gzd_shipping_provider_method_provider', $provider_slug, $this->get_id(), $this );
 		}
 
 		/**
@@ -366,7 +380,7 @@ class Method {
 				// Do only use method settings if the method is not a placeholder and method supports settings
 				$option_value = $this->method->get_option( $key, $option_value );
 
-				if ( in_array( $option_type, array( 'checkbox', 'radio' ) ) ) {
+				if ( in_array( $option_type, array( 'checkbox', 'radio' ), true ) ) {
 					$option_value = wc_string_to_bool( $option_value );
 
 					if ( $option_value ) {

@@ -1,5 +1,7 @@
 <?php
 
+defined( 'ABSPATH' ) || exit;
+
 class WC_GZD_Order_Helper {
 
 	protected static $_instance = null;
@@ -18,7 +20,7 @@ class WC_GZD_Order_Helper {
 	 * @since 1.0
 	 */
 	public function __clone() {
-		_doing_it_wrong( __FUNCTION__, __( 'Cheatin&#8217; huh?', 'woocommerce-germanized' ), '1.0' );
+		_doing_it_wrong( __FUNCTION__, esc_html__( 'Cheating huh?', 'woocommerce-germanized' ), '1.0' );
 	}
 
 	/**
@@ -27,11 +29,10 @@ class WC_GZD_Order_Helper {
 	 * @since 1.0
 	 */
 	public function __wakeup() {
-		_doing_it_wrong( __FUNCTION__, __( 'Cheatin&#8217; huh?', 'woocommerce-germanized' ), '1.0' );
+		_doing_it_wrong( __FUNCTION__, esc_html__( 'Cheating huh?', 'woocommerce-germanized' ), '1.0' );
 	}
 
 	public function __construct() {
-
 		// Add better incl tax display to order totals
 		add_filter( 'woocommerce_get_order_item_totals', array( $this, 'order_item_tax_totals' ), 0, 3 );
 
@@ -41,14 +42,24 @@ class WC_GZD_Order_Helper {
 		add_action( 'woocommerce_order_item_after_calculate_taxes', array( $this, 'recalculate_order_item_unit_price' ), 60, 1 );
 
 		// Add Title to billing address format
-		add_filter( 'woocommerce_order_formatted_billing_address', array(
-			$this,
-			'set_formatted_billing_address'
-		), 0, 2 );
-		add_filter( 'woocommerce_order_formatted_shipping_address', array(
-			$this,
-			'set_formatted_shipping_address'
-		), 0, 2 );
+		add_filter(
+			'woocommerce_order_formatted_billing_address',
+			array(
+				$this,
+				'set_formatted_billing_address',
+			),
+			0,
+			2
+		);
+		add_filter(
+			'woocommerce_order_formatted_shipping_address',
+			array(
+				$this,
+				'set_formatted_shipping_address',
+			),
+			0,
+			2
+		);
 
 		// Add title options to order address data
 		add_filter( 'woocommerce_get_order_address', array( $this, 'add_order_address_data' ), 10, 3 );
@@ -58,9 +69,12 @@ class WC_GZD_Order_Helper {
 
 		add_action( 'woocommerce_checkout_create_order_fee_item', array( $this, 'set_fee_split_tax_meta' ), 10, 4 );
 
+		add_action( 'woocommerce_before_order_object_save', array( $this, 'set_order_version' ), 10 );
+		// The woocommerce_before_order_object_save hook might fail in case an order has been created manually
+		add_action( 'woocommerce_new_order', array( $this, 'on_create_order' ), 10 );
+
 		// Disallow user order cancellation
 		if ( 'yes' === get_option( 'woocommerce_gzd_checkout_stop_order_cancellation' ) ) {
-
 			add_filter( 'woocommerce_get_cancel_order_url', array( $this, 'cancel_order_url' ), 1500, 1 );
 			add_filter( 'woocommerce_get_cancel_order_url_raw', array( $this, 'cancel_order_url' ), 1500, 1 );
 			add_filter( 'user_has_cap', array( $this, 'disallow_user_order_cancellation' ), 15, 3 );
@@ -68,11 +82,126 @@ class WC_GZD_Order_Helper {
 			add_filter( 'woocommerce_my_account_my_orders_actions', array( $this, 'remove_cancel_button' ), 10, 2 );
 
 			// Remove order stock right after confirmation is sent
-			add_action( 'woocommerce_germanized_order_confirmation_sent', array(
-				$this,
-				'maybe_reduce_order_stock'
-			), 5, 1 );
+			add_action(
+				'woocommerce_germanized_order_confirmation_sent',
+				array(
+					$this,
+					'maybe_reduce_order_stock',
+				),
+				5,
+				1
+			);
 		}
+
+		/**
+		 * WooCommerce automatically creates a full refund after the order status changes to refunded.
+		 * Make sure to create a refund ourselves before Woo does and include item-related (e.g. taxes) refund data.
+		 * This way accounting and OSS reports are much more precise. Only relevant in case shop owners manually
+		 * mark an order as refunded without doing a refund before.
+		 *
+		 * @see wc_order_fully_refunded
+		 */
+		add_action( 'woocommerce_order_status_refunded', array( $this, 'create_refund_with_items' ), 5 );
+	}
+
+	public function create_refund_with_items( $order_id ) {
+		$order      = wc_get_order( $order_id );
+		$max_refund = wc_format_decimal( $order->get_total() - $order->get_total_refunded() );
+
+		if ( ! $max_refund ) {
+			return;
+		}
+
+		$items_to_refund = array();
+
+		foreach ( $order->get_items( array( 'line_item', 'fee', 'shipping' ) ) as $item ) {
+			$refunded_total = (float) $order->get_total_refunded_for_item( $item->get_id(), $item->get_type() );
+			$total          = (float) $item->get_total();
+			$refunded_qty   = abs( $order->get_qty_refunded_for_item( $item->get_id() ) );
+
+			if ( wc_format_decimal( $refunded_total, '' ) >= wc_format_decimal( $total, '' ) ) {
+				continue;
+			}
+
+			$refund_taxes = array();
+			$item_taxes   = $item->get_taxes();
+
+			foreach ( $item_taxes['total'] as $tax_id => $tax_total ) {
+				$refunded_tax_total = (float) $order->get_tax_refunded_for_item( $item->get_id(), $tax_id, $item->get_type() );
+
+				if ( wc_format_decimal( $refunded_tax_total, '' ) >= wc_format_decimal( $tax_total, '' ) ) {
+					continue;
+				}
+
+				$refund_taxes[ $tax_id ] = (float) $tax_total - $refunded_tax_total;
+			}
+
+			$items_to_refund[ $item->get_id() ] = array(
+				'qty'          => $refunded_qty >= $item->get_quantity() ? 1 : ( (int) $item->get_quantity() - $refunded_qty ),
+				'refund_total' => wc_format_decimal( $total - $refunded_total ),
+				'refund_tax'   => $refund_taxes,
+			);
+		}
+
+		if ( ! empty( $items_to_refund ) ) {
+			// Create the refund object.
+			wc_switch_to_site_locale();
+			wc_create_refund(
+				array(
+					'amount'     => $max_refund,
+					'line_items' => $items_to_refund,
+					'reason'     => __( 'Order fully refunded.', 'woocommerce-germanized' ),
+					'order_id'   => $order_id,
+				)
+			);
+			wc_restore_locale();
+
+			$order->add_order_note( __( 'Order status set to refunded. To return funds to the customer you will need to issue a refund through your payment gateway.', 'woocommerce-germanized' ) );
+		}
+	}
+
+	/**
+	 * @param $order_id
+	 * @param WC_Order $order
+	 *
+	 * @return void
+	 */
+	public function on_create_order( $order_id ) {
+		if ( $order = wc_get_order( $order_id ) ) {
+			if ( ! $order->get_meta( '_gzd_version' ) ) {
+				$order->update_meta_data( '_gzd_version', WC_germanized()->version );
+				$order->save();
+			}
+		}
+	}
+
+	/**
+	 * @param WC_Abstract_Order $order
+	 *
+	 * @return void
+	 */
+	public function set_order_version( $order ) {
+		if ( ! $order->get_id() ) {
+			$order->update_meta_data( '_gzd_version', WC_germanized()->version );
+		}
+	}
+
+	public function get_order_version( $order ) {
+		$version = '1.0.0';
+
+		if ( is_numeric( $order ) ) {
+			$order = wc_get_order( $order );
+		}
+
+		if ( $order ) {
+			$version = $order->get_meta( '_gzd_version', true );
+
+			if ( ! $version ) {
+				$version = '1.0.0';
+			}
+		}
+
+		return $version;
 	}
 
 	/**
@@ -102,7 +231,7 @@ class WC_GZD_Order_Helper {
 	public function disallow_user_order_cancellation( $allcaps, $caps, $args ) {
 		if ( isset( $caps[0] ) ) {
 			switch ( $caps[0] ) {
-				case 'cancel_order' :
+				case 'cancel_order':
 					$allcaps['cancel_order'] = false;
 					break;
 			}
@@ -137,17 +266,7 @@ class WC_GZD_Order_Helper {
 			$return = apply_filters( 'woocommerce_gzd_attempt_order_cancellation_url', add_query_arg( array( 'retry' => true ), $order->get_checkout_order_received_url(), $order ) );
 		}
 
-		return $return;
-	}
-
-	/**
-	 * @param WC_Order_Item_Product $item
-	 * @param $cart_item_key
-	 * @param $values
-	 * @param $order
-	 */
-	public function set_order_item_meta_crud( $item, $cart_item_key, $values, $order ) {
-		$this->refresh_item_data( $item );
+		return esc_url_raw( $return );
 	}
 
 	/**
@@ -157,7 +276,7 @@ class WC_GZD_Order_Helper {
 		/**
 		 * Refresh item data in case product id changes or it is a new item.
 		 */
-		if ( $item->get_id() <= 0 || in_array( 'product_id', $item->get_changes() ) ) {
+		if ( $item->get_id() <= 0 || in_array( 'product_id', $item->get_changes(), true ) ) {
 			$this->refresh_item_data( $item );
 		}
 	}
@@ -180,6 +299,14 @@ class WC_GZD_Order_Helper {
 		array_push( $metas, '_unit' );
 		array_push( $metas, '_unit_base' );
 		array_push( $metas, '_min_age' );
+		array_push( $metas, '_defect_description' );
+		array_push( $metas, '_deposit_type' );
+		array_push( $metas, '_deposit_amount' );
+		array_push( $metas, '_deposit_net_amount' );
+		array_push( $metas, '_deposit_quantity' );
+		array_push( $metas, '_deposit_amount_per_unit' );
+		array_push( $metas, '_deposit_net_amount_per_unit' );
+		array_push( $metas, '_deposit_packaging_type' );
 
 		return $metas;
 	}
@@ -187,7 +314,10 @@ class WC_GZD_Order_Helper {
 	public function refresh_item_data( $item ) {
 		if ( is_a( $item, 'WC_Order_Item_Product' ) && ( $product = $item->get_product() ) ) {
 			if ( $gzd_item = wc_gzd_get_order_item( $item ) ) {
-				$gzd_product = wc_gzd_get_product( $product );
+				$tax_display_mode   = get_option( 'woocommerce_tax_display_cart' );
+				$gzd_product        = wc_gzd_get_product( $product );
+				$order              = $item->get_order();
+				$prices_include_tax = $order ? $order->get_prices_include_tax() : wc_prices_include_tax();
 
 				$gzd_item->set_unit( $gzd_product->get_unit_name() );
 				$gzd_item->set_unit_base( $gzd_product->get_unit_base() );
@@ -196,8 +326,20 @@ class WC_GZD_Order_Helper {
 				$gzd_item->recalculate_unit_price();
 
 				$gzd_item->set_cart_description( $gzd_product->get_formatted_cart_description() );
+				$gzd_item->set_defect_description( $gzd_product->get_formatted_defect_description() );
 				$gzd_item->set_delivery_time( $gzd_product->get_delivery_time_html() );
 				$gzd_item->set_min_age( $gzd_product->get_min_age() );
+
+				$gzd_item->set_deposit_type( $gzd_product->get_deposit_type() );
+				$gzd_item->set_deposit_amount_per_unit( $gzd_product->get_deposit_amount_per_unit( 'view', 'incl' ) );
+				$gzd_item->set_deposit_net_amount_per_unit( $gzd_product->get_deposit_amount_per_unit( 'view', 'excl' ) );
+
+				$gzd_item->set_deposit_quantity( $gzd_product->get_deposit_quantity() );
+
+				$gzd_item->set_deposit_amount( $gzd_product->get_deposit_amount( 'view', 'incl' ) );
+				$gzd_item->set_deposit_net_amount( $gzd_product->get_deposit_amount( 'view', 'excl' ) );
+
+				$gzd_item->set_deposit_packaging_type( $gzd_product->get_deposit_packaging_type() );
 
 				/**
 				 * Add order item meta.

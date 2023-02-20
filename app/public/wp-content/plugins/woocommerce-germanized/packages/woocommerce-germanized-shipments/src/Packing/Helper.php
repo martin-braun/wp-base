@@ -8,11 +8,16 @@ class Helper {
 
 	protected static $packaging = null;
 
+	/**
+	 * @param false $id
+	 *
+	 * @return PackagingBox[]|boolean|PackagingBox
+	 */
 	public static function get_available_packaging( $id = false ) {
 		if ( is_null( self::$packaging ) ) {
 			self::$packaging = array();
 
-			foreach( wc_gzd_get_packaging_list() as $packaging ) {
+			foreach ( wc_gzd_get_packaging_list() as $packaging ) {
 				self::$packaging[ $packaging->get_id() ] = new PackagingBox( $packaging );
 			}
 		}

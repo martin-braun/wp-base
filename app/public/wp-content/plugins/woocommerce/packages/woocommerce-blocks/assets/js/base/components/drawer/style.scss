@@ -42,7 +42,7 @@ $drawer-width-mobile: 100vw;
 	right: 0;
 	top: 0;
 	transition: opacity $drawer-animation-duration;
-	z-index: 999;
+	z-index: 9999;
 	opacity: 1;
 }
 
@@ -69,7 +69,6 @@ $drawer-width-mobile: 100vw;
 	display: block;
 	height: 100%;
 	left: 100%;
-	overflow: auto;
 	position: fixed;
 	right: 0;
 	top: 0;

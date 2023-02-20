@@ -26,6 +26,15 @@ class WC_REST_Products_Controller extends WC_REST_Products_V2_Controller {
 	protected $namespace = 'wc/v3';
 
 	/**
+	 * A string to inject into a query to do a partial match SKU search.
+	 *
+	 * See prepare_objects_query()
+	 *
+	 * @var string
+	 */
+	private $search_sku_in_product_lookup_table = '';
+
+	/**
 	 * Get the images for a product or product variation.
 	 *
 	 * @param WC_Product|WC_Product_Variation $product Product instance.
@@ -144,22 +153,32 @@ class WC_REST_Products_Controller extends WC_REST_Products_V2_Controller {
 			);
 		}
 
-		// Filter by sku.
-		if ( ! empty( $request['sku'] ) ) {
-			$skus = explode( ',', $request['sku'] );
-			// Include the current string as a SKU too.
-			if ( 1 < count( $skus ) ) {
-				$skus[] = $request['sku'];
+		if ( wc_product_sku_enabled() ) {
+			// Do a partial match for a sku. Supercedes sku parameter that does exact matching.
+			if ( ! empty( $request['search_sku'] ) ) {
+				// Store this for use in the query clause filters.
+				$this->search_sku_in_product_lookup_table = $request['search_sku'];
+
+				unset( $request['sku'] );
 			}
 
-			$args['meta_query'] = $this->add_meta_query( // WPCS: slow query ok.
-				$args,
-				array(
-					'key'     => '_sku',
-					'value'   => $skus,
-					'compare' => 'IN',
-				)
-			);
+			// Filter by sku.
+			if ( ! empty( $request['sku'] ) ) {
+				$skus = explode( ',', $request['sku'] );
+				// Include the current string as a SKU too.
+				if ( 1 < count( $skus ) ) {
+					$skus[] = $request['sku'];
+				}
+
+				$args['meta_query'] = $this->add_meta_query( // WPCS: slow query ok.
+					$args,
+					array(
+						'key'     => '_sku',
+						'value'   => $skus,
+						'compare' => 'IN',
+					)
+				);
+			}
 		}
 
 		// Filter by tax class.
@@ -201,16 +220,13 @@ class WC_REST_Products_Controller extends WC_REST_Products_V2_Controller {
 		}
 
 		// Force the post_type argument, since it's not a user input variable.
-		if ( ! empty( $request['sku'] ) ) {
+		if ( ! empty( $request['sku'] ) || ! empty( $request['search_sku'] ) ) {
 			$args['post_type'] = array( 'product', 'product_variation' );
 		} else {
 			$args['post_type'] = $this->post_type;
 		}
 
-		$orderby = $request->get_param( 'orderby' );
-		$order   = $request->get_param( 'order' );
-
-		$ordering_args   = WC()->query->get_catalog_ordering_args( $orderby, $order );
+		$ordering_args   = WC()->query->get_catalog_ordering_args( $args['orderby'], $args['order'] );
 		$args['orderby'] = $ordering_args['orderby'];
 		$args['order']   = $ordering_args['order'];
 		if ( $ordering_args['meta_key'] ) {
@@ -218,6 +234,61 @@ class WC_REST_Products_Controller extends WC_REST_Products_V2_Controller {
 		}
 
 		return $args;
+	}
+
+	/**
+	 * Get objects.
+	 *
+	 * @param array $query_args Query args.
+	 * @return array
+	 */
+	protected function get_objects( $query_args ) {
+		// Add filters for search criteria in product postmeta via the lookup table.
+		if ( ! empty( $this->search_sku_in_product_lookup_table ) ) {
+			add_filter( 'posts_join', array( $this, 'add_search_criteria_to_wp_query_join' ) );
+			add_filter( 'posts_where', array( $this, 'add_search_criteria_to_wp_query_where' ) );
+		}
+
+		$result = parent::get_objects( $query_args );
+
+		// Remove filters for search criteria in product postmeta via the lookup table.
+		if ( ! empty( $this->search_sku_in_product_lookup_table ) ) {
+			remove_filter( 'posts_join', array( $this, 'add_search_criteria_to_wp_query_join' ) );
+			remove_filter( 'posts_where', array( $this, 'add_search_criteria_to_wp_query_where' ) );
+
+			$this->search_sku_in_product_lookup_table = '';
+		}
+		return $result;
+	}
+
+	/**
+	 * Join `wc_product_meta_lookup` table when SKU search query is present.
+	 *
+	 * @param string $join Join clause used to search posts.
+	 * @return string
+	 */
+	public function add_search_criteria_to_wp_query_join( $join ) {
+		global $wpdb;
+		if ( ! empty( $this->search_sku_in_product_lookup_table ) && ! strstr( $join, 'wc_product_meta_lookup' ) ) {
+			$join .= " LEFT JOIN $wpdb->wc_product_meta_lookup wc_product_meta_lookup
+						ON $wpdb->posts.ID = wc_product_meta_lookup.product_id ";
+		}
+		return $join;
+	}
+
+	/**
+	 * Add a where clause for matching the SKU field.
+	 *
+	 * @param string $where Where clause used to search posts.
+	 * @return string
+	 */
+	public function add_search_criteria_to_wp_query_where( $where ) {
+		global $wpdb;
+		if ( ! empty( $this->search_sku_in_product_lookup_table ) ) {
+			$like_search = '%' . $wpdb->esc_like( $this->search_sku_in_product_lookup_table ) . '%';
+			$where .= ' AND ' . $wpdb->prepare( '(wc_product_meta_lookup.sku LIKE %s)', $like_search );
+		}
+		return $where;
 	}
 
 	/**
@@ -796,7 +867,7 @@ class WC_REST_Products_Controller extends WC_REST_Products_V2_Controller {
 					'description' => __( 'Product status (post status).', 'woocommerce' ),
 					'type'        => 'string',
 					'default'     => 'publish',
-					'enum'        => array_merge( array_keys( get_post_statuses() ), array( 'future' ) ),
+					'enum'        => array_merge( array_keys( get_post_statuses() ), array( 'future', 'auto-draft', 'trash' ) ),
 					'context'     => array( 'view', 'edit' ),
 				),
 				'featured'              => array(
@@ -1223,6 +1294,12 @@ class WC_REST_Products_Controller extends WC_REST_Products_V2_Controller {
 						),
 					),
 				),
+				'has_options'     => array(
+					'description' => __( 'Shows if the product needs to be configured before it can be bought.', 'woocommerce' ),
+					'type'        => 'boolean',
+					'context'     => array( 'view', 'edit' ),
+					'readonly'    => true,
+				),
 				'attributes'            => array(
 					'description' => __( 'List of attributes.', 'woocommerce' ),
 					'type'        => 'array',
@@ -1344,6 +1421,24 @@ class WC_REST_Products_Controller extends WC_REST_Products_V2_Controller {
 				),
 			),
 		);
+
+		$post_type_obj = get_post_type_object( $this->post_type );
+		if ( is_post_type_viewable( $post_type_obj ) && $post_type_obj->public ) {
+			$schema['properties']['permalink_template'] = array(
+				'description' => __( 'Permalink template for the product.', 'woocommerce' ),
+				'type'        => 'string',
+				'context'     => array( 'edit' ),
+				'readonly'    => true,
+			);
+
+			$schema['properties']['generated_slug'] = array(
+				'description' => __( 'Slug automatically generated from the product name.', 'woocommerce' ),
+				'type'        => 'string',
+				'context'     => array( 'edit' ),
+				'readonly'    => true,
+			);
+		}
+
 		return $this->add_additional_fields_schema( $schema );
 	}
 
@@ -1365,6 +1460,13 @@ class WC_REST_Products_Controller extends WC_REST_Products_V2_Controller {
 			'validate_callback' => 'rest_validate_request_arg',
 		);
 
+		$params['search_sku'] = array(
+			'description'       => __( 'Limit results to those with a SKU that partial matches a string.', 'woocommerce' ),
+			'type'              => 'string',
+			'sanitize_callback' => 'sanitize_text_field',
+			'validate_callback' => 'rest_validate_request_arg',
+		);
+
 		return $params;
 	}
 
@@ -1378,13 +1480,45 @@ class WC_REST_Products_Controller extends WC_REST_Products_V2_Controller {
 	 */
 	protected function get_product_data( $product, $context = 'view' ) {
 		$data = parent::get_product_data( ...func_get_args() );
-		// Add stock_status if needed.
+
 		if ( isset( $this->request ) ) {
 			$fields = $this->get_fields_for_response( $this->request );
-			if ( in_array( 'stock_status', $fields ) ) {
+
+			// Add stock_status if needed.
+			if ( in_array( 'stock_status', $fields, true ) ) {
 				$data['stock_status'] = $product->get_stock_status( $context );
 			}
+
+			// Add has_options if needed.
+			if ( in_array( 'has_options', $fields, true ) ) {
+				$data['has_options'] = $product->has_options( $context );
+			}
+
+			$post_type_obj = get_post_type_object( $this->post_type );
+			if ( is_post_type_viewable( $post_type_obj ) && $post_type_obj->public ) {
+				$permalink_template_requested = in_array( 'permalink_template', $fields, true );
+				$generated_slug_requested     = in_array( 'generated_slug', $fields, true );
+
+				if ( $permalink_template_requested || $generated_slug_requested ) {
+					if ( ! function_exists( 'get_sample_permalink' ) ) {
+						require_once ABSPATH . 'wp-admin/includes/post.php';
+					}
+
+					$sample_permalink = get_sample_permalink( $product->get_id(), $product->get_name(), '' );
+
+					// Add permalink_template if needed.
+					if ( $permalink_template_requested ) {
+						$data['permalink_template'] = $sample_permalink[0];
+					}
+
+					// Add generated_slug if needed.
+					if ( $generated_slug_requested ) {
+						$data['generated_slug'] = $sample_permalink[1];
+					}
+				}
+			}
 		}
+
 		return $data;
 	}
 }

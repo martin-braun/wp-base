@@ -18,16 +18,16 @@ import './style.scss';
 /**
  * Component displaying a product search form.
  *
- * @param {Object} props Incoming props for the component.
- * @param {Object} props.attributes Incoming block attributes.
- * @param {string} props.attributes.label
- * @param {string} props.attributes.placeholder
- * @param {string} props.attributes.formId
- * @param {string} props.attributes.className
- * @param {boolean} props.attributes.hasLabel
- * @param {string} props.attributes.align
- * @param {string} props.instanceId
- * @param {function(any):any} props.setAttributes Setter for block attributes.
+ * @param {Object}            props                        Incoming props for the component.
+ * @param {Object}            props.attributes             Incoming block attributes.
+ * @param {string}            props.attributes.label
+ * @param {string}            props.attributes.placeholder
+ * @param {string}            props.attributes.formId
+ * @param {string}            props.attributes.className
+ * @param {boolean}           props.attributes.hasLabel
+ * @param {string}            props.attributes.align
+ * @param {string}            props.instanceId
+ * @param {function(any):any} props.setAttributes          Setter for block attributes.
  */
 const Edit = ( {
 	attributes: { label, placeholder, formId, className, hasLabel, align },
@@ -60,17 +60,6 @@ const Edit = ( {
 							'Show search field label',
 							'woocommerce'
 						) }
-						help={
-							hasLabel
-								? __(
-										'Label is visible.',
-										'woocommerce'
-								  )
-								: __(
-										'Label is hidden.',
-										'woocommerce'
-								  )
-						}
 						checked={ hasLabel }
 						onChange={ () =>
 							setAttributes( { hasLabel: ! hasLabel } )
@@ -80,18 +69,34 @@ const Edit = ( {
 			</InspectorControls>
 			<div className={ classes }>
 				{ !! hasLabel && (
-					<PlainText
-						className="wc-block-product-search__label"
-						value={ label }
-						onChange={ ( value ) =>
-							setAttributes( { label: value } )
-						}
-					/>
+					<>
+						<label
+							className="screen-reader-text"
+							htmlFor="wc-block-product-search__label"
+						>
+							{ __(
+								'Search Label',
+								'woocommerce'
+							) }
+						</label>
+						<PlainText
+							className="wc-block-product-search__label"
+							id="wc-block-product-search__label"
+							value={ label }
+							onChange={ ( value ) =>
+								setAttributes( { label: value } )
+							}
+						/>
+					</>
 				) }
 				<div className="wc-block-product-search__fields">
 					<TextControl
 						className="wc-block-product-search__field input-control"
 						value={ placeholder }
+						placeholder={ __(
+							'Enter search placeholder text',
+							'woocommerce'
+						) }
 						onChange={ ( value ) =>
 							setAttributes( { placeholder: value } )
 						}

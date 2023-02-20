@@ -2,10 +2,10 @@
 Contributors: vendidero, vdwoocommercesupport
 Tags: woocommerce, woocommerce german, woocommerce DE, woocommerce germany, woocommerce deutsch, woo, woocommerce deutschland, woocommerce germanized, woocommerce addon, woocommerce plugin, woocommerce german addon, woocommerce germany addon, woocommerce dhl, dhl, shipments
 Requires at least: 5.4
-Tested up to: 5.8
+Tested up to: 6.1
 WC requires at least: 3.9
-WC tested up to: 5.9
-Stable tag: 3.7.2
+WC tested up to: 7.3
+Stable tag: 3.11.3
 Requires PHP: 5.6
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -29,17 +29,19 @@ Furthermore we customized the WooCommerce checkout to make your store meet the b
 * *Terms, Revocation, Privacy Policy* - Display checkboxes within your checkout to make sure customers agree to your conditions.
 * *Legal Checkboxes UI* - Adjust your legal WooCommerce checkboxes (e.g. terms & conditions) through a fluent user interface.
 * *Button Solution* - We adjust your checkout and submit button to comply with german button solution.
+* *Sell Food (Pro)* - Label your food (nutrients, ingredients, allergenic), sell deposit bottles, show the Nutri-Score.
 * *OSS compliance* - Germanized helps your WooCommerce shop to be compliant with the new One Stop Shop procedure
 * *Double opt-in (DOI) for Customers* - Make sure customers opted in while registering within your shop. Optionally disable checkout until the customer opted in.
 * *Tax Calculation for Shipping Costs and Fees* - Enable split tax calculation based on your WooCommerce cart taxes.
 * *Legal pages in Email Templates* - Attach legal pages content to certain WooCommerce e-mail templates.
 * *Trusted Shops Integration* - Integrate your Trusted Shops Products within your WooCommerce store
-* *Post, DHL and DPD (Pro) Integration* - Generate labels for shipments and returns right from your backend. Offer preferred delivery services to your customers.
+* *Post, DHL, DPD (Pro) and GLS (Pro) Integration* - Generate labels for shipments and returns right from your backend. Offer preferred delivery services to your customers.
 * *Payment Gateway: SEPA direct debit* - Receive payments via direct debit. We've added a XML export to transfer payments to your bank.
 * *Payment Gateway: Pay by Invoice* - Allow certain customers to pay by invoice. Best integration with our PDF invoices feature (Pro).
 * *Online Revocation Form* - Allow customers to submit revocations by filling out a form on your revocation page.
 * *Sale Price Labels* - Prepend your WooCommerce sale prices by certain tags e.g. old price and new price.
 * *Differential Taxation* - Insert special notices for products which a differential taxed.
+* *Used Goods and Defective Copies* - Show defect descriptions on your product page and during checkout.
 * *WPML Support* - Germanized can be used with WPML.
 * *REST API Support* - Data added by Germanized is adjustable via the WooCommerce REST API (v2)
 * *Product CSV Import/Export* - We've extended the WooCommerce product CSV import and export to support our custom fields (e.g. unit price, delivery time etc.)
@@ -70,9 +72,9 @@ You can then manage your shipments and it's statuses independently from your ord
 Managing returns can be a time-consuming challenge. By using Germanized you might let your customers create return requests through their customer panel. All you need to do is confirm the request through your return dashboard and your customers will receive an email containing further steps on how to return their product(s).
 In case you are using our DHL integration you might as well (automatically) create a label to the return which will be attached to the email sent to the customer.
 
-= Post, DHL and DPD (Pro) Integration =
-With the help of our built-in Post, DHL and DPD (Pro) integration you can easily create labels for your shipments and add tracking information to the notification emails. Furthermore you can offer DHL preferred delivery services to your customers including shipping to Packstation or choosing a drop-off location and/or day within the checkout.
-You can even let your shipments and labels be generated automatically by Germanized to avoid further manual work. [Learn more](https://vendidero.de/dokumentation/woocommerce-germanized/versanddienstleister "Post & DHL for WooCommerce") about how our shipping provider integrations work.
+= Post, DHL, DPD (Pro) and GLS (Pro) Integration =
+With the help of our built-in Post, DHL, DPD (Pro) and GLS (Pro) integration you can easily create labels for your shipments and add tracking information to the notification emails. Furthermore you can offer DHL preferred delivery services to your customers including shipping to Packstation or choosing a drop-off location and/or day within the checkout.
+You can even let your shipments and labels be generated automatically by Germanized to avoid further manual work. [Learn more](https://vendidero.de/dokument/versanddienstleister-verwalten "Shipping Provider for WooCommerce") about how our shipping provider integrations work.
 
 = Extended One Stop Shop compliance =
 With a little help from our [One Stop Shop compliance plugin for WooCommerce](https://wordpress.org/plugins/one-stop-shop-woocommerce/) bundled within Germanized you'll handle the new EU VAT regulations with ease. Generate new VAT reports for different time frames and let the plugin
@@ -88,6 +90,9 @@ We've added some specific compatibility and tests for certain popular WooCommerc
 * WooCommerce Dynamic Pricing
 * WooCommerce Role Based Pricing
 * WooCommerce Product Bundles
+* WooCommerce Subscriptions
+* WooCommerce Measurement Price Calculator
+* Elementor
 
 = Tested WooCommerce Themes =
 By default, Germanized works with *every WooCommerce theme*. Some themes may need adjustments due to not using WooCommerce standards hooks or styles. Within our professional version we've tested certain third-party WooCommerce themes to ensure better compatibility with Germanized for WooCommerce:
@@ -97,12 +102,14 @@ By default, Germanized works with *every WooCommerce theme*. Some themes may nee
 * Storefront
 * Virtue
 * Shopkeeper
+* Astra
+* OceanWP
 
 == Installation ==
 
 = Minimal Requirements =
 
-* WordPress 4.9 or newer
+* WordPress 5.4 or newer
 * WooCommerce 3.9 (newest version recommended)
 * PHP Version 5.6 or newer
 
@@ -130,6 +137,9 @@ Outputs tax notice for a product.
 `[gzd_product_shipping_notice product="123"]`
 Outputs shipping costs notice for a product.
 
+`[gzd_product_defect_description product="123"]`
+Outputs defect description for a defective copy.
+
 `[gzd_product_cart_desc product="123"]`
 Outputs mini cart description for a product.
 
@@ -148,12 +158,8 @@ The shortcode is useful to output the legal page attachments in custom email tem
 `[gzd_complaints]`
 Inserts a text that informs the customer about the EU Online Dispute Platform - this Shortcode should be inserted within your imprint. Find more information [here](http://shop.trustedshops.com/de/rechtstipps/jetzt-handeln-link-auf-eu-online-schlichtungs-plattform-ab-9.1.2016).
 
-`[trusted_shops_badge]`
-If you are a Trusted Shops Customer, you may insert this shortcode to insert the Trusted Shops Badge at your favourite place.
-By adjusting parameter width=55 (55 means 55px width/height) you may optionally set badge's width.
-
-`[trusted_shops_rich_snippets]`
-If you are using Trusted Shop's review functionality, you may insert a Google Rich Snippet to show your current shop's rating.
+`[gzd_return_request_form]`
+Insert the guest return request form which allows guests to submit [return requests](https://vendidero.de/dokument/retouren-konfigurieren-und-verwalten).
 
 = Updating Germanized for WooCommerce =
 
@@ -163,7 +169,7 @@ You may of course Update Germanized for WooCommerce automatically through the Wo
 == Frequently Asked Questions ==
 
 = Where can I find the documentation? =
-[Germanized Documentation](https://vendidero.de/dokumentation/woocommerce-germanized)
+[Germanized Documentation](https://vendidero.de/dokument/home-germanized)
 
 = Need help? =
 
@@ -198,6 +204,208 @@ Bug reports may be filed via our [GitHub repository](https://github.com/vendider
 6. Edit pdf documents (Pro)
 
 == Changelog ==
+= 3.11.3 =
+* Feature: Create packaging reports on a per-country base
+* Improvement: Allow sorting shipping providers
+* Improvement: Send order confirmation for orders created via REST API
+* Improvement: Privacy Policy page detection during new installations
+* Improvement: eRecht 24 shortcode compatibility
+* Improvement: Register review authenticity via WPML
+* Improvement: Gift card compatibility with voucher redemption
+* Improvement: Mark checkout fields with errors as invalid after AJAX requests
+* Improvement: Cartflows checkout compatibility
+* Fix: Global product instance reset during block adjustments
+
+= 3.11.2 =
+* Improvement: Switch plugin locale to de_DE when using de_CH or de_AT
+* Improvement: Allow filtering shipment list by provider
+* Fix: Prevent errors caused by WooCommerce PayPal Payments from processing shipments
+* Fix: Postfiliale postNumber field in DHL API
+
+= 3.11.1 =
+* Fix: JS error during label creation
+* Fix: Prevent DHL parcel location finder PHP warning if address_2 field is disabled
+
+= 3.11.0 =
+* Feature: WP 6.1 compatibility
+* Feature: DHL closest droppoint (CDP) and PDDP support
+* Feature: New DHL unified location finder API
+* Improvement: Allow disabling instant order confirmation on a per-order base
+* Improvement: PayPal Payments Pay upon Invoice compatibility
+* Improvement: Allow providing a cart description for variable parent products as fallback
+* Improvement: Divi checkout builder compatibility
+* Improvement: Add to cart variation script compatibility
+* Improvement: DHL error message for missing product participation numbers
+* Improvement: Shipment address UK VAT ID for brexit exports
+* Improvement: DHL pickup address validation
+* Fix: DHL ident check service sync
+* Fix: WPML delivery times compatibility
+* Fix: Localized decimal formatting in settings
+
+= 3.10.6 =
+* Improvement: Prevent new account activation email from being sent during DOI process in latest Woo version
+* Improvement: Prevent install redirection loops when transients fail
+* Fix: Formal localized decimal in packaging admin list
+* Fix: Formal language install check
+
+= 3.10.5 =
+* Improvement: Add HS code and manufacture country to REST API
+* Improvement: Legacy function wrapper for wc_ts functions
+* Improvement: Do not show review authenticity status for child comments
+* Fix: Force min_ages enum to be string during REST API requests
+* Fix: Setup wizard screen id
+
+= 3.10.4 =
+* Feature: Create packaging summary reports
+* Feature: New Trusted Shops Easy Integration
+* Improvement: Order shipping status
+* Improvement: Allow missing Packstation indicator during DHL checkout
+* Improvement: Nutrients WPML compatibility
+* Fix: Prevent SOAP call during DHL connection check if missing
+
+= 3.10.3 =
+* Improvement: Multisite dependency check
+* Improvement: Admin add order fee tax calc
+* Fix: AJAX unit price refresh
+
+= 3.10.2 =
+* Improvement: Shipments REST API writable attributes
+* Improvement: Elementor Pro 3.7.3 compatibility
+
+= 3.10.1 =
+* New: REST API endpoint for shipments
+* Improvement: Install helper for additional packages (e.g. OSS)
+* Improvement: Separately install OSS plugin in case needed (notice existing installs)
+* Improvement: Setup wizard styling
+* Improvement: Invalid base country detection notice
+* Improvement: Elementor Pro review order heading
+* Improvement: Moved MPN/GTIN functionality from TS package to core
+* Improvement: Whitelist IT Recht Kanzlei Shortcodes for legal texts
+* Improvement: Apply the same shipping/fee tax calculation within admin order screen
+* Improvement: WPML compatibility with delivery times for variable products
+* Improvement: New manage order column with shipping status
+* Fix: REST API schema
+* Fix: Tax share float check
+* Fix: SEPA XML debtorAdrLine
+* Fix: Taxable order address
+
+= 3.9.8 =
+* Improvement: Add extended support for pain.008.003.02 and mark as new SEPA XML default
+* Improvement: Do not send password reset link with DOI activation email as it gets invalidated after activation
+* Fix: Resend DOI activation link
+* Fix: Deutsche Post WP International API is discontinued starting from 2022-07-01 - please use DHL API instead
+
+= 3.9.7 =
+* Fix: IM print/product settings saving
+* Fix: Missing SEPA form fields due to wrong output escape
+
+= 3.9.6 =
+* Improvement: PHP code sniffer fixes
+* Fix: IM label settings save
+* Fix: Skip shipment return item in case quantity <= 0
+
+= 3.9.5 =
+* Security: Hardened URL escaping to prevent XSS attack vectors
+* Improvement: Register meta boxes for legal page email content for legal pages only
+* Improvement: Variable unit price data transmission while saving variations
+
+= 3.9.4 =
+* Tweak: Temporarily patch WooCommerce Multilingual bug which leads to update issues
+* Improvement: Added additional checks to determine whether WooCommerce reviews are enabled
+* Improvement: Legal news update note
+
+= 3.9.3 =
+* Feature: Omnibus-Policy compliance (notify customers about the authenticity of customer reviews)
+* Improvement: Quick-View general compatibility
+* Improvement: Do not use deprecated elementor _register_controls
+* Improvement: Allergenic product import handling
+* Improvement: Voucher discount calculation
+* Improvement: Divi template builder checkout
+* Fix: Template locating for checkboxes
+
+= 3.9.2 =
+* Fix: State select hide for DE
+* Fix: Food nutrients variation parent merge
+* Improvement: Food attribute formatting
+* Improvement: Admin notes handling with nonce links
+
+= 3.9.1 =
+* Fix: Default shopmark filter for deposits in mini-cart dropdown
+* Fix: Deprecated virtual VAT helper legacy load
+* Improvement: Validate filter existence before executing shopmarks
+* Improvement: DP Internetmarke products transient expiration
+
+= 3.9.0 =
+* Feature: WP 6.0 compatibility
+* Feature: Sell food in a legally secure way (Pro)
+* Improvement: Store vouchers as fees to allow mixing vouchers and discounts in cart
+* Improvement: Hide the state field for Germany (which was introduced in Woo 6.3)
+* Improvement: Use Woo-like data-attributes for variation script
+* Improvement: New, separate shopmark templates for product loops
+* Improvement: Send order confirmation for manually created orders
+* Improvement: Import/Export handling during cron requests
+* Fix: WPML delivery times (per country) translation
+* Fix: Unit price cart calculation rounding
+
+= 3.8.5 =
+* Improvement: Updated DHL signup links
+* Improvement: Updated to latest OSS version
+
+= 3.8.4 =
+* Improvement: Added formatted customer title to REST API
+* Improvement: Variation price detection
+* Improvement: Shipping costs refund tax precision
+* Improvement: Divi checkout module compatibility
+* Improvement: Divi product builder compatibility
+* Improvement: Unit price price observer price detection
+* Improvement: Return request parsing order ids
+* Improvement: Connection status check for DHL API
+* Fix: Allow booking DHL premium for EU and third countries
+
+= 3.8.3 =
+* Improvement: Prevent DHL preferred services from showing in non-shipping carts
+* Improvement: Prevent parcel delivery checkbox from showing in non-shipping carts
+
+= 3.8.2 =
+* Improvement: Elementor Pro Checkout widget compatibility
+* Improvement: Variation main price detection
+* Improvement: Checkout shutdown handler to send fallback order confirmation
+* Improvement: Updated DHL wsdl files to 3.2
+* Improvement: Insert DHL preferred services checkout selection after checkboxes
+* Fix: Mark variations as not needing update after triggering checkbox change event
+* Fix: Direct Debit SEPA XML export > 2 decimals support
+
+= 3.8.1 =
+* Improvement: Email attachment plain text pagebuilder support
+* Improvement: Allow using {stock_status} in delivery time placeholder
+* Improvement: Increase email title gettext replacement filter priority
+* Improvement: Allow disabling checkout adjustments via WC_GZD_DISABLE_CHECKOUT_ADJUSTMENTS constant
+* Improvement: Quick edit support for delivery times and units
+* Improvement: Small business notice placement in cart
+* Improvement: Allow tracking Deutsche Post letter products (basic tracking)
+* Fix: Make sure cart quantity is not zero when (re-) calculating unit price
+* Fix: Shipment packaging dimension conversion
+
+= 3.8.0 =
+* Feature: Woo 6.1 Support
+* Feature: WP 5.9 Support
+* Feature: Explicitly support used goods and defective copies
+* Feature: Product warranty PDF upload option and email attachment
+* Improvement: Bulk-edit support for delivery time and units
+* Improvement: Variation bulk-edit options
+* Improvement: Street number validation for separate shipping addresses
+* Improvement: Extended Divi support
+* Improvement: Dynamically calculate unit price within cart
+* Improvement: AJAX refresh unit prices with loading placeholder
+* Improvement: Added DOI confirmation status column to users table
+* Improvement: urlencode DOI link
+* Improvement: WooCommerce Measurement Price Calculator compatibility
+* Improvement: Remove terms checkbox from pay for order page in case of WC_GZD_FORCE_PAY_ORDER is defined
+* Improvement: Refactored library usage via composer
+* Improvement: Prevent deprecated is_ajax usage
+* Fix: Minimum age for category-wide usage
+* Fix: Register missing pending to cancelled email notification
+
 = 3.7.2 =
 * Improvement: Added WP CLI command (wp wc_gzd update) to run DB updates via CLI
 * Fix: Do not use empty price_html (e.g. variable product with same prices) as indicator to hide shopmarks

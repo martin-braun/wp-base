@@ -19,6 +19,13 @@ class Cart extends AbstractBlock {
 	protected $block_name = 'cart';
 
 	/**
+	 * Chunks build folder.
+	 *
+	 * @var string
+	 */
+	protected $chunks_folder = 'cart-blocks';
+
+	/**
 	 * Get the editor script handle for this block type.
 	 *
 	 * @param string $key Data to get, or default to everything.
@@ -55,26 +62,89 @@ class Cart extends AbstractBlock {
 	 * @param array $attributes  Any attributes that currently are available from the block.
 	 */
 	protected function enqueue_assets( array $attributes ) {
+		/**
+		 * Fires before cart block scripts are enqueued.
+		 */
 		do_action( 'woocommerce_blocks_enqueue_cart_block_scripts_before' );
 		parent::enqueue_assets( $attributes );
+		/**
+		 * Fires after cart block scripts are enqueued.
+		 */
 		do_action( 'woocommerce_blocks_enqueue_cart_block_scripts_after' );
 	}
 
 	/**
 	 * Append frontend scripts when rendering the Cart block.
 	 *
-	 * @param array  $attributes Block attributes.
-	 * @param string $content    Block content.
+	 * @param array    $attributes Block attributes.
+	 * @param string   $content    Block content.
+	 * @param WP_Block $block      Block instance.
 	 * @return string Rendered block type output.
 	 */
-	protected function render( $attributes, $content ) {
+	protected function render( $attributes, $content, $block ) {
 		// Deregister core cart scripts and styles.
 		wp_dequeue_script( 'wc-cart' );
 		wp_dequeue_script( 'wc-password-strength-meter' );
 		wp_dequeue_script( 'selectWoo' );
 		wp_dequeue_style( 'select2' );
 
-		return $this->inject_html_data_attributes( $content . $this->get_skeleton(), $attributes );
+		/**
+		 * We need to check if $content has any templates from prior iterations of the block, in order to update to the latest iteration.
+		 * We test the iteration version by searching for new blocks brought in by it.
+		 * The blocks used for testing should be always available in the block (not removable by the user).
+		 */
+
+		$regex_for_filled_cart_block = '/<div[\n\r\s\ta-zA-Z0-9_\-=\'"]*data-block-name="woocommerce\/filled-cart-block"[\n\r\s\ta-zA-Z0-9_\-=\'"]*>/mi';
+		// Filled Cart block was added in i2, so we search for it to see if we have a Cart i1 template.
+		$has_i1_template = ! preg_match( $regex_for_filled_cart_block, $content );
+
+		if ( $has_i1_template ) {
+			/**
+			 * This fallback structure needs to match the defaultTemplate variables defined in the block's edit.tsx files,
+			 * starting from the parent block and going down each inner block, in the order the blocks were registered.
+			 */
+			$inner_blocks_html = '$0
+			<div data-block-name="woocommerce/filled-cart-block" class="wp-block-woocommerce-filled-cart-block">
+				<div data-block-name="woocommerce/cart-items-block" class="wp-block-woocommerce-cart-items-block">
+					<div data-block-name="woocommerce/cart-line-items-block" class="wp-block-woocommerce-cart-line-items-block"></div>
+				</div>
+				<div data-block-name="woocommerce/cart-totals-block" class="wp-block-woocommerce-cart-totals-block">
+					<div data-block-name="woocommerce/cart-order-summary-block" class="wp-block-woocommerce-cart-order-summary-block"></div>
+					<div data-block-name="woocommerce/cart-express-payment-block" class="wp-block-woocommerce-cart-express-payment-block"></div>
+					<div data-block-name="woocommerce/proceed-to-checkout-block" class="wp-block-woocommerce-proceed-to-checkout-block"></div>
+					<div data-block-name="woocommerce/cart-accepted-payment-methods-block" class="wp-block-woocommerce-cart-accepted-payment-methods-block"></div>
+				</div>
+			</div>
+			<div data-block-name="woocommerce/empty-cart-block" class="wp-block-woocommerce-empty-cart-block">
+			';
+
+			$content = preg_replace( '/<div class="[a-zA-Z0-9_\- ]*wp-block-woocommerce-cart[a-zA-Z0-9_\- ]*">/mi', $inner_blocks_html, $content );
+			$content = $content . '</div>';
+		}
+
+		/**
+		 * Cart i3 added inner blocks for Order summary. We need to add them to Cart i2 templates.
+		 * The order needs to match the order in which these blocks were registered.
+		 */
+		$order_summary_with_inner_blocks = '$0
+			<div data-block-name="woocommerce/cart-order-summary-heading-block" class="wp-block-woocommerce-cart-order-summary-heading-block"></div>
+			<div data-block-name="woocommerce/cart-order-summary-subtotal-block" class="wp-block-woocommerce-cart-order-summary-subtotal-block"></div>
+			<div data-block-name="woocommerce/cart-order-summary-fee-block" class="wp-block-woocommerce-cart-order-summary-fee-block"></div>
+			<div data-block-name="woocommerce/cart-order-summary-discount-block" class="wp-block-woocommerce-cart-order-summary-discount-block"></div>
+			<div data-block-name="woocommerce/cart-order-summary-coupon-form-block" class="wp-block-woocommerce-cart-order-summary-coupon-form-block"></div>
+			<div data-block-name="woocommerce/cart-order-summary-shipping-form-block" class="wp-block-woocommerce-cart-order-summary-shipping-block"></div>
+			<div data-block-name="woocommerce/cart-order-summary-taxes-block" class="wp-block-woocommerce-cart-order-summary-taxes-block"></div>
+		';
+		// Order summary subtotal block was added in i3, so we search for it to see if we have a Cart i2 template.
+		$regex_for_order_summary_subtotal = '/<div[\n\r\s\ta-zA-Z0-9_\-=\'"]*data-block-name="woocommerce\/cart-order-summary-subtotal-block"[\n\r\s\ta-zA-Z0-9_\-=\'"]*>/mi';
+		$regex_for_order_summary          = '/<div[\n\r\s\ta-zA-Z0-9_\-=\'"]*data-block-name="woocommerce\/cart-order-summary-block"[\n\r\s\ta-zA-Z0-9_\-=\'"]*>/mi';
+		$has_i2_template                  = ! preg_match( $regex_for_order_summary_subtotal, $content );
+
+		if ( $has_i2_template ) {
+			$content = preg_replace( $regex_for_order_summary, $order_summary_with_inner_blocks, $content );
+		}
+
+		return $content;
 	}
 
 	/**
@@ -86,21 +156,23 @@ class Cart extends AbstractBlock {
 	 */
 	protected function enqueue_data( array $attributes = [] ) {
 		parent::enqueue_data( $attributes );
+		if ( wc_shipping_enabled() ) {
+			$this->asset_data_registry->add(
+				'shippingCountries',
+				function() {
+					return $this->deep_sort_with_accents( WC()->countries->get_shipping_countries() );
+				},
+				true
+			);
+			$this->asset_data_registry->add(
+				'shippingStates',
+				function() {
+					return $this->deep_sort_with_accents( WC()->countries->get_shipping_country_states() );
+				},
+				true
+			);
+		}
 
-		$this->asset_data_registry->add(
-			'shippingCountries',
-			function() {
-				return $this->deep_sort_with_accents( WC()->countries->get_shipping_countries() );
-			},
-			true
-		);
-		$this->asset_data_registry->add(
-			'shippingStates',
-			function() {
-				return $this->deep_sort_with_accents( WC()->countries->get_shipping_country_states() );
-			},
-			true
-		);
 		$this->asset_data_registry->add(
 			'countryLocale',
 			function() {
@@ -133,6 +205,9 @@ class Cart extends AbstractBlock {
 			$this->hydrate_from_api();
 		}
 
+		/**
+		 * Fires after cart block data is registered.
+		 */
 		do_action( 'woocommerce_blocks_cart_enqueue_data' );
 	}
 
@@ -147,11 +222,15 @@ class Cart extends AbstractBlock {
 			return $array;
 		}
 
-		if ( is_array( reset( $array ) ) ) {
-			return array_map( [ $this, 'deep_sort_with_accents' ], $array );
-		}
+		$array_without_accents = array_map(
+			function( $value ) {
+				return is_array( $value )
+					? $this->deep_sort_with_accents( $value )
+					: remove_accents( wc_strtolower( html_entity_decode( $value ) ) );
+			},
+			$array
+		);
 
-		$array_without_accents = array_map( 'remove_accents', array_map( 'wc_strtolower', array_map( 'html_entity_decode', $array ) ) );
 		asort( $array_without_accents );
 		return array_replace( $array_without_accents, $array );
 	}
@@ -160,87 +239,47 @@ class Cart extends AbstractBlock {
 	 * Hydrate the cart block with data from the API.
 	 */
 	protected function hydrate_from_api() {
-		$this->asset_data_registry->hydrate_api_request( '/wc/store/cart' );
+		$this->asset_data_registry->hydrate_api_request( '/wc/store/v1/cart' );
+	}
+	/**
+	 * Register script and style assets for the block type before it is registered.
+	 *
+	 * This registers the scripts; it does not enqueue them.
+	 */
+	protected function register_block_type_assets() {
+		parent::register_block_type_assets();
+		$chunks        = $this->get_chunks_paths( $this->chunks_folder );
+		$vendor_chunks = $this->get_chunks_paths( 'vendors--cart-blocks' );
+		$shared_chunks = [];
+		$this->register_chunk_translations( array_merge( $chunks, $vendor_chunks, $shared_chunks ) );
 	}
 
 	/**
-	 * Render skeleton markup for the cart block.
+	 * Get list of Cart block & its inner-block types.
+	 *
+	 * @return array;
 	 */
-	protected function get_skeleton() {
-		return '
-			<div class="wc-block-skeleton wc-block-components-sidebar-layout wc-block-cart wc-block-cart--is-loading wc-block-cart--skeleton hidden" aria-hidden="true">
-				<div class="wc-block-components-main wc-block-cart__main">
-					<h2 class="wc-block-components-title"><span></span></h2>
-					<table class="wc-block-cart-items">
-						<thead>
-							<tr class="wc-block-cart-items__header">
-								<th class="wc-block-cart-items__header-image"><span /></th>
-								<th class="wc-block-cart-items__header-product"><span /></th>
-								<th class="wc-block-cart-items__header-total"><span /></th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr class="wc-block-cart-items__row">
-								<td class="wc-block-cart-item__image">
-									<a href=""><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=" width="1" height="1" /></a>
-								</td>
-								<td class="wc-block-cart-item__product">
-									<div class="wc-block-components-product-name"></div>
-									<div class="wc-block-components-product-price"></div>
-									<div class="wc-block-components-product-metadata"></div>
-									<div class="wc-block-components-quantity-selector">
-										<input class="wc-block-components-quantity-selector__input" type="number" step="1" min="0" value="1" />
-										<button class="wc-block-components-quantity-selector__button wc-block-components-quantity-selector__button--minus">－</button>
-										<button class="wc-block-components-quantity-selector__button wc-block-components-quantity-selector__button--plus">＋</button>
-									</div>
-								</td>
-								<td class="wc-block-cart-item__total">
-									<div class="wc-block-components-product-price"></div>
-								</td>
-							</tr>
-							<tr class="wc-block-cart-items__row">
-								<td class="wc-block-cart-item__image">
-									<a href=""><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=" width="1" height="1" /></a>
-								</td>
-								<td class="wc-block-cart-item__product">
-									<div class="wc-block-components-product-name"></div>
-									<div class="wc-block-components-product-price"></div>
-									<div class="wc-block-components-product-metadata"></div>
-									<div class="wc-block-components-quantity-selector">
-										<input class="wc-block-components-quantity-selector__input" type="number" step="1" min="0" value="1" />
-										<button class="wc-block-components-quantity-selector__button wc-block-components-quantity-selector__button--minus">－</button>
-										<button class="wc-block-components-quantity-selector__button wc-block-components-quantity-selector__button--plus">＋</button>
-									</div>
-								</td>
-								<td class="wc-block-cart-item__total">
-									<div class="wc-block-components-product-price"></div>
-								</td>
-							</tr>
-							<tr class="wc-block-cart-items__row">
-								<td class="wc-block-cart-item__image">
-									<a href=""><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=" width="1" height="1" /></a>
-								</td>
-								<td class="wc-block-cart-item__product">
-									<div class="wc-block-components-product-name"></div>
-									<div class="wc-block-components-product-price"></div>
-									<div class="wc-block-components-product-metadata"></div>
-									<div class="wc-block-components-quantity-selector">
-										<input class="wc-block-components-quantity-selector__input" type="number" step="1" min="0" value="1" />
-										<button class="wc-block-components-quantity-selector__button wc-block-components-quantity-selector__button--minus">－</button>
-										<button class="wc-block-components-quantity-selector__button wc-block-components-quantity-selector__button--plus">＋</button>
-									</div>
-								</td>
-								<td class="wc-block-cart-item__total">
-									<div class="wc-block-components-product-price"></div>
-								</td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-				<div class="wc-block-components-sidebar wc-block-cart__sidebar">
-					<div class="components-card"></div>
-				</div>
-			</div>
-		' . $this->get_skeleton_inline_script();
+	public static function get_cart_block_types() {
+		return [
+			'Cart',
+			'CartOrderSummaryTaxesBlock',
+			'CartOrderSummarySubtotalBlock',
+			'FilledCartBlock',
+			'EmptyCartBlock',
+			'CartTotalsBlock',
+			'CartItemsBlock',
+			'CartLineItemsBlock',
+			'CartOrderSummaryBlock',
+			'CartExpressPaymentBlock',
+			'ProceedToCheckoutBlock',
+			'CartAcceptedPaymentMethodsBlock',
+			'CartOrderSummaryCouponFormBlock',
+			'CartOrderSummaryDiscountBlock',
+			'CartOrderSummaryFeeBlock',
+			'CartOrderSummaryHeadingBlock',
+			'CartOrderSummaryShippingBlock',
+			'CartCrossSellsBlock',
+			'CartCrossSellsProductsBlock',
+		];
 	}
 }

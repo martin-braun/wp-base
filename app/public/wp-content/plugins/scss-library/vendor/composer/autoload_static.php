@@ -4,13 +4,21 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitff69a621beb925ab247ba89a2b55463b
+class ComposerStaticInitf9fc75397128fc7e8be6ed4d8e63ff50
 {
     public static $prefixLengthsPsr4 = array (
+        'T' => 
+        array (
+            'Tests\\' => 6,
+        ),
         'S' => 
         array (
             'ScssPhp\\ScssPhp\\' => 16,
             'ScssLibrary\\' => 12,
+        ),
+        'M' => 
+        array (
+            'MerakEnv\\' => 9,
         ),
         'B' => 
         array (
@@ -19,6 +27,10 @@ class ComposerStaticInitff69a621beb925ab247ba89a2b55463b
     );
 
     public static $prefixDirsPsr4 = array (
+        'Tests\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/tests',
+        ),
         'ScssPhp\\ScssPhp\\' => 
         array (
             0 => __DIR__ . '/..' . '/scssphp/scssphp/src',
@@ -26,6 +38,10 @@ class ComposerStaticInitff69a621beb925ab247ba89a2b55463b
         'ScssLibrary\\' => 
         array (
             0 => __DIR__ . '/../..' . '/src',
+        ),
+        'MerakEnv\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/baxtian/merak-env/src',
         ),
         'Baxtian\\' => 
         array (
@@ -35,17 +51,52 @@ class ComposerStaticInitff69a621beb925ab247ba89a2b55463b
 
     public static $classMap = array (
         'Baxtian\\Singleton' => __DIR__ . '/..' . '/baxtian/php-singleton/src/Singleton.php',
-        'ScssLibrary\\ScssLibrary' => __DIR__ . '/../..' . '/src/ScssLibrary.php',
+        'Baxtian\\SingletonTrait' => __DIR__ . '/..' . '/baxtian/php-singleton/src/SingletonTrait.php',
+        'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
+        'MerakEnv\\Blocks' => __DIR__ . '/..' . '/baxtian/merak-env/src/Blocks.php',
+        'MerakEnv\\CheckEnv' => __DIR__ . '/..' . '/baxtian/merak-env/src/CheckEnv.php',
+        'MerakEnv\\Dist' => __DIR__ . '/..' . '/baxtian/merak-env/src/Dist.php',
+        'MerakEnv\\Libs' => __DIR__ . '/..' . '/baxtian/merak-env/src/Libs.php',
+        'MerakEnv\\MerakEnv' => __DIR__ . '/..' . '/baxtian/merak-env/src/MerakEnv.php',
+        'MerakEnv\\SilenceIsGold' => __DIR__ . '/..' . '/baxtian/merak-env/src/SilenceIsGold.php',
+        'MerakEnv\\Src' => __DIR__ . '/..' . '/baxtian/merak-env/src/Src.php',
+        'MerakEnv\\Svn' => __DIR__ . '/..' . '/baxtian/merak-env/src/Svn.php',
+        'MerakEnv\\Version' => __DIR__ . '/..' . '/baxtian/merak-env/src/Version.php',
+        'ScssLibrary\\Init' => __DIR__ . '/../..' . '/src/Init.php',
+        'ScssLibrary\\Libs\\CheckDirectory' => __DIR__ . '/../..' . '/src/Libs/CheckDirectory.php',
+        'ScssLibrary\\Libs\\DevMode' => __DIR__ . '/../..' . '/src/Libs/DevMode.php',
+        'ScssLibrary\\Libs\\Errors' => __DIR__ . '/../..' . '/src/Libs/Errors.php',
+        'ScssLibrary\\Libs\\ScssCompiler' => __DIR__ . '/../..' . '/src/Libs/ScssCompiler.php',
+        'ScssLibrary\\Libs\\ScssLibrary' => __DIR__ . '/../..' . '/src/Libs/ScssLibrary.php',
         'ScssLibrary\\Settings\\ScssLibrary' => __DIR__ . '/../..' . '/src/Settings/ScssLibrary.php',
+        'ScssLibrary\\Views\\AdminBar' => __DIR__ . '/../..' . '/src/Views/AdminBar.php',
+        'ScssLibrary\\Views\\AdminNotifications' => __DIR__ . '/../..' . '/src/Views/AdminNotifications.php',
+        'ScssLibrary\\Views\\Errors' => __DIR__ . '/../..' . '/src/Views/Errors.php',
         'ScssPhp\\ScssPhp\\Base\\Range' => __DIR__ . '/..' . '/scssphp/scssphp/src/Base/Range.php',
         'ScssPhp\\ScssPhp\\Block' => __DIR__ . '/..' . '/scssphp/scssphp/src/Block.php',
+        'ScssPhp\\ScssPhp\\Block\\AtRootBlock' => __DIR__ . '/..' . '/scssphp/scssphp/src/Block/AtRootBlock.php',
+        'ScssPhp\\ScssPhp\\Block\\CallableBlock' => __DIR__ . '/..' . '/scssphp/scssphp/src/Block/CallableBlock.php',
+        'ScssPhp\\ScssPhp\\Block\\ContentBlock' => __DIR__ . '/..' . '/scssphp/scssphp/src/Block/ContentBlock.php',
+        'ScssPhp\\ScssPhp\\Block\\DirectiveBlock' => __DIR__ . '/..' . '/scssphp/scssphp/src/Block/DirectiveBlock.php',
+        'ScssPhp\\ScssPhp\\Block\\EachBlock' => __DIR__ . '/..' . '/scssphp/scssphp/src/Block/EachBlock.php',
+        'ScssPhp\\ScssPhp\\Block\\ElseBlock' => __DIR__ . '/..' . '/scssphp/scssphp/src/Block/ElseBlock.php',
+        'ScssPhp\\ScssPhp\\Block\\ElseifBlock' => __DIR__ . '/..' . '/scssphp/scssphp/src/Block/ElseifBlock.php',
+        'ScssPhp\\ScssPhp\\Block\\ForBlock' => __DIR__ . '/..' . '/scssphp/scssphp/src/Block/ForBlock.php',
+        'ScssPhp\\ScssPhp\\Block\\IfBlock' => __DIR__ . '/..' . '/scssphp/scssphp/src/Block/IfBlock.php',
+        'ScssPhp\\ScssPhp\\Block\\MediaBlock' => __DIR__ . '/..' . '/scssphp/scssphp/src/Block/MediaBlock.php',
+        'ScssPhp\\ScssPhp\\Block\\NestedPropertyBlock' => __DIR__ . '/..' . '/scssphp/scssphp/src/Block/NestedPropertyBlock.php',
+        'ScssPhp\\ScssPhp\\Block\\WhileBlock' => __DIR__ . '/..' . '/scssphp/scssphp/src/Block/WhileBlock.php',
         'ScssPhp\\ScssPhp\\Cache' => __DIR__ . '/..' . '/scssphp/scssphp/src/Cache.php',
         'ScssPhp\\ScssPhp\\Colors' => __DIR__ . '/..' . '/scssphp/scssphp/src/Colors.php',
+        'ScssPhp\\ScssPhp\\CompilationResult' => __DIR__ . '/..' . '/scssphp/scssphp/src/CompilationResult.php',
         'ScssPhp\\ScssPhp\\Compiler' => __DIR__ . '/..' . '/scssphp/scssphp/src/Compiler.php',
+        'ScssPhp\\ScssPhp\\Compiler\\CachedResult' => __DIR__ . '/..' . '/scssphp/scssphp/src/Compiler/CachedResult.php',
         'ScssPhp\\ScssPhp\\Compiler\\Environment' => __DIR__ . '/..' . '/scssphp/scssphp/src/Compiler/Environment.php',
         'ScssPhp\\ScssPhp\\Exception\\CompilerException' => __DIR__ . '/..' . '/scssphp/scssphp/src/Exception/CompilerException.php',
         'ScssPhp\\ScssPhp\\Exception\\ParserException' => __DIR__ . '/..' . '/scssphp/scssphp/src/Exception/ParserException.php',
         'ScssPhp\\ScssPhp\\Exception\\RangeException' => __DIR__ . '/..' . '/scssphp/scssphp/src/Exception/RangeException.php',
+        'ScssPhp\\ScssPhp\\Exception\\SassException' => __DIR__ . '/..' . '/scssphp/scssphp/src/Exception/SassException.php',
+        'ScssPhp\\ScssPhp\\Exception\\SassScriptException' => __DIR__ . '/..' . '/scssphp/scssphp/src/Exception/SassScriptException.php',
         'ScssPhp\\ScssPhp\\Exception\\ServerException' => __DIR__ . '/..' . '/scssphp/scssphp/src/Exception/ServerException.php',
         'ScssPhp\\ScssPhp\\Formatter' => __DIR__ . '/..' . '/scssphp/scssphp/src/Formatter.php',
         'ScssPhp\\ScssPhp\\Formatter\\Compact' => __DIR__ . '/..' . '/scssphp/scssphp/src/Formatter/Compact.php',
@@ -55,23 +106,41 @@ class ComposerStaticInitff69a621beb925ab247ba89a2b55463b
         'ScssPhp\\ScssPhp\\Formatter\\Expanded' => __DIR__ . '/..' . '/scssphp/scssphp/src/Formatter/Expanded.php',
         'ScssPhp\\ScssPhp\\Formatter\\Nested' => __DIR__ . '/..' . '/scssphp/scssphp/src/Formatter/Nested.php',
         'ScssPhp\\ScssPhp\\Formatter\\OutputBlock' => __DIR__ . '/..' . '/scssphp/scssphp/src/Formatter/OutputBlock.php',
+        'ScssPhp\\ScssPhp\\Logger\\LoggerInterface' => __DIR__ . '/..' . '/scssphp/scssphp/src/Logger/LoggerInterface.php',
+        'ScssPhp\\ScssPhp\\Logger\\QuietLogger' => __DIR__ . '/..' . '/scssphp/scssphp/src/Logger/QuietLogger.php',
+        'ScssPhp\\ScssPhp\\Logger\\StreamLogger' => __DIR__ . '/..' . '/scssphp/scssphp/src/Logger/StreamLogger.php',
         'ScssPhp\\ScssPhp\\Node' => __DIR__ . '/..' . '/scssphp/scssphp/src/Node.php',
         'ScssPhp\\ScssPhp\\Node\\Number' => __DIR__ . '/..' . '/scssphp/scssphp/src/Node/Number.php',
+        'ScssPhp\\ScssPhp\\OutputStyle' => __DIR__ . '/..' . '/scssphp/scssphp/src/OutputStyle.php',
         'ScssPhp\\ScssPhp\\Parser' => __DIR__ . '/..' . '/scssphp/scssphp/src/Parser.php',
         'ScssPhp\\ScssPhp\\SourceMap\\Base64' => __DIR__ . '/..' . '/scssphp/scssphp/src/SourceMap/Base64.php',
         'ScssPhp\\ScssPhp\\SourceMap\\Base64VLQ' => __DIR__ . '/..' . '/scssphp/scssphp/src/SourceMap/Base64VLQ.php',
         'ScssPhp\\ScssPhp\\SourceMap\\SourceMapGenerator' => __DIR__ . '/..' . '/scssphp/scssphp/src/SourceMap/SourceMapGenerator.php',
         'ScssPhp\\ScssPhp\\Type' => __DIR__ . '/..' . '/scssphp/scssphp/src/Type.php',
         'ScssPhp\\ScssPhp\\Util' => __DIR__ . '/..' . '/scssphp/scssphp/src/Util.php',
+        'ScssPhp\\ScssPhp\\Util\\Path' => __DIR__ . '/..' . '/scssphp/scssphp/src/Util/Path.php',
+        'ScssPhp\\ScssPhp\\ValueConverter' => __DIR__ . '/..' . '/scssphp/scssphp/src/ValueConverter.php',
         'ScssPhp\\ScssPhp\\Version' => __DIR__ . '/..' . '/scssphp/scssphp/src/Version.php',
+        'ScssPhp\\ScssPhp\\Warn' => __DIR__ . '/..' . '/scssphp/scssphp/src/Warn.php',
+        'Tests\\InitTest' => __DIR__ . '/../..' . '/tests/InitTest.php',
+        'Tests\\LibsCheckDirectoryTest' => __DIR__ . '/../..' . '/tests/LibsCheckDirectoryTest.php',
+        'Tests\\LibsDevModeTest' => __DIR__ . '/../..' . '/tests/LibsDevModeTest.php',
+        'Tests\\LibsErrorsTest' => __DIR__ . '/../..' . '/tests/LibsErrorsTest.php',
+        'Tests\\LibsScssCompilerTest' => __DIR__ . '/../..' . '/tests/LibsScssCompilerTest.php',
+        'Tests\\LibsScssLibraryTest' => __DIR__ . '/../..' . '/tests/LibsScssLibraryTest.php',
+        'Tests\\MonkeyTestCase' => __DIR__ . '/../..' . '/tests/MonkeyTestCase.php',
+        'Tests\\SettingsTest' => __DIR__ . '/../..' . '/tests/SettingsTest.php',
+        'Tests\\ViewAdminBarTest' => __DIR__ . '/../..' . '/tests/ViewAdminBarTest.php',
+        'Tests\\ViewAdminNotificationsTest' => __DIR__ . '/../..' . '/tests/ViewAdminNotificationsTest.php',
+        'Tests\\ViewErrorsTest' => __DIR__ . '/../..' . '/tests/ViewErrorsTest.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitff69a621beb925ab247ba89a2b55463b::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitff69a621beb925ab247ba89a2b55463b::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInitff69a621beb925ab247ba89a2b55463b::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitf9fc75397128fc7e8be6ed4d8e63ff50::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitf9fc75397128fc7e8be6ed4d8e63ff50::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInitf9fc75397128fc7e8be6ed4d8e63ff50::$classMap;
 
         }, null, ClassLoader::class);
     }

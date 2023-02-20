@@ -142,9 +142,10 @@ class SiteHealth {
 					'value' => ! empty( $debug_notices ) ? implode( '; ', $debug_notices ) : esc_html__( 'No debug notices found.', 'wp-mail-smtp' ),
 				],
 				'db_tables'        => [
-					'label' => esc_html__( 'DB tables', 'wp-mail-smtp' ),
-					'value' => ! empty( $db_tables ) ?
+					'label'   => esc_html__( 'DB tables', 'wp-mail-smtp' ),
+					'value'   => ! empty( $db_tables ) ?
 						implode( ', ', $db_tables ) : esc_html__( 'No DB tables found.', 'wp-mail-smtp' ),
+					'private' => true,
 				],
 			],
 		];
@@ -268,6 +269,16 @@ class SiteHealth {
 		$missing_tables = $this->get_db_tables( 'missing' );
 
 		if ( ! empty( $missing_tables ) ) {
+			$missing_tables_create_link = wp_nonce_url(
+				add_query_arg(
+					[
+						'create-missing-db-tables' => 1,
+					],
+					wp_mail_smtp()->get_admin()->get_admin_page_url( Area::SLUG )
+				),
+				Area::SLUG . '-create-missing-db-tables'
+			);
+
 			$result['label']          = esc_html__( 'WP Mail SMTP DB tables check has failed', 'wp-mail-smtp' );
 			$result['status']         = 'critical';
 			$result['badge']['color'] = 'red';
@@ -277,7 +288,22 @@ class SiteHealth {
 					esc_html( _n( 'Missing table: %s', 'Missing tables: %s', count( $missing_tables ), 'wp-mail-smtp' ) ),
 					esc_html( implode( ', ', $missing_tables ) )
 				),
-				esc_html__( 'WP Mail SMTP is using custom database tables for some of its features. In order to work properly, the custom tables should be created, and it seems they are missing. Please try to re-install the WP Mail SMTP plugin. If this issue persists, please contact our support.', 'wp-mail-smtp' )
+				wp_kses(
+					sprintf( /* translators: %1$s - Settings Page URL; %2$s - The aria label; %3$s - The text that will appear on the link. */
+						__( 'WP Mail SMTP is using custom database tables for some of its features. In order to work properly, the custom tables should be created, and it seems they are missing. Please try to <a href="%1$s" target="_self" aria-label="%2$s" rel="noopener noreferrer">%3$s</a>. If this issue persists, please contact our support.', 'wp-mail-smtp' ),
+						esc_url( $missing_tables_create_link ),
+						esc_attr__( 'Go to WP Mail SMTP settings page.', 'wp-mail-smtp' ),
+						esc_attr__( 'create the missing DB tables by clicking on this link', 'wp-mail-smtp' )
+					),
+					[
+						'a' => [
+							'href'       => [],
+							'rel'        => [],
+							'target'     => [],
+							'aria-label' => [],
+						],
+					]
+				)
 			);
 		}
 
@@ -297,7 +323,7 @@ class SiteHealth {
 			wp_send_json_error();
 		}
 
-		$options = new Options();
+		$options = Options::init();
 		$mailer  = $options->get( 'mail', 'mailer' );
 		$email   = $options->get( 'mail', 'from_email' );
 		$domain  = '';
@@ -354,6 +380,18 @@ class SiteHealth {
 	}
 
 	/**
+	 * Get the missing tables from the database.
+	 *
+	 * @since 3.6.0
+	 *
+	 * @return array
+	 */
+	public function get_missing_db_tables() {
+
+		return $this->get_db_tables( 'missing' );
+	}
+
+	/**
 	 * Check DB:
 	 * - if any required plugin DB table is missing,
 	 * - which of the required plugin DB tables exist.
@@ -374,9 +412,11 @@ class SiteHealth {
 		$existing_tables = [];
 
 		foreach ( $tables as $table ) {
-			$db_result = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ); // phpcs:ignore
 
-			if ( strtolower( $db_result ) !== strtolower( $table ) ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching
+			$db_result = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) );
+
+			if ( is_null( $db_result ) || strtolower( $db_result ) !== strtolower( $table ) ) {
 				$missing_tables[] = $table;
 			} else {
 				$existing_tables[] = $table;

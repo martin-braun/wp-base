@@ -2,9 +2,9 @@
 Contributors: davidmatthew
 Tags: heartbeat, cart fragments, emojis, oembed, xml-rpc
 Requires at least: 5.0
-Tested up to: 5.6
+Tested up to: 6.0
 Requires PHP: 7.0
-Stable tag: 1.0.1
+Stable tag: 1.1
 License: GNU GPL v3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -19,7 +19,6 @@ TrimPress optimizes and trims some of the cruft from WordPress for a lighter, mo
 * Remove unnecessary clutter from the WordPress <head> section, like RSS, RSD, WLW manifest and adjacent post links.
 * Disable the built-in WordPress code editors that allow users to modify plugin and theme code.
 * Limit post revisions, which can cause unnecessary database bloat.
-* Remove the oEmbed script which transforms YouTube, Twitter and other social links into embedded media by automatically fetching extra scripts and styles from these sites.
 * Disable automatic emoji rendering, which adds several extra scripts and styles to your site.
 * Disable the XML-RPC interface, an older system for remote WordPress access that can be exploited by hackers. 
 * Remove the meta generator tag and version url parameters that let potential attackers know what WordPress version you're using.
@@ -41,6 +40,12 @@ TrimPress optimizes and trims some of the cruft from WordPress for a lighter, mo
 2. The second set of options.
 
 == Changelog ==
+
+= 1.1 =
+* Fixed bug with heartbeat setting.
+* Simplified and refactored some of the code, and improved mobile styling.
+* Added extra Save button at top of settings page.
+* Removed the disable oembed functionality, which was no longer effective. Changes in how WordPress handles embeds means disabling this functionality is more complex and the consequences more far-reaching. If users really want to disable this functionality, consider a dedicated plugin like Disable Embeds.
 
 = 1.0.1 =
 * Added full translation support.

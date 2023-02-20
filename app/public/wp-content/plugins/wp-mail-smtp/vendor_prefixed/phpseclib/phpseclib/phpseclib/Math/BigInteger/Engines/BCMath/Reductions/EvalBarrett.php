@@ -5,8 +5,6 @@
  *
  * PHP version 5 and 7
  *
- * @category  Math
- * @package   BigInteger
  * @author    Jim Wigginton <terrafrost@php.net>
  * @copyright 2017 Jim Wigginton
  * @license   http://www.opensource.org/licenses/mit-license.html  MIT License
@@ -14,14 +12,12 @@
  */
 namespace WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\BCMath\Reductions;
 
-use WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\BCMath\Base;
 use WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\BCMath;
+use WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\BCMath\Base;
 /**
  * PHP Barrett Modular Exponentiation Engine
  *
- * @package PHP
  * @author  Jim Wigginton <terrafrost@php.net>
- * @access  public
  */
 abstract class EvalBarrett extends \WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\BCMath\Base
 {
@@ -69,7 +65,7 @@ abstract class EvalBarrett extends \WPMailSMTP\Vendor\phpseclib3\Math\BigInteger
         $m = "'{$m}'";
         $u = "'{$u}'";
         $m1 = "'{$m1}'";
-        $code .= '
+        $code = '
             $lsd = substr($n, -' . $cutoff . ');
             $msd = substr($n, 0, -' . $cutoff . ');
 

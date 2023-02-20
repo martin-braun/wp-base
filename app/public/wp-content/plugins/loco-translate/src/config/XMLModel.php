@@ -3,6 +3,11 @@
  * Holds a bundle definition in a DOM document
  */
 class Loco_config_XMLModel extends Loco_config_Model {
+
+    /**
+     * @var DOMDocument
+     */
+    private $dom;
     
     /**
      * @var DOMXpath
@@ -18,7 +23,14 @@ class Loco_config_XMLModel extends Loco_config_Model {
         $dom->formatOutput = true;
         $dom->registerNodeClass('DOMElement','LocoConfig_DOMElement');
         $this->xpath = new DOMXPath($dom);
-        return $dom;
+        $this->dom = $dom;
+    }
+
+    /**
+     * @return DOMDocument
+     */
+    public function getDom(){
+        return $this->dom;
     }
 
 
@@ -47,7 +59,7 @@ class Loco_config_XMLModel extends Loco_config_Model {
         // parse with silent errors, clearing after
         $used_errors = libxml_use_internal_errors(true);
 
-        $result = $dom->loadXML( $source, LIBXML_NONET );
+        $dom->loadXML( $source, LIBXML_NONET );
         unset( $source );
         
         // fetch errors and ensure clean for next run.
@@ -57,20 +69,21 @@ class Loco_config_XMLModel extends Loco_config_Model {
 
         // Throw exception if error level exceeds current tolerance
         if( $errors ){
-            /* @var $error LibXMLError */
             foreach( $errors as $error ){
                 if( $error->level >= LIBXML_ERR_FATAL ){
-                    $e = new Loco_error_XmlParseException( trim($error->message) );
-                    //$e->setContext( $error->line, $error->column, $source );
-                    throw $e;
-                } // @codeCoverageIgnoreStart
+                    throw new Loco_error_XmlParseException( trim($error->message) );
+                    // ->setContext( $error->line, $error->column, $source );
+                }
             }
         }
-        // @codeCoverageIgnoreEnd
         
-        // Not currently validating against a DTD, but may as well pre-empt generic model loading errors
-        if( ! $dom->documentElement || 'bundle' !== $dom->documentElement->nodeName ){
+        // Not currently validating against a DTD, but will preempt generic model loading errors
+        $root = $dom->documentElement;
+        if( ! $root instanceof DOMNode ){
             throw new Loco_error_XmlParseException('Expected <bundle> document element');
+        }
+        if( 'bundle' !== strtolower($root->nodeName) ){
+            throw new Loco_error_XmlParseException('Expected <bundle> document element, got <'.$root->nodeName.'>');
         }
         
         $this->xpath = new DOMXPath($dom);
@@ -97,9 +110,11 @@ class Loco_config_XMLModel extends Loco_config_Model {
  * @internal
  */
 class LocoConfig_DOMElement extends DOMElement implements IteratorAggregate, Countable {
+    #[ReturnTypeWillChange]
     public function getIterator(){
         return new LocoConfigNodeListIterator( $this->childNodes );
     }
+    #[ReturnTypeWillChange]
     public function count(){
         return $this->childNodes->length;
     }
@@ -133,28 +148,34 @@ class LocoConfigNodeListIterator implements Iterator, Countable, ArrayAccess {
         $this->nodes = $nodes;
         $this->n = $nodes->length;
     }
-    
+
+    #[ReturnTypeWillChange]
     public function count(){
         return $this->n;
     }
-    
+
+    #[ReturnTypeWillChange]
     public function rewind(){
         $this->i = -1;
         $this->next();
     }
-    
+
+    #[ReturnTypeWillChange]
     public function key(){
         return $this->i;
     }
-    
+
+    #[ReturnTypeWillChange]
     public function current(){
         return $this->nodes->item( $this->i );
     }
-    
+
+    #[ReturnTypeWillChange]
     public function valid(){
         return is_int($this->i);
     }
-    
+
+    #[ReturnTypeWillChange]
     public function next(){
         while( true ){
             $this->i++;
@@ -165,11 +186,13 @@ class LocoConfigNodeListIterator implements Iterator, Countable, ArrayAccess {
             break;
         }
     }
-    
+
+    #[ReturnTypeWillChange]
     public function offsetExists( $i ){
         return $i >= 0 && $i < $this->n;
     }
-    
+
+    #[ReturnTypeWillChange]
     public function offsetGet( $i ){
         return $this->nodes->item($i);
     }
@@ -177,6 +200,7 @@ class LocoConfigNodeListIterator implements Iterator, Countable, ArrayAccess {
     /**
      * @codeCoverageIgnore
      */
+    #[ReturnTypeWillChange]
     public function offsetSet( $i, $value ){
         throw new Exception('Read only');
     }
@@ -184,6 +208,7 @@ class LocoConfigNodeListIterator implements Iterator, Countable, ArrayAccess {
     /**
      * @codeCoverageIgnore
      */
+    #[ReturnTypeWillChange]
     public function offsetUnset( $i ){
         throw new Exception('Read only');
     }

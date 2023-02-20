@@ -4,24 +4,31 @@
 import { __ } from '@wordpress/i18n';
 import { Icon, external } from '@wordpress/icons';
 import { VisuallyHidden } from '@wordpress/components';
+import { sanitizeHTML } from '@woocommerce/utils';
+import { alert } from '@woocommerce/icons';
 
 /**
  * Internal dependencies
  */
 import './editor.scss';
 
+export interface ExternalLinkCardProps {
+	href: string;
+	title: string;
+	description?: string;
+	warning?: string;
+}
+
 /**
- * Show a link that displays a title, description, and optional icon. Links are opened in a new tab.
+ * Show a link that displays a title, description, and an icon showing that the link is external.
+ * Links are opened in a new tab.
  */
 const ExternalLinkCard = ( {
 	href,
 	title,
 	description,
-}: {
-	href: string;
-	title: string;
-	description?: string;
-} ): JSX.Element => {
+	warning,
+}: ExternalLinkCardProps ): JSX.Element => {
 	return (
 		<a
 			href={ href }
@@ -34,10 +41,19 @@ const ExternalLinkCard = ( {
 					{ title }
 				</strong>
 				{ description && (
-					<span className="wc-block-editor-components-external-link-card__description">
-						{ description }
-					</span>
+					<span
+						className="wc-block-editor-components-external-link-card__description"
+						dangerouslySetInnerHTML={ {
+							__html: sanitizeHTML( description ),
+						} }
+					></span>
 				) }
+				{ warning ? (
+					<span className="wc-block-editor-components-external-link-card__warning">
+						<Icon icon={ alert } />
+						<span>{ warning }</span>
+					</span>
+				) : null }
 			</span>
 			<VisuallyHidden as="span">
 				{

@@ -1,7 +1,7 @@
 <?php
 
 if (!defined('ABSPATH')) {
-    // phpinfo();
+    phpinfo();
     exit;
 }
 
@@ -167,3 +167,13 @@ function console_log(): string
     return $html;
 }
 
+function add_local_wp_css()
+{
+    $localWpCss = '#wpadminbar { background-color: #9c3e3d !important; } #wpadminbar li:hover > .ab-item { background-color: #00000033 !important; }';
+    add_action('wp_footer', function () use ($localWpCss) {
+        echo "<style>$localWpCss</style>";
+    });
+    add_action('admin_print_scripts', function () use ($localWpCss) {
+        echo "<style>$localWpCss</style>";
+    });
+}

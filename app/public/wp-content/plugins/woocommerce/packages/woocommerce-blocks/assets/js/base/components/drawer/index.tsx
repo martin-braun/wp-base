@@ -2,7 +2,7 @@
  * External dependencies
  */
 import { __ } from '@wordpress/i18n';
-import { Modal } from '@wordpress/components';
+import { Modal } from 'wordpress-components';
 import { useDebounce } from 'use-debounce';
 import classNames from 'classnames';
 
@@ -46,15 +46,15 @@ const Drawer = ( {
 			overlayClassName={ classNames(
 				'wc-block-components-drawer__screen-overlay',
 				{
-					'wc-block-components-drawer__screen-overlay--is-hidden': ! isOpen,
-					'wc-block-components-drawer__screen-overlay--with-slide-in': slideIn,
-					'wc-block-components-drawer__screen-overlay--with-slide-out': slideOut,
+					'wc-block-components-drawer__screen-overlay--is-hidden':
+						! isOpen,
+					'wc-block-components-drawer__screen-overlay--with-slide-in':
+						slideIn,
+					'wc-block-components-drawer__screen-overlay--with-slide-out':
+						slideOut,
 				}
 			) }
-			closeButtonLabel={ __(
-				'Close mini cart',
-				'woo-gutenberg-products-block'
-			) }
+			closeButtonLabel={ __( 'Close', 'woo-gutenberg-products-block' ) }
 		>
 			{ children }
 		</Modal>

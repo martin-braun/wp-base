@@ -22,8 +22,12 @@ class WC_GZD_Settings_Tab_Shipping_Provider extends WC_GZD_Settings_Tab {
 			$providers = array( __( 'DHL', 'woocommerce-germanized' ), __( 'Deutsche Post', 'woocommerce-germanized' ) );
 		}
 
-		if ( in_array( \Vendidero\Germanized\Shipments\Package::get_base_country(), array( 'DE', 'AT' ) ) ) {
+		if ( WC_GZD_Admin::instance()->is_dpd_available() ) {
 			$providers[] = __( 'DPD', 'woocommerce-germanized' ) . '<span class="wc-gzd-pro wc-gzd-pro-outlined">' . __( 'pro', 'woocommerce-germanized' ) . '</span>';
+		}
+
+		if ( WC_GZD_Admin::instance()->is_gls_available() ) {
+			$providers[] = __( 'GLS', 'woocommerce-germanized' ) . '<span class="wc-gzd-pro wc-gzd-pro-outlined">' . __( 'pro', 'woocommerce-germanized' ) . '</span>';
 		}
 
 		return $providers;
@@ -32,6 +36,7 @@ class WC_GZD_Settings_Tab_Shipping_Provider extends WC_GZD_Settings_Tab {
 	public function get_description() {
 		$desc = ProviderSettings::get_description();
 
+		/* phpcs:disable WordPress.Security.NonceVerification */
 		if ( empty( $_GET['provider'] ) ) {
 			$provider_available = $this->get_available_providers();
 
@@ -42,8 +47,8 @@ class WC_GZD_Settings_Tab_Shipping_Provider extends WC_GZD_Settings_Tab {
 
 				$pos = strrpos( $provider_list, ', ' );
 
-				if( $pos !== false ) {
-					$provider_list = substr_replace( $provider_list, ' & ', $pos, strlen(', ') );
+				if ( false !== $pos ) {
+					$provider_list = substr_replace( $provider_list, ' & ', $pos, strlen( ', ' ) );
 				}
 
 				$desc = sprintf( __( 'Manage your shipping provider integrations, e.g. for %s.', 'woocommerce-germanized' ), trim( $provider_list ) );
@@ -53,35 +58,23 @@ class WC_GZD_Settings_Tab_Shipping_Provider extends WC_GZD_Settings_Tab {
 		return $desc;
 	}
 
-	/**
-	 * Output sections.
-	 */
-	public function output_sections() {
-		global $current_section;
+	protected function get_section_url( $section ) {
+		$provider_slug = '';
 
-		$sections = $this->get_sections();
-
-		if ( empty( $sections ) || 1 === sizeof( $sections ) ) {
-			return;
-		}
-
-		echo '<ul class="subsubsub">';
-
-		$array_keys = array_keys( $sections );
-
-		foreach ( $sections as $id => $label ) {
-			echo '<li><a href="' . $this->get_section_link( $id ) . '" class="' . ( $current_section == $id ? 'current' : '' ) . '">' . $label . '</a> ' . ( end( $array_keys ) == $id ? '' : '|' ) . ' </li>';
-		}
-
-		echo '</ul><br class="clear" />';
-	}
-
-	protected function get_section_link( $section ) {
 		if ( $provider = ProviderSettings::get_current_provider() ) {
 			$provider_slug = sanitize_title( $provider->get_name() );
 		}
 
-		return add_query_arg( array( 'section' => sanitize_title( $section ), 'tab' => $this->id, 'provider' => $provider_slug ), admin_url( 'admin.php?page=wc-settings' ) );
+		return esc_url_raw(
+			add_query_arg(
+				array(
+					'section'  => sanitize_title( $section ),
+					'tab'      => $this->id,
+					'provider' => $provider_slug,
+				),
+				admin_url( 'admin.php?page=wc-settings' )
+			)
+		);
 	}
 
 	protected function get_breadcrumb() {
@@ -89,8 +82,8 @@ class WC_GZD_Settings_Tab_Shipping_Provider extends WC_GZD_Settings_Tab {
 			array(
 				'class' => 'main',
 				'href'  => admin_url( 'admin.php?page=wc-settings&tab=germanized' ),
-				'title' => __( 'Germanized', 'woocommerce-germanized' )
-			)
+				'title' => __( 'Germanized', 'woocommerce-germanized' ),
+			),
 		);
 
 		$breadcrumb = array_merge( $breadcrumb, ProviderSettings::get_breadcrumb( $this->get_current_section() ) );

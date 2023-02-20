@@ -29,22 +29,31 @@ class Report {
 			$args = (array) get_option( $this->id . '_result', array() );
 		}
 
-		$args = wp_parse_args( $args, array(
-			'countries' => array(),
-			'totals'    => array(),
-			'meta'      => array(),
-		) );
+		$args = wp_parse_args(
+			$args,
+			array(
+				'countries' => array(),
+				'totals'    => array(),
+				'meta'      => array(),
+			)
+		);
 
-		$args['totals'] = wp_parse_args( $args['totals'], array(
-			'net_total' => 0,
-			'tax_total' => 0
-		) );
+		$args['totals'] = wp_parse_args(
+			$args['totals'],
+			array(
+				'net_total' => 0,
+				'tax_total' => 0,
+			)
+		);
 
-		$args['meta'] = wp_parse_args( $args['meta'], array(
-			'date_requested' => null,
-			'status'         => 'pending',
-			'version'        => '',
-		) );
+		$args['meta'] = wp_parse_args(
+			$args['meta'],
+			array(
+				'date_requested' => null,
+				'status'         => 'pending',
+				'version'        => '',
+			)
+		);
 
 		$this->set_date_requested( $args['meta']['date_requested'] );
 		$this->set_status( $args['meta']['status'] );
@@ -191,8 +200,8 @@ class Report {
 	public function get_country_tax_total( $country, $tax_rate, $round = true ) {
 		$tax_total = 0;
 
-		if ( isset( $this->args['countries'][ $country ], $this->args['countries'][ $country ][ $tax_rate ] ) ) {
-			$tax_total = $this->args['countries'][ $country ][ $tax_rate ]['tax_total'];
+		if ( isset( $this->args['countries'][ $country ], $this->args['countries'][ $country ][ "$tax_rate" ] ) ) {
+			$tax_total = $this->args['countries'][ $country ][ "$tax_rate" ]['tax_total'];
 		}
 
 		return $this->maybe_round( $tax_total, $round );
@@ -207,8 +216,8 @@ class Report {
 	public function get_country_net_total( $country, $tax_rate, $round = true ) {
 		$net_total = 0;
 
-		if ( isset( $this->args['countries'][ $country ], $this->args['countries'][ $country ][ $tax_rate ] ) ) {
-			$net_total = $this->args['countries'][ $country ][ $tax_rate ]['net_total'];
+		if ( isset( $this->args['countries'][ $country ], $this->args['countries'][ $country ][ "$tax_rate" ] ) ) {
+			$net_total = $this->args['countries'][ $country ][ "$tax_rate" ]['net_total'];
 		}
 
 		return $this->maybe_round( $net_total, $round );
@@ -219,14 +228,14 @@ class Report {
 			$this->args['countries'][ $country ] = array();
 		}
 
-		if ( ! isset( $this->args['countries'][ $country ][ $tax_rate ] ) ) {
-			$this->args['countries'][ $country ][ $tax_rate ] = array(
+		if ( ! isset( $this->args['countries'][ $country ][ "$tax_rate" ] ) ) {
+			$this->args['countries'][ $country ][ "$tax_rate" ] = array(
 				'net_total' => 0,
 				'tax_total' => 0,
 			);
 		}
 
-		$this->args['countries'][ $country ][ $tax_rate ]['tax_total'] = $tax_total;
+		$this->args['countries'][ $country ][ "$tax_rate" ]['tax_total'] = $tax_total;
 	}
 
 	public function set_country_net_total( $country, $tax_rate, $net_total = 0 ) {
@@ -234,14 +243,14 @@ class Report {
 			$this->args['countries'][ $country ] = array();
 		}
 
-		if ( ! isset( $this->args['countries'][ $country ][ $tax_rate ] ) ) {
-			$this->args['countries'][ $country ][ $tax_rate ] = array(
+		if ( ! isset( $this->args['countries'][ $country ][ "$tax_rate" ] ) ) {
+			$this->args['countries'][ $country ][ "$tax_rate" ] = array(
 				'net_total' => 0,
 				'tax_total' => 0,
 			);
 		}
 
-		$this->args['countries'][ $country ][ $tax_rate ]['net_total'] = $net_total;
+		$this->args['countries'][ $country ][ "$tax_rate" ]['net_total'] = $net_total;
 	}
 
 	public function save() {
@@ -249,7 +258,7 @@ class Report {
 
 		$reports_available = Package::get_report_ids();
 
-		if ( ! in_array( $this->get_id(), $reports_available[ $this->get_type() ] ) ) {
+		if ( ! in_array( $this->get_id(), $reports_available[ $this->get_type() ], true ) ) {
 			// Add new report to start of the list
 			array_unshift( $reports_available[ $this->get_type() ], $this->get_id() );
 			update_option( 'oss_woocommerce_reports', $reports_available, false );
@@ -278,19 +287,44 @@ class Report {
 		return true;
 	}
 
-	public function get_export_link() {
-		return add_query_arg( array( 'action' => 'oss_export_report', 'report_id' => $this->get_id() ), wp_nonce_url( admin_url( 'admin-post.php' ), 'oss_export_report' ) );
+	public function get_export_link( $export_type = '' ) {
+		return add_query_arg(
+			array(
+				'action'      => 'oss_export_report',
+				'export_type' => $export_type,
+				'report_id'   => $this->get_id(),
+			),
+			wp_nonce_url( admin_url( 'admin-post.php' ), 'oss_export_report' )
+		);
 	}
 
 	public function get_delete_link() {
-		return add_query_arg( array( 'action' => 'oss_delete_report', 'report_id' => $this->get_id() ), wp_nonce_url( admin_url( 'admin-post.php' ), 'oss_delete_report' ) );
+		return add_query_arg(
+			array(
+				'action'    => 'oss_delete_report',
+				'report_id' => $this->get_id(),
+			),
+			wp_nonce_url( admin_url( 'admin-post.php' ), 'oss_delete_report' )
+		);
 	}
 
 	public function get_refresh_link() {
-		return add_query_arg( array( 'action' => 'oss_refresh_report', 'report_id' => $this->get_id() ), wp_nonce_url( admin_url( 'admin-post.php' ), 'oss_refresh_report' ) );
+		return add_query_arg(
+			array(
+				'action'    => 'oss_refresh_report',
+				'report_id' => $this->get_id(),
+			),
+			wp_nonce_url( admin_url( 'admin-post.php' ), 'oss_refresh_report' )
+		);
 	}
 
 	public function get_cancel_link() {
-		return add_query_arg( array( 'action' => 'oss_cancel_report', 'report_id' => $this->get_id() ), wp_nonce_url( admin_url( 'admin-post.php' ), 'oss_cancel_report' ) );
+		return add_query_arg(
+			array(
+				'action'    => 'oss_cancel_report',
+				'report_id' => $this->get_id(),
+			),
+			wp_nonce_url( admin_url( 'admin-post.php' ), 'oss_cancel_report' )
+		);
 	}
 }

@@ -27,34 +27,20 @@ class WC_GZD_Settings_Tab_Emails extends WC_GZD_Settings_Tab {
 
 	public function get_sections() {
 		return array(
-			''                => __( 'General', 'woocommerce-germanized' ),
-			'visibility'      => __( 'Visibility', 'woocommerce-germanized' ),
-			'attachments'     => __( 'PDF Attachments', 'woocommerce-germanized' ) . ( WC_germanized()->is_pro() ? '' : '<span class="wc-gzd-pro wc-gzd-pro-outlined">' . __( 'pro', 'woocommerce-germanized' ) . '</span>' ),
+			''            => __( 'General', 'woocommerce-germanized' ),
+			'visibility'  => __( 'Visibility', 'woocommerce-germanized' ),
+			'attachments' => __( 'PDF Attachments', 'woocommerce-germanized' ),
 		);
 	}
 
-	/**
-	 * Output sections.
-	 */
-	public function output_sections() {
-		global $current_section;
+	protected function section_is_pro( $section_id ) {
+		$is_pro = parent::section_is_pro( $section_id );
 
-		$sections = $this->get_sections();
-
-		if ( empty( $sections ) || 1 === count( $sections ) ) {
-			return;
+		if ( 'attachments' === $section_id ) {
+			$is_pro = true;
 		}
 
-		echo '<ul class="subsubsub">';
-
-		$array_keys = array_keys( $sections );
-
-		foreach ( $sections as $id => $label ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			echo '<li><a href="' . admin_url( 'admin.php?page=wc-settings&tab=' . $this->id . '&section=' . sanitize_title( $id ) ) . '" class="' . ( $current_section === $id ? 'current' : '' ) . '">' . $label . '</a> ' . ( end( $array_keys ) === $id ? '' : '|' ) . ' </li>';
-		}
-
-		echo '</ul><br class="clear" />';
+		return $is_pro;
 	}
 
 	public function get_pointers() {
@@ -70,8 +56,7 @@ class WC_GZD_Settings_Tab_Emails extends WC_GZD_Settings_Tab {
 						'next_url'     => '',
 						'next_trigger' => array(),
 						'options'      => array(
-							'content'  => '<h3>' . esc_html__( 'Email attachments', 'woocommerce-germanized' ) . '</h3>' .
-							              '<p>' . esc_html__( 'Choose which of your email templates (e.g. order confirmation) should contain your legal page content e.g. terms and conditions within it\'s footer.', 'woocommerce-germanized' ) . '</p>',
+							'content'  => '<h3>' . esc_html__( 'Email attachments', 'woocommerce-germanized' ) . '</h3><p>' . esc_html__( 'Choose which of your email templates (e.g. order confirmation) should contain your legal page content e.g. terms and conditions within it\'s footer.', 'woocommerce-germanized' ) . '</p>',
 							'position' => array(
 								'edge'  => 'left',
 								'align' => 'left',
@@ -85,8 +70,7 @@ class WC_GZD_Settings_Tab_Emails extends WC_GZD_Settings_Tab {
 						'next_trigger' => array(),
 						'pro'          => true,
 						'options'      => array(
-							'content'  => '<h3>' . esc_html__( 'PDF Attachments', 'woocommerce-germanized' ) . '</h3>' .
-							              '<p>' . esc_html__( 'Customers of our pro version may attach PDF files instead of plain text content to emails.', 'woocommerce-germanized' ) . '</p>',
+							'content'  => '<h3>' . esc_html__( 'PDF Attachments', 'woocommerce-germanized' ) . '</h3><p>' . esc_html__( 'Customers of our pro version may attach PDF files instead of plain text content to emails.', 'woocommerce-germanized' ) . '</p>',
 							'position' => array(
 								'edge'  => 'top',
 								'align' => 'left',
@@ -112,7 +96,7 @@ class WC_GZD_Settings_Tab_Emails extends WC_GZD_Settings_Tab {
 		$is_saveable     = parent::is_saveable();
 		$current_section = $this->get_current_section();
 
-		if ( in_array( $current_section, array( 'attachments', 'attachments_pdf' ) ) && ! WC_germanized()->is_pro() ) {
+		if ( in_array( $current_section, array( 'attachments', 'attachments_pdf' ), true ) && ! WC_germanized()->is_pro() ) {
 			$is_saveable = false;
 		}
 
@@ -141,7 +125,7 @@ class WC_GZD_Settings_Tab_Emails extends WC_GZD_Settings_Tab {
 				'title' => '',
 				'type'  => 'title',
 				'id'    => 'email_pdf_options',
-				'desc'  => '<div class="notice inline notice-warning wc-gzd-premium-overlay"><p>' . sprintf( __( 'Want to attach automatically generated PDF files to emails instead of plain text? %sUpgrade to %spro%s%s', 'woocommerce-germanized' ), '<a style="margin-left: 1em" href="https://vendidero.de/woocommerce-germanized" class="button button-primary wc-gzd-button">', '<span class="wc-gzd-pro">', '</span>', '</a>' ) . '</p></div>'
+				'desc'  => '<div class="notice inline notice-warning wc-gzd-premium-overlay"><p>' . sprintf( __( 'Want to attach automatically generated PDF files to emails instead of plain text? %1$sUpgrade to %2$spro%3$s%4$s', 'woocommerce-germanized' ), '<a style="margin-left: 1em" href="https://vendidero.de/woocommerce-germanized" class="button button-primary wc-gzd-button">', '<span class="wc-gzd-pro">', '</span>', '</a>' ) . '</p></div>',
 			),
 
 			array(
@@ -152,7 +136,10 @@ class WC_GZD_Settings_Tab_Emails extends WC_GZD_Settings_Tab {
 				'type'  => 'image',
 			),
 
-			array( 'type' => 'sectionend', 'id' => 'email_pdf_options' ),
+			array(
+				'type' => 'sectionend',
+				'id'   => 'email_pdf_options',
+			),
 		);
 	}
 
@@ -162,7 +149,7 @@ class WC_GZD_Settings_Tab_Emails extends WC_GZD_Settings_Tab {
 				'title' => '',
 				'type'  => 'title',
 				'id'    => 'email_attachment_options',
-				'desc'  => '<div class="notice inline notice-warning wc-gzd-premium-overlay"><p>' . sprintf( __( 'Want to attach automatically generated PDF files to emails instead of plain text? %sUpgrade to %spro%s%s', 'woocommerce-germanized' ), '<a style="margin-left: 1em" href="https://vendidero.de/woocommerce-germanized" class="button button-primary wc-gzd-button">', '<span class="wc-gzd-pro">', '</span>', '</a>' ) . '</p></div>'
+				'desc'  => '<div class="notice inline notice-warning wc-gzd-premium-overlay"><p>' . sprintf( __( 'Want to attach automatically generated PDF files to emails instead of plain text? %1$sUpgrade to %2$spro%3$s%4$s', 'woocommerce-germanized' ), '<a style="margin-left: 1em" href="https://vendidero.de/woocommerce-germanized" class="button button-primary wc-gzd-button">', '<span class="wc-gzd-pro">', '</span>', '</a>' ) . '</p></div>',
 			),
 
 			array(
@@ -173,7 +160,10 @@ class WC_GZD_Settings_Tab_Emails extends WC_GZD_Settings_Tab {
 				'type'  => 'image',
 			),
 
-			array( 'type' => 'sectionend', 'id' => 'email_attachment_options' ),
+			array(
+				'type' => 'sectionend',
+				'id'   => 'email_attachment_options',
+			),
 		);
 	}
 
@@ -181,7 +171,12 @@ class WC_GZD_Settings_Tab_Emails extends WC_GZD_Settings_Tab {
 		$payment_gateway_options = WC_GZD_Admin::instance()->get_payment_gateway_options();
 
 		return array(
-			array( 'title' => '', 'type' => 'title', 'desc' => '', 'id' => 'visibility_options' ),
+			array(
+				'title' => '',
+				'type'  => 'title',
+				'desc'  => '',
+				'id'    => 'visibility_options',
+			),
 
 			array(
 				'title'   => __( 'Title', 'woocommerce-germanized' ),
@@ -190,6 +185,7 @@ class WC_GZD_Settings_Tab_Emails extends WC_GZD_Settings_Tab {
 				'default' => __( 'Hi {first_name},', 'woocommerce-germanized' ),
 				'type'    => 'text',
 			),
+
 			array(
 				'title'   => __( 'Hide Username', 'woocommerce-germanized' ),
 				'desc'    => __( 'Hide username from email content if password or password reset link is embedded.', 'woocommerce-germanized' ) . '<div class="wc-gzd-additional-desc">' . __( 'Trusted Shops advises to not show the username together with an account password or password reset link. This option hides (or masks) the username in those specific cases.', 'woocommerce-germanized' ) . '</div>',
@@ -219,8 +215,30 @@ class WC_GZD_Settings_Tab_Emails extends WC_GZD_Settings_Tab {
 				'type'              => 'multiselect',
 			),
 
-			array( 'type' => 'sectionend', 'id' => 'visibility_options' )
+			array(
+				'type' => 'sectionend',
+				'id'   => 'visibility_options',
+			),
 		);
+	}
+
+	protected function get_default_email_ids_by_attachment_type( $type ) {
+		$email_ids = array();
+
+		switch ( $type ) {
+			case 'revocation':
+				$email_ids = array( 'customer_processing_order' );
+				break;
+			case 'warranties':
+				$email_ids = array( 'customer_completed_order' );
+				break;
+			case 'data_security':
+			case 'terms':
+				$email_ids = array( 'customer_processing_order', 'customer_new_account', 'customer_new_account_activation' );
+				break;
+		}
+
+		return $email_ids;
 	}
 
 	protected function get_general_settings() {
@@ -240,29 +258,40 @@ class WC_GZD_Settings_Tab_Emails extends WC_GZD_Settings_Tab {
 
 		$email_order = wc_gzd_get_email_attachment_order();
 		$settings    = array(
-			array( 'title' => '', 'type' => 'title', 'id' => 'email_options' ),
+			array(
+				'title' => '',
+				'type'  => 'title',
+				'id'    => 'email_options',
+			),
 
 			array(
 				'title'   => '',
 				'id'      => 'woocommerce_gzd_mail_attach_order',
 				'type'    => 'hidden',
-				'default' => 'terms,revocation,data_security,imprint',
+				'default' => wc_gzd_get_default_email_attachment_order(),
 			),
 		);
 
 		foreach ( $email_order as $key => $order ) {
-			array_push( $settings, array(
-				'title'    => sprintf( __( 'Attach %s', 'woocommerce-germanized' ), $order ),
-				'desc'     => sprintf( __( 'Attach %s to the following email templates', 'woocommerce-germanized' ), $order ),
-				'id'       => 'woocommerce_gzd_mail_attach_' . $key,
-				'type'     => 'multiselect',
-				'class'    => 'wc-enhanced-select',
-				'desc_tip' => true,
-				'options'  => $email_select,
-			) );
+			array_push(
+				$settings,
+				array(
+					'title'    => sprintf( __( 'Attach %s', 'woocommerce-germanized' ), $order ),
+					'desc'     => sprintf( __( 'Attach %s to the following email templates', 'woocommerce-germanized' ), $order ),
+					'id'       => 'woocommerce_gzd_mail_attach_' . $key,
+					'type'     => 'multiselect',
+					'class'    => 'wc-enhanced-select',
+					'default'  => $this->get_default_email_ids_by_attachment_type( $key ),
+					'desc_tip' => true,
+					'options'  => $email_select,
+				)
+			);
 		}
 
-		$settings[] = array( 'type' => 'sectionend', 'id' => 'email_options' );
+		$settings[] = array(
+			'type' => 'sectionend',
+			'id'   => 'email_options',
+		);
 
 		return $settings;
 	}

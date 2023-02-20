@@ -33,9 +33,17 @@ class WC_GZD_Settings_Germanized extends WC_Settings_Page {
 	}
 
 	public function add_wc_admin_breadcrumbs( $is_connected, $current_page ) {
-
 		if ( false === $is_connected && false === $current_page && $this->is_active() ) {
 			$page_id = 'wc-settings';
+
+			/**
+			 * Check whether Woo Admin is actually loaded, e.g. core pages have been registered before
+			 * registering our page(s). This may not be the case if WC Admin is disabled, e.g. via a
+			 * woocommerce_admin_features filter.
+			 */
+			if ( defined( 'WC_VERSION' ) && version_compare( WC_VERSION, '6.5.0', '>=' ) && ! function_exists( 'wc_admin_connect_core_pages' ) ) {
+				return $is_connected;
+			}
 
 			if ( ! class_exists( 'Automattic\WooCommerce\Admin\PageController' ) ) {
 				return $is_connected;
@@ -59,19 +67,18 @@ class WC_GZD_Settings_Germanized extends WC_Settings_Page {
 	}
 
 	public function filter_wc_admin_breadcrumbs( $breadcrumbs ) {
-
 		if ( ! function_exists( 'wc_admin_get_core_pages_to_connect' ) ) {
 			return $breadcrumbs;
 		}
 
 		$core_pages = wc_admin_get_core_pages_to_connect();
-		$tab        = wc_clean( $_GET['tab'] );
+		$tab        = isset( $_GET['tab'] ) ? wc_clean( wp_unslash( $_GET['tab'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$tab_clean  = str_replace( 'germanized-', '', $tab );
 
 		$new_breadcrumbs = array(
 			array(
-				add_query_arg( 'page', 'wc-settings', 'admin.php' ),
-				$core_pages['wc-settings']['title']
+				esc_url_raw( add_query_arg( 'page', 'wc-settings', 'admin.php' ) ),
+				$core_pages['wc-settings']['title'],
 			),
 		);
 
@@ -79,14 +86,22 @@ class WC_GZD_Settings_Germanized extends WC_Settings_Page {
 			$new_breadcrumbs[] = $this->label;
 		} else {
 			$new_breadcrumbs[] = array(
-				add_query_arg( array( 'page' => 'wc-settings', 'tab' => 'germanized' ), 'admin.php' ),
-				$this->label
+				esc_url_raw(
+					add_query_arg(
+						array(
+							'page' => 'wc-settings',
+							'tab'  => 'germanized',
+						),
+						'admin.php'
+					)
+				),
+				$this->label,
 			);
 		}
 
-		foreach( $this->get_tabs() as $tab ) {
+		foreach ( $this->get_tabs() as $tab ) {
 			if ( $tab_clean === $tab->get_name() ) {
-				$new_breadcrumbs[] = preg_replace('/<[^>]*>[^<]*<[^>]*>/' , '', $tab->get_label() );
+				$new_breadcrumbs[] = preg_replace( '/<[^>]*>[^<]*<[^>]*>/', '', $tab->get_label() );
 				break;
 			}
 		}
@@ -94,7 +109,7 @@ class WC_GZD_Settings_Germanized extends WC_Settings_Page {
 		return $new_breadcrumbs;
 	}
 
-	private function _get_settings( $section_id = '' ) {
+	private function get_inner_settings( $section_id = '' ) {
 		$settings = array();
 
 		foreach ( $this->get_tabs() as $tab ) {
@@ -113,11 +128,11 @@ class WC_GZD_Settings_Germanized extends WC_Settings_Page {
 	}
 
 	public function get_settings_for_section_core( $section_id ) {
-		return $this->_get_settings( $section_id );
+		return $this->get_inner_settings( $section_id );
 	}
 
 	public function get_settings( $section_id = '' ) {
-		return $this->_get_settings( $section_id );
+		return $this->get_inner_settings( $section_id );
 	}
 
 	public function admin_styles() {
@@ -148,7 +163,7 @@ class WC_GZD_Settings_Germanized extends WC_Settings_Page {
 	}
 
 	protected function is_active() {
-		if ( isset( $_GET['tab'] ) && strpos( $_GET['tab'], 'germanized' ) !== false ) {
+		if ( isset( $_GET['tab'] ) && strpos( wc_clean( wp_unslash( $_GET['tab'] ) ), 'germanized' ) !== false ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			return true;
 		}
 
@@ -164,7 +179,6 @@ class WC_GZD_Settings_Germanized extends WC_Settings_Page {
 	}
 
 	public function get_tabs() {
-
 		include_once dirname( __FILE__ ) . '/abstract-wc-gzd-settings-tab.php';
 		include_once dirname( __FILE__ ) . '/class-wc-gzd-settings-tab-general.php';
 		include_once dirname( __FILE__ ) . '/class-wc-gzd-settings-tab-shopmarks.php';
@@ -179,6 +193,7 @@ class WC_GZD_Settings_Germanized extends WC_Settings_Page {
 		include_once dirname( __FILE__ ) . '/class-wc-gzd-settings-tab-multistep-checkout.php';
 		include_once dirname( __FILE__ ) . '/class-wc-gzd-settings-tab-terms-generator.php';
 		include_once dirname( __FILE__ ) . '/class-wc-gzd-settings-tab-revocation-generator.php';
+		include_once dirname( __FILE__ ) . '/class-wc-gzd-settings-tab-trusted-shops.php';
 
 		if ( class_exists( '\Vendidero\Germanized\Shipments\Package' ) && Package::has_dependencies() ) {
 			include_once dirname( __FILE__ ) . '/class-wc-gzd-settings-tab-shipments.php';
@@ -194,31 +209,34 @@ class WC_GZD_Settings_Germanized extends WC_Settings_Page {
 		 * @since 3.0.0
 		 *
 		 */
-		$tabs = apply_filters( 'woocommerce_gzd_admin_settings_tabs', array(
-			'general'              => 'WC_GZD_Settings_Tab_General',
-			'shopmarks'            => 'WC_GZD_Settings_Tab_Shopmarks',
-			'taxes'                => 'WC_GZD_Settings_Tab_Taxes',
-			'button_solution'      => 'WC_GZD_Settings_Tab_Button_Solution',
-			'multistep_checkout'   => 'WC_GZD_Settings_Tab_Multistep_Checkout',
-			'invoices'             => 'WC_GZD_Settings_Tab_Invoices',
-			'shipments'            => 'WC_GZD_Settings_Tab_Shipments',
-			'shipping_provider'    => 'WC_GZD_Settings_Tab_Shipping_Provider',
-			'double_opt_in'        => 'WC_GZD_Settings_Tab_DOI',
-			'emails'               => 'WC_GZD_Settings_Tab_Emails',
-			'checkboxes'           => 'WC_GZD_Settings_Tab_Checkboxes',
-			'contract'             => 'WC_GZD_Settings_Tab_Contract',
-			'terms_generator'      => 'WC_GZD_Settings_Tab_Terms_Generator',
-			'revocation_generator' => 'WC_GZD_Settings_Tab_Revocation_Generator',
-			'oss'                  => 'WC_GZD_Settings_Tab_OSS',
-		) );
+		$tabs = apply_filters(
+			'woocommerce_gzd_admin_settings_tabs',
+			array(
+				'general'                        => 'WC_GZD_Settings_Tab_General',
+				'shopmarks'                      => 'WC_GZD_Settings_Tab_Shopmarks',
+				'taxes'                          => 'WC_GZD_Settings_Tab_Taxes',
+				'button_solution'                => 'WC_GZD_Settings_Tab_Button_Solution',
+				'multistep_checkout'             => 'WC_GZD_Settings_Tab_Multistep_Checkout',
+				'invoices'                       => 'WC_GZD_Settings_Tab_Invoices',
+				'shipments'                      => 'WC_GZD_Settings_Tab_Shipments',
+				'shipping_provider'              => 'WC_GZD_Settings_Tab_Shipping_Provider',
+				'double_opt_in'                  => 'WC_GZD_Settings_Tab_DOI',
+				'emails'                         => 'WC_GZD_Settings_Tab_Emails',
+				'checkboxes'                     => 'WC_GZD_Settings_Tab_Checkboxes',
+				'contract'                       => 'WC_GZD_Settings_Tab_Contract',
+				'terms_generator'                => 'WC_GZD_Settings_Tab_Terms_Generator',
+				'revocation_generator'           => 'WC_GZD_Settings_Tab_Revocation_Generator',
+				'oss'                            => 'WC_GZD_Settings_Tab_OSS',
+				'trusted_shops_easy_integration' => 'WC_GZD_Settings_Tab_Trusted_Shops',
+			)
+		);
 
 		if ( is_null( $this->tabs ) ) {
 			$this->tabs = array();
 
 			foreach ( $tabs as $key => $tab ) {
-
 				if ( class_exists( $tab ) ) {
-					$this->tabs[ $key ] = new $tab;
+					$this->tabs[ $key ] = new $tab();
 				}
 			}
 		}
@@ -232,7 +250,7 @@ class WC_GZD_Settings_Germanized extends WC_Settings_Page {
 	 * @return bool|WC_GZD_Settings_Tab
 	 */
 	public function get_tab_by_name( $name ) {
-		foreach( $this->get_tabs() as $tab ) {
+		foreach ( $this->get_tabs() as $tab ) {
 			if ( $name === $tab->get_name() ) {
 				return $tab;
 			}

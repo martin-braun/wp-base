@@ -98,8 +98,8 @@ abstract class Loco_cli_SyncCommand {
                 $matcher->loadRefs($ref,$translate );
                 // Merge jsons if configured and available
                 if( $opts->mergeJson() ){
-                    $siblings = new Loco_fs_Siblings($potfile);
-                    $njson = $matcher->loadJsons( $siblings->getJsons() );
+                    $siblings = new Loco_fs_Siblings($pofile);
+                    $njson = $matcher->loadJsons( $siblings->getJsons( $project->getDomain()->getName() ) );
                     if( 0 !== $njson ){
                         Loco_cli_Utils::debug('> merged json files:%u', $njson );
                     }
@@ -148,7 +148,7 @@ abstract class Loco_cli_SyncCommand {
                     $jsons = $compiler->writeJson($project,$po);
                     foreach( $jsons as $file ){
                         $compiled++;
-                        $param = new Loco_mvc_FileParams(array(),$file);
+                        $param = new Loco_mvc_FileParams([],$file);
                         Loco_cli_Utils::debug('+ %u bytes written to %s',$param->size,$param->name);
                     }
                     // Done compile of this set

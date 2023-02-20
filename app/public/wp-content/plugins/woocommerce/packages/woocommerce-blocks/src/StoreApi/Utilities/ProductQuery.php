@@ -1,14 +1,12 @@
 <?php
-namespace Automattic\WooCommerce\Blocks\StoreApi\Utilities;
+namespace Automattic\WooCommerce\StoreApi\Utilities;
 
 use WC_Tax;
 
 /**
  * Product Query class.
- * Helper class to handle product queries for the API.
  *
- * @internal This API is used internally by Blocks--it is still in flux and may be subject to revisions.
- * @since 2.5.0
+ * Helper class to handle product queries for the API.
  */
 class ProductQuery {
 	/**
@@ -97,11 +95,23 @@ class ProductQuery {
 			'and'    => 'AND',
 		];
 
+		// Gets all registered product taxonomies and prefixes them with `tax_`.
+		// This is neeeded to avoid situations where a users registers a new product taxonomy with the same name as default field.
+		// eg an `sku` taxonomy will be mapped to `tax_sku`.
+		$all_product_taxonomies = array_map(
+			function ( $value ) {
+				return '_unstable_tax_' . $value;
+			},
+			get_taxonomies( array( 'object_type' => array( 'product' ) ), 'names' )
+		);
+
 		// Map between taxonomy name and arg key.
-		$taxonomies = [
+		$default_taxonomies = [
 			'product_cat' => 'category',
 			'product_tag' => 'tag',
 		];
+
+		$taxonomies = array_merge( $all_product_taxonomies, $default_taxonomies );
 
 		// Set tax_query for each passed arg.
 		foreach ( $taxonomies as $taxonomy => $key ) {
@@ -449,6 +459,18 @@ class ProductQuery {
 
 		// If prices are shown incl. tax, we want to remove the taxes from the filter amount to match prices stored excl. tax.
 		if ( 'incl' === $tax_display ) {
+			/**
+			 * Filters if taxes should be removed from locations outside the store base location.
+			 *
+			 * The woocommerce_adjust_non_base_location_prices filter can stop base taxes being taken off when dealing
+			 * with out of base locations. e.g. If a product costs 10 including tax, all users will pay 10
+			 * regardless of location and taxes.
+			 *
+			 * @internal Matches filter name in WooCommerce core.
+			 *
+			 * @param boolean $adjust_non_base_location_prices True by default.
+			 * @return boolean
+			 */
 			$taxes = apply_filters( 'woocommerce_adjust_non_base_location_prices', true ) ? WC_Tax::calc_tax( $price_filter, $base_tax_rates, true ) : WC_Tax::calc_tax( $price_filter, $tax_rates, true );
 			return $price_filter - array_sum( $taxes );
 		}

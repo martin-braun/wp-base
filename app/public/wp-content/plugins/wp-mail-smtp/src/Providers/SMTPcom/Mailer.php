@@ -2,6 +2,8 @@
 
 namespace WPMailSMTP\Providers\SMTPcom;
 
+use WPMailSMTP\ConnectionInterface;
+use WPMailSMTP\Helpers\Helpers;
 use WPMailSMTP\MailCatcherInterface;
 use WPMailSMTP\Providers\MailerAbstract;
 use WPMailSMTP\WP;
@@ -38,22 +40,23 @@ class Mailer extends MailerAbstract {
 	 *
 	 * @since 2.0.0
 	 *
-	 * @param MailCatcherInterface $phpmailer The MailCatcher object.
+	 * @param MailCatcherInterface $phpmailer  The MailCatcher object.
+	 * @param ConnectionInterface  $connection The Connection object.
 	 */
-	public function __construct( $phpmailer ) {
+	public function __construct( $phpmailer, $connection = null ) {
 
 		// We want to prefill everything from MailCatcher class, which extends PHPMailer.
-		parent::__construct( $phpmailer );
+		parent::__construct( $phpmailer, $connection );
 
 		// Set mailer specific headers.
-		$this->set_header( 'Authorization', 'Bearer ' . $this->options->get( $this->mailer, 'api_key' ) );
+		$this->set_header( 'Authorization', 'Bearer ' . $this->connection_options->get( $this->mailer, 'api_key' ) );
 		$this->set_header( 'Accept', 'application/json' );
 		$this->set_header( 'content-type', 'application/json' );
 
 		// Set mailer specific body parameters.
 		$this->set_body_param(
 			array(
-				'channel' => $this->options->get( $this->mailer, 'channel' ),
+				'channel' => $this->connection_options->get( $this->mailer, 'channel' ),
 			)
 		);
 	}
@@ -165,16 +168,16 @@ class Mailer extends MailerAbstract {
 	 *
 	 * @param array|string $content String when text/plain, array otherwise.
 	 */
-	public function set_content( $content ) {
+	public function set_content( $content ) { // phpcs:ignore Generic.Metrics.CyclomaticComplexity.TooHigh
 
 		if ( empty( $content ) ) {
 			return;
 		}
 
-		$parts = array();
+		$parts = [];
 
 		if ( is_array( $content ) ) {
-			$allowed = array( 'text', 'html' );
+			$allowed = [ 'text', 'html' ];
 
 			foreach ( $content as $type => $body ) {
 				if (
@@ -191,12 +194,11 @@ class Mailer extends MailerAbstract {
 					$content_type = 'text/html';
 				}
 
-				$parts[] = array(
-					'type'     => $content_type,
-					'content'  => $content_value,
-					'charset'  => $this->phpmailer->CharSet,
-					'encoding' => $this->phpmailer->Encoding,
-				);
+				$parts[] = [
+					'type'    => $content_type,
+					'content' => $content_value,
+					'charset' => $this->phpmailer->CharSet,
+				];
 			}
 		} else {
 			$content_type  = 'text/html';
@@ -206,20 +208,19 @@ class Mailer extends MailerAbstract {
 				$content_type = 'text/plain';
 			}
 
-			$parts[] = array(
-				'type'     => $content_type,
-				'content'  => $content_value,
-				'charset'  => $this->phpmailer->CharSet,
-				'encoding' => $this->phpmailer->Encoding,
-			);
+			$parts[] = [
+				'type'    => $content_type,
+				'content' => $content_value,
+				'charset' => $this->phpmailer->CharSet,
+			];
 		}
 
 		$this->set_body_param(
-			array(
-				'body' => array(
+			[
+				'body' => [
 					'parts' => $parts,
-				),
-			)
+				],
+			]
 		);
 	}
 
@@ -297,7 +298,7 @@ class Mailer extends MailerAbstract {
 				'content'     => chunk_split( base64_encode( $file ) ), // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 				'type'        => $filetype,
 				'encoding'    => 'base64',
-				'filename'    => empty( $attachment[2] ) ? 'file-' . wp_hash( microtime() ) . '.' . $filetype : trim( $attachment[2] ),
+				'filename'    => $this->get_attachment_file_name( $attachment ),
 				'disposition' => in_array( $attachment[6], [ 'inline', 'attachment' ], true ) ? $attachment[6] : 'attachment', // either inline or attachment.
 				'cid'         => empty( $attachment[7] ) ? '' : trim( (string) $attachment[7] ),
 			];
@@ -419,19 +420,21 @@ class Mailer extends MailerAbstract {
 	 */
 	public function get_response_error() {
 
-		$body = (array) wp_remote_retrieve_body( $this->response );
+		$error_text[] = $this->error_message;
 
-		$error_text = array();
+		if ( ! empty( $this->response ) ) {
+			$body = wp_remote_retrieve_body( $this->response );
 
-		if ( ! empty( $body['data'] ) ) {
-			foreach ( (array) $body['data'] as $error_key => $error_message ) {
-				$error_text[] = $error_key . ' - ' . $error_message;
+			if ( ! empty( $body->data ) ) {
+				foreach ( (array) $body->data as $error_key => $error_message ) {
+					$error_text[] = Helpers::format_error_message( $error_message, $error_key );
+				}
+			} else {
+				$error_text[] = WP::wp_remote_get_response_error_message( $this->response );
 			}
-		} elseif ( ! empty( $this->error_message ) ) {
-			$error_text[] = $this->error_message;
 		}
 
-		return implode( PHP_EOL, array_map( 'esc_textarea', $error_text ) );
+		return implode( WP::EOL, array_map( 'esc_textarea', array_filter( $error_text ) ) );
 	}
 
 	/**
@@ -443,7 +446,7 @@ class Mailer extends MailerAbstract {
 	 */
 	public function get_debug_info() {
 
-		$options = $this->options->get_group( $this->mailer );
+		$options = $this->connection_options->get_group( $this->mailer );
 
 		$text[] = '<strong>' . esc_html__( 'Api Key:', 'wp-mail-smtp' ) . '</strong> ' .
 							( ! empty( $options['api_key'] ) ? 'Yes' : 'No' );
@@ -464,7 +467,7 @@ class Mailer extends MailerAbstract {
 	 */
 	public function is_mailer_complete() {
 
-		$options = $this->options->get_group( $this->mailer );
+		$options = $this->connection_options->get_group( $this->mailer );
 
 		if ( ! empty( $options['api_key'] ) && ! empty( $options['channel'] ) ) {
 			return true;

@@ -68,6 +68,8 @@ class Yoast extends Plugin_Importer {
 	 */
 	public function convert_variables( $string ) {
 		$string = str_replace( '%%term_title%%', '%term%', $string );
+		$string = str_replace( '%%category_description%%', '%term_description%', $string );
+		$string = str_replace( '%%searchphrase%%', '%search_query%', $string );
 		$string = preg_replace( '/%%cf_([^%]+)%%/i', '%customfield($1)%', $string );
 		$string = preg_replace( '/%%ct_([^%]+)%%/i', '%customterm($1)%', $string );
 		$string = preg_replace( '/%%ct_desc_([^%]+)%%/i', '%customterm($1)%', $string );
@@ -123,6 +125,7 @@ class Yoast extends Plugin_Importer {
 		$this->social_webmaster_settings( $yoast_main, $yoast_social );
 		$this->breadcrumb_settings( $yoast_titles, $yoast_internallinks );
 		$this->misc_settings( $yoast_titles, $yoast_social );
+		$this->slack_settings( $yoast_main );
 		$this->update_settings();
 
 		return true;
@@ -571,19 +574,9 @@ class Yoast extends Plugin_Importer {
 			return;
 		}
 
-		$extra_fks = implode( ', ', array_map( [ $this, 'map_focus_keyword' ], $extra_fks ) );
+		$extra_fks = implode( ', ', array_column( $extra_fks, 'keyword' ) );
 		$main_fk   = get_post_meta( $post_id, 'rank_math_focus_keyword', true );
 		update_post_meta( $post_id, 'rank_math_focus_keyword', $main_fk . ', ' . $extra_fks );
-	}
-
-	/**
-	 * Return Focus Keyword from entry.
-	 *
-	 * @param  array $entry Yoast focus keyword entry.
-	 * @return string
-	 */
-	public function map_focus_keyword( $entry ) {
-		return $entry['keyword'];
 	}
 
 	/**
@@ -699,6 +692,15 @@ class Yoast extends Plugin_Importer {
 			if ( empty( $this->get_meta( 'user', $userid, 'rank_math_robots' ) ) && get_user_meta( $userid, 'wpseo_noindex_author', true ) ) {
 				update_user_meta( $userid, 'rank_math_robots', [ 'noindex' ] );
 			}
+
+			$social_urls = [];
+			foreach ( [ 'linkedin', 'myspace', 'pinterest', 'instagram', 'soundcloud', 'tumblr', 'youtube', 'wikipedia' ] as $key ) {
+				$social_urls[] = get_user_meta( $userid, $key, true );
+			}
+
+			if ( ! empty( $social_urls ) ) {
+				update_user_meta( $userid, 'additional_profile_urls', implode( ' ', array_filter( $social_urls ) ) );
+			}
 		}
 
 		return $this->get_pagination_arg();
@@ -799,10 +801,12 @@ class Yoast extends Plugin_Importer {
 		$logo_id  = 'company' === $knowledgegraph_type ? 'company_logo_id' : 'person_logo_id';
 
 		$hash = [
-			'company_name'      => 'knowledgegraph_name',
-			'company_or_person' => 'knowledgegraph_type',
-			$logo_key           => 'knowledgegraph_logo',
-			$logo_id            => 'knowledgegraph_logo_id',
+			'company_name'           => 'knowledgegraph_name',
+			'website_name'           => 'website_name',
+			'alternate_website_name' => 'website_alternate_name',
+			'company_or_person'      => 'knowledgegraph_type',
+			$logo_key                => 'knowledgegraph_logo',
+			$logo_id                 => 'knowledgegraph_logo_id',
 		];
 		$this->replace( $hash, $yoast_titles, $this->titles );
 
@@ -839,6 +843,26 @@ class Yoast extends Plugin_Importer {
 
 		if ( ! empty( $yoast_titles['disable-attachment'] ) ) {
 			$this->titles['pt_attachment_robots'][] = 'noindex';
+		}
+	}
+
+	/**
+	 * Slack enhanced sharing.
+	 *
+	 * @param array $yoast_main Settings.
+	 */
+	private function slack_settings( $yoast_main ) {
+		$slack_enhanced_sharing = 'off';
+		if ( ! empty( $yoast_main['enable_enhanced_slack_sharing'] ) ) {
+			$slack_enhanced_sharing = 'on';
+		}
+		$this->titles['pt_post_slack_enhanced_sharing']     = $slack_enhanced_sharing;
+		$this->titles['pt_page_slack_enhanced_sharing']     = $slack_enhanced_sharing;
+		$this->titles['pt_product_slack_enhanced_sharing']  = $slack_enhanced_sharing;
+		$this->titles['pt_download_slack_enhanced_sharing'] = $slack_enhanced_sharing;
+		$this->titles['author_slack_enhanced_sharing']      = $slack_enhanced_sharing;
+		foreach ( Helper::get_accessible_taxonomies() as $taxonomy => $object ) {
+			$this->titles[ 'tax_' . $taxonomy . '_slack_enhanced_sharing' ] = $slack_enhanced_sharing;
 		}
 	}
 
@@ -1125,7 +1149,6 @@ class Yoast extends Plugin_Importer {
 	private function social_webmaster_settings( $yoast_main, $yoast_social ) {
 		$hash = [
 			'baiduverify'     => 'baidu_verify',
-			'alexaverify'     => 'alexa_verify',
 			'googleverify'    => 'google_verify',
 			'msverify'        => 'bing_verify',
 			'pinterestverify' => 'pinterest_verify',
@@ -1138,6 +1161,10 @@ class Yoast extends Plugin_Importer {
 			'twitter_site'  => 'twitter_author_names',
 			'fbadminapp'    => 'facebook_app_id',
 		];
+
+		if ( ! empty( $yoast_social['other_social_urls'] ) ) {
+			$this->titles['social_additional_profiles'] = implode( PHP_EOL, $yoast_social['other_social_urls'] );
+		}
 		$this->replace( $hash, $yoast_social, $this->titles );
 	}
 
@@ -1164,12 +1191,11 @@ class Yoast extends Plugin_Importer {
 		$this->replace( $hash, $yoast_internallinks, $this->settings, 'convert_bool' );
 
 		// RSS.
-		$yoast_rss = get_option( 'wpseo_rss' );
-		$hash      = [
+		$hash = [
 			'rssbefore' => 'rss_before_content',
 			'rssafter'  => 'rss_after_content',
 		];
-		$this->replace( $hash, $yoast_rss, $this->settings, 'convert_variables' );
+		$this->replace( $hash, $yoast_titles, $this->settings, 'convert_variables' );
 	}
 
 	/**

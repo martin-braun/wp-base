@@ -9,15 +9,15 @@ declare(strict_types=1);
 namespace DVDoug\BoxPacker;
 
 use ArrayIterator;
-use function count;
 use Countable;
 use IteratorAggregate;
 use JsonSerializable;
-use function reset;
 use ReturnTypeWillChange;
-use function round;
 use Traversable;
-use function usort;
+
+use function count;
+use function reset;
+use function round;
 
 /**
  * List of packed boxes.
@@ -34,22 +34,10 @@ class PackedBoxList implements IteratorAggregate, Countable, JsonSerializable
     private $list = [];
 
     /**
-     * Has this list already been sorted?
-     *
-     * @var bool
-     */
-    private $isSorted = false;
-
-    /**
      * @return Traversable|PackedBox[]
      */
     public function getIterator(): Traversable
     {
-        if (!$this->isSorted) {
-            usort($this->list, [$this, 'compare']);
-            $this->isSorted = true;
-        }
-
         return new ArrayIterator($this->list);
     }
 
@@ -64,7 +52,6 @@ class PackedBoxList implements IteratorAggregate, Countable, JsonSerializable
     public function insert(PackedBox $item): void
     {
         $this->list[] = $item;
-        $this->isSorted = false;
     }
 
     /**
@@ -86,25 +73,7 @@ class PackedBoxList implements IteratorAggregate, Countable, JsonSerializable
      */
     public function top(): PackedBox
     {
-        if (!$this->isSorted) {
-            usort($this->list, [$this, 'compare']);
-            $this->isSorted = true;
-        }
-
         return reset($this->list);
-    }
-
-    private function compare(PackedBox $boxA, PackedBox $boxB): int
-    {
-        $choice = $boxB->getItems()->count() <=> $boxA->getItems()->count();
-        if ($choice === 0) {
-            $choice = $boxB->getInnerVolume() <=> $boxA->getInnerVolume();
-        }
-        if ($choice === 0) {
-            $choice = $boxA->getWeight() <=> $boxB->getWeight();
-        }
-
-        return $choice;
     }
 
     /**
@@ -175,7 +144,7 @@ class PackedBoxList implements IteratorAggregate, Countable, JsonSerializable
     }
 
     #[ReturnTypeWillChange]
-    public function jsonSerialize()/*: mixed*/
+    public function jsonSerialize()/* : mixed */
     {
         return $this->list;
     }

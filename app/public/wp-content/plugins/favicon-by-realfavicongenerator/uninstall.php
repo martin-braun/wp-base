@@ -11,7 +11,7 @@ require_once plugin_dir_path( __FILE__ ) . 'public' . DIRECTORY_SEPARATOR .
 
 function fbrfg_clean_site_instance() {
 	// Remove options
-	foreach( Favicon_By_RealFaviconGenerator_Common::get_options_list() as $opt ) {
+	foreach ( Favicon_By_RealFaviconGenerator_Common::get_options_list() as $opt ) {
 		delete_option( $opt );
 	}
 
@@ -28,7 +28,7 @@ if ( is_multisite() ) {
 	fbrfg_clean_site_instance();
 
 	if ( $blogs ) {
-		foreach( $blogs as $blog ) {
+		foreach ( $blogs as $blog ) {
 			switch_to_blog( $blog['blog_id'] );
 			fbrfg_clean_site_instance();
 			restore_current_blog();

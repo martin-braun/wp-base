@@ -11,6 +11,7 @@ class Post extends PageBase {
 		$properties = parent::get_properties();
 
 		$properties['support_kit'] = true;
+		$properties['cpt'] = [ 'post' ];
 
 		return $properties;
 	}
@@ -28,6 +29,6 @@ class Post extends PageBase {
 	}
 
 	public static function get_plural_title() {
-		return __( 'Posts', 'elementor' );
+		return esc_html__( 'Posts', 'elementor' );
 	}
 }

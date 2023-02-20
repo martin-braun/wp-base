@@ -3,6 +3,16 @@
 if (!defined('WPINC')) {
     die;
 }
+/** @var \Watchfulli\XClonerCore\Xcloner_Remote_Storage $remote_storage */
+$remote_storage = $this->get_xcloner_container()->get_xcloner_remote_storage();
+
+$gdrive_auth_url = "";
+
+if (method_exists($remote_storage, "get_gdrive_auth_url")) {
+    $gdrive_auth_url = $remote_storage->get_gdrive_auth_url();
+}
+
+$gdrive_construct = $remote_storage->gdrive_construct();
 ?>
 <div class="collapsible-header">
     <i class="material-icons">computer</i><?php echo __("Google Drive Storage", 'xcloner-backup-and-restore') ?>
@@ -46,8 +56,8 @@ if (!defined('WPINC')) {
         <div class=" col s12 m6">
             <a class="" target="_blank" id="gdrive_authorization_click"
                 onclick="jQuery('#authentification_code').show()"
-                href="<?php echo $gdrive_auth_url ?>">
-                <img src="<?=plugin_dir_url(__DIR__)?>/../../assets/btn_google_signin_dark_pressed_web.png" 
+                href="<?php echo esc_url($gdrive_auth_url) ?>">
+                <img src="<?php echo plugin_dir_url(__DIR__)?>/../../assets/btn_google_signin_dark_pressed_web.png"
                 alt="<?php echo sprintf(__('Authorize Google Drive', 'xcloner-backup-and-restore')) ?>"/>
                 </a>
             <input type="text" name="authentification_code" id="authentification_code"
@@ -63,8 +73,8 @@ if (!defined('WPINC')) {
             <input
                 placeholder="<?php echo __("Leave blank unless you wish to set up Google Drive integration manually", 'xcloner-backup-and-restore') ?>"
                 id="gdrive_client_id" type="text" name="xcloner_gdrive_client_id" class="validate"
-                value="<?php echo get_option("xcloner_gdrive_client_id") ?>"
-                default-client-id=<?=$remote_storage::GDRIVE_AUTH_WATCHFUL?>>
+                value="<?php echo esc_attr(get_option("xcloner_gdrive_client_id")) ?>"
+                default-client-id=<?php echo $remote_storage::GDRIVE_AUTH_WATCHFUL?>>
         </div>
     </div>
 
@@ -75,7 +85,7 @@ if (!defined('WPINC')) {
         <div class=" col s12 m6">
             <input placeholder="<?php echo __("Google Client Secret", 'xcloner-backup-and-restore') ?>"
                 id="gdrive_client_secret" type="text" name="xcloner_gdrive_client_secret" class="validate"
-                value="<?php echo str_repeat('*', strlen(get_option("xcloner_gdrive_client_secret"))) ?>">
+                value="<?php echo esc_attr(str_repeat('*', strlen(get_option("xcloner_gdrive_client_secret")))) ?>">
         </div>
     </div>
 
@@ -92,11 +102,11 @@ if (!defined('WPINC')) {
         <div class=" col s12 m6">
             <input placeholder="<?php echo __("Target Folder ID or Root Path", 'xcloner-backup-and-restore') ?>"
                 id="gdrive_target_folder" type="text" name="xcloner_gdrive_target_folder" class="validate"
-                value="<?php echo get_option("xcloner_gdrive_target_folder") ?>" autocomplete="off">
+                value="<?php echo esc_attr(get_option("xcloner_gdrive_target_folder")) ?>" autocomplete="off">
         </div>
     </div>
 
-    <?=common_cleanup_html('gdrive')?>
+    <?php echo common_cleanup_html('gdrive')?>
 
     <div class="row">
         <div class="col s12 m3 label">
@@ -149,7 +159,7 @@ if (!defined('WPINC')) {
                 </h6>
                 <h6><?php echo __("PHP 5.5 minimum version is required.") ?></h6>
                 <br />
-                <a class="install-now btn" data-slug="xcloner-google-drive" href="<?php echo $url; ?>"
+                <a class="install-now btn" data-slug="xcloner-google-drive" href="<?php echo esc_url($url); ?>"
                     aria-label="Install XCloner Google Drive 1.0.0 now" data-name="XCloner Google Drive 1.0.0">
                     <?php echo sprintf(__('Install Now', 'xcloner-backup-and-restore')) ?>
                 </a>

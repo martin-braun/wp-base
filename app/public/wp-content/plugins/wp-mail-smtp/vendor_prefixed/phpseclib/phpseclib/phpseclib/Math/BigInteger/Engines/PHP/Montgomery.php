@@ -5,8 +5,6 @@
  *
  * PHP version 5 and 7
  *
- * @category  Math
- * @package   BigInteger
  * @author    Jim Wigginton <terrafrost@php.net>
  * @copyright 2017 Jim Wigginton
  * @license   http://www.opensource.org/licenses/mit-license.html  MIT License
@@ -14,16 +12,13 @@
  */
 namespace WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\PHP;
 
-use WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\PHP\Reductions\PowerOfTwo;
-use WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\PHP;
-use WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\PHP\Base;
 use WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\Engine;
+use WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\PHP;
+use WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\PHP\Reductions\PowerOfTwo;
 /**
  * PHP Montgomery Modular Exponentiation Engine
  *
- * @package PHP
  * @author  Jim Wigginton <terrafrost@php.net>
- * @access  public
  */
 abstract class Montgomery extends \WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\PHP\Base
 {
@@ -39,11 +34,12 @@ abstract class Montgomery extends \WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\
     /**
      * Performs modular exponentiation.
      *
-     * @param \phpseclib3\Math\BigInteger\Engines\Engine $x
-     * @param \phpseclib3\Math\BigInteger\Engines\Engine $e
-     * @param \phpseclib3\Math\BigInteger\Engines\Engine $n
-     * @param string $class
-     * @return \phpseclib3\Math\BigInteger\Engines\Engine
+     * @template T of Engine
+     * @param Engine $x
+     * @param Engine $e
+     * @param Engine $n
+     * @param class-string<T> $class
+     * @return T
      */
     protected static function slidingWindow(\WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\Engine $x, \WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\Engine $e, \WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\Engine $n, $class)
     {

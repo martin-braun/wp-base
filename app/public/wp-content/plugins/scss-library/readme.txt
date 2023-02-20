@@ -2,10 +2,10 @@
 
 Contributors: sebaxtian  
 Tags: SASS, compiler, SCSS  
-Requires at least: 4.4  
-Tested up to: 5.5  
+Requires at least: 6.0  
+Tested up to: 6.1 
 Stable tag: trunk  
-Requires PHP: 7.1  
+Requires PHP: 7.4  
 License: GPLv2 or later  
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -15,7 +15,7 @@ Add support for using SCSS style files with wp\_enqueue\_style.
 
 This plugin allows you to use SCSS files directly in **wp\_enqueue\_style**. Just add the file to the list of styles and the plugin will compile it when necessary.
 
-The base of this plugin is strongly influenced by the [WP-SCSS](https://wordpress.org/plugins/wp-scss/) code of and extracts some ideas from [Sassify](https://wordpress.org/plugins/sassify/). The goal is to keep the plugin updated with the latest version of [scssphp](https://packagist.org/packages/scssphp/scssphp), remove configuration options from the graphical interface, and use the **scssphp** capabilities to create debug files.
+The base of this plugin is strongly influenced by the [WP-SCSS](https://wordpress.org/plugins/wp-scss/) code and extracts some ideas from [Sassify](https://wordpress.org/plugins/sassify/). The goal is to keep the plugin updated with the latest version of [scssphp](https://packagist.org/packages/scssphp/scssphp), remove configuration options from the graphical interface, and use the **scssphp** capabilities to create debug files.
 
 This plugin is not intended to be installed by a conventional user, but to be required by templates or plugins that wish to include **SCSS** style files and therefore the configuration is expected to be done in the code.
 
@@ -33,7 +33,7 @@ This plugin adds many extra steps for something as simple as printing a style li
 * Interacts with the database.
 * Converts a SCSS file into a style file.
 
-Obviously it will add a few thousandths of a second to the loading time of the site.
+Obviously it will add a few millisecond to the loading time of the site.
 
 = How much will performance be affected? =
 It depends on how many **SCSS** files you add to the list of styles and how complex they are.
@@ -50,6 +50,26 @@ My goal with this plugin is to be able to change the SCSS file directly and see 
 I don't think so. Feedbacks would be appreciated.
 
 == Changelog ==
+
+= 0.4.1 =
+* Catch some bugs.
+
+= 0.4.0 =
+* Refactoring to have a code easier to test.
+
+= 0.3.2 =
+* By default the plugin creates minified code.
+* Maps and extended code are created when in dev mode.
+* Refactoring the code to simplify the compilation manager and the error viewer.
+
+= 0.3.1 =
+* Added german translation
+* Translation of comments in code to english.
+
+= 0.3.0 =
+* Update scssphp to 1.11.0.
+* Code refactoring to simplify code testing and maintenance.
+
 = 0.2.7 =
 * Update scssphp to 1.0.9.
 

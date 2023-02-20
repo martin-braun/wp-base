@@ -212,7 +212,11 @@ class Event {
 	public function get_created_at() {
 
 		$timezone = new \DateTimeZone( 'UTC' );
-		$date     = \DateTime::createFromFormat( WP::datetime_mysql_format(), $this->created_at, $timezone );
+		$date     = false;
+
+		if ( ! empty( $this->created_at ) ) {
+			$date = \DateTime::createFromFormat( WP::datetime_mysql_format(), $this->created_at, $timezone );
+		}
 
 		if ( $date === false ) {
 			$date = new \DateTime( 'now', $timezone );
@@ -317,6 +321,24 @@ class Event {
 	}
 
 	/**
+	 * Get the event's initiator backtrace.
+	 *
+	 * @since 3.6.0
+	 *
+	 * @return array
+	 */
+	private function get_initiator_backtrace() {
+
+		$initiator = (array) $this->get_initiator_raw();
+
+		if ( empty( $initiator['backtrace'] ) ) {
+			return [];
+		}
+
+		return $initiator['backtrace'];
+	}
+
+	/**
 	 * Get the event preview HTML.
 	 *
 	 * @since 3.0.0
@@ -325,7 +347,8 @@ class Event {
 	 */
 	public function get_details_html() {
 
-		$initiator = $this->get_initiator();
+		$initiator           = $this->get_initiator();
+		$initiator_backtrace = $this->get_initiator_backtrace();
 
 		ob_start();
 		?>
@@ -343,7 +366,9 @@ class Event {
 			</div>
 			<div class="wp-mail-smtp-debug-event-row wp-mail-smtp-debug-event-preview-content">
 				<span class="debug-event-label"><?php esc_html_e( 'Content', 'wp-mail-smtp' ); ?></span>
-				<div class="debug-event-value"><?php echo esc_html( $this->get_content() ); ?></div>
+				<div class="debug-event-value">
+						<?php echo wp_kses( str_replace( [ "\r\n", "\r", "\n" ], '<br>', $this->get_content() ), [ 'br' => [] ] ); ?>
+				</div>
 			</div>
 			<?php if ( ! empty( $initiator ) ) : ?>
 			<div class="wp-mail-smtp-debug-event-row wp-mail-smtp-debug-event-preview-caller">
@@ -358,6 +383,25 @@ class Event {
 							esc_html( $this->get_initiator_file_line() )
 						);
 						?>
+
+						<?php if ( ! empty( $initiator_backtrace ) ) : ?>
+							<br><br>
+							<b><?php esc_html_e( 'Backtrace:', 'wp-mail-smtp' ); ?></b>
+							<br>
+							<?php
+							foreach ( $initiator_backtrace as $i => $item ) {
+								printf(
+									/* translators: %1$d - index number; %2$s - function name; %3$s - file path; %4$s - line number. */
+									esc_html__( '[%1$d] %2$s called at [%3$s:%4$s]', 'wp-mail-smtp' ),
+									$i,
+									isset( $item['class'] ) ? esc_html( $item['class'] . $item['type'] . $item['function'] ) : esc_html( $item['function'] ),
+									isset( $item['file'] ) ? esc_html( $item['file'] ) : '', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+									isset( $item['line'] ) ? esc_html( $item['line'] ) : '' // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+								);
+								echo '<br>';
+							}
+							?>
+						<?php endif; ?>
 					</p>
 				</div>
 			</div>
@@ -377,11 +421,19 @@ class Event {
 	 */
 	public function get_short_details() {
 
-		return sprintf( /* Translators: %s - Email initiator/source name. */
-			esc_html__( 'Email Source: %s' ),
-			esc_html( $this->get_initiator() )
-		)
-		. PHP_EOL . esc_html( $this->get_content() );
+		$result = [];
+
+		if ( ! empty( $this->get_initiator() ) ) {
+			$result[] = sprintf(
+				/* Translators: %s - Email initiator/source name. */
+				esc_html__( 'Email Source: %s', 'wp-mail-smtp' ),
+				esc_html( $this->get_initiator() )
+			);
+		}
+
+		$result[] = esc_html( $this->get_content() );
+
+		return implode( WP::EOL, $result );
 	}
 
 	/**
@@ -466,7 +518,7 @@ class Event {
 		if ( ! is_string( $content ) ) {
 			$this->content = wp_json_encode( $content );
 		} else {
-			$this->content = wp_strip_all_tags( $content, false );
+			$this->content = wp_strip_all_tags( str_replace( '<br>', "\r\n", $content ), false );
 		}
 	}
 
@@ -477,13 +529,23 @@ class Event {
 	 */
 	public function set_initiator() {
 
-		$backtrace = $this->get_wpmail_backtrace();
+		$initiator = wp_mail_smtp()->get_wp_mail_initiator();
 
-		if ( empty( $backtrace ) ) {
+		if ( empty( $initiator->get_file() ) ) {
 			return;
 		}
 
-		$this->initiator = wp_json_encode( $backtrace );
+		$data['file'] = $initiator->get_file();
+
+		if ( ! empty( $initiator->get_line() ) ) {
+			$data['line'] = $initiator->get_line();
+		}
+
+		if ( DebugEvents::is_debug_enabled() ) {
+			$data['backtrace'] = $initiator->get_backtrace();
+		}
+
+		$this->initiator = wp_json_encode( $data );
 	}
 
 	/**
@@ -530,30 +592,6 @@ class Event {
 	public function is_debug() {
 
 		return self::TYPE_DEBUG === $this->get_type();
-	}
-
-	/**
-	 * Get the wpmail function backtrace, if it exists.
-	 *
-	 * @since 3.0.0
-	 *
-	 * @return array
-	 */
-	private function get_wpmail_backtrace() {
-
-		$backtrace = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace
-
-		foreach ( $backtrace as $item ) {
-			if ( $item['function'] === 'wp_mail' ) {
-				if ( isset( $item['function'] ) ) {
-					unset( $item['function'] );
-				}
-
-				return $item;
-			}
-		}
-
-		return [];
 	}
 }
 

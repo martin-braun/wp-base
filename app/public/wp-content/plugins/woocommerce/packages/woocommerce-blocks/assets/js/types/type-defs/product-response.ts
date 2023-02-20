@@ -1,27 +1,24 @@
 /**
  * Internal dependencies
  */
-import { CurrencyResponse } from './currency';
+import type { CurrencyResponse } from './currency';
 
 export interface ProductResponseItemPrices extends CurrencyResponse {
 	price: string;
 	regular_price: string;
 	sale_price: string;
 	price_range: null | { min_amount: string; max_amount: string };
-	raw_prices: {
-		precision: number;
-		price: string;
-		regular_price: string;
-		sale_price: string;
-	};
 }
 
-export interface ProductResponseItemData {
-	name: string;
+export interface ProductResponseItemBaseData {
 	value: string;
 	display?: string;
 	hidden?: boolean;
+	className?: string;
 }
+
+export type ProductResponseItemData = ProductResponseItemBaseData &
+	( { key: string; name?: never } | { key?: never; name: string } );
 
 export interface ProductResponseImageItem {
 	id: number;
@@ -34,6 +31,7 @@ export interface ProductResponseImageItem {
 }
 
 export interface ProductResponseTermItem {
+	default?: boolean;
 	id: number;
 	name: string;
 	slug: string;
@@ -71,7 +69,7 @@ export interface ProductResponseItem {
 	on_sale: boolean;
 	prices: ProductResponseItemPrices;
 	price_html: string;
-	average_rating: number;
+	average_rating: string;
 	review_count: number;
 	images: Array< ProductResponseImageItem >;
 	categories: Array< ProductResponseTermItem >;
@@ -84,10 +82,12 @@ export interface ProductResponseItem {
 	is_on_backorder: boolean;
 	low_stock_remaining: null | number;
 	sold_individually: boolean;
-	quantity_limit: number;
 	add_to_cart: {
 		text: string;
 		description: string;
 		url: string;
+		minimum: number;
+		maximum: number;
+		multiple_of: number;
 	};
 }

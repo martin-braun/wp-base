@@ -12,7 +12,7 @@ if( !defined('ABSPATH') ) {
  * @copyright (c) 2020, Webcraftic
  * @version       1.0
  */
-class Wbcr_FactoryLogger115_PageBase extends \WBCR\Factory_Templates_100\Pages\PageBase {
+class Wbcr_FactoryLogger125_PageBase extends \WBCR\Factory_Templates_112\Pages\PageBase {
 
 	/**
 	 * {@inheritdoc}
@@ -30,16 +30,16 @@ class Wbcr_FactoryLogger115_PageBase extends \WBCR\Factory_Templates_100\Pages\P
 	public $type = 'page';
 
 	/**
-	 * @param Wbcr_Factory450_Plugin $plugin
+	 * @param Wbcr_Factory461_Plugin $plugin
 	 */
 	public function __construct($plugin)
 	{
 		$this->id = $plugin->getPrefix() . "logger";
 
-		$this->menu_title = __('Plugin Log', 'wbcr_factory_logger_115');
-		$this->page_menu_short_description = __('Plugin debug report', 'wbcr_factory_logger_115');
+		$this->menu_title = __('Plugin Log', 'wbcr_factory_logger_125');
+		$this->page_menu_short_description = __('Plugin debug report', 'wbcr_factory_logger_125');
 
-		add_action('wp_ajax_wbcr_factory_logger_115_logs_cleanup', [$this, 'ajax_cleanup']);
+		add_action( 'wp_ajax_wbcr_factory_logger_125_'.$plugin->getPrefix().'logs_cleanup', [ $this, 'ajax_cleanup' ] );
 
 		parent::__construct($plugin);
 	}
@@ -54,10 +54,11 @@ class Wbcr_FactoryLogger115_PageBase extends \WBCR\Factory_Templates_100\Pages\P
 	{
 		parent::assets($scripts, $styles);
 
-		$this->styles->add(FACTORY_LOGGER_115_URL . '/assets/css/logger.css');
-		$this->scripts->add(FACTORY_LOGGER_115_URL . '/assets/js/logger.js', ['jquery'], 'wbcr_factory_logger_115', FACTORY_LOGGER_115_VERSION);
-		$this->scripts->localize('wbcr_factory_logger_115', [
-			'clean_logs_nonce' => wp_create_nonce('wbcr_factory_logger_115_clean_logs'),
+		$this->styles->add(FACTORY_LOGGER_125_URL . '/assets/css/logger.css');
+		$this->scripts->add(FACTORY_LOGGER_125_URL . '/assets/js/logger.js', ['jquery'], 'wbcr_factory_logger_125', FACTORY_LOGGER_125_VERSION);
+		$this->scripts->localize('wbcr_factory_logger_125', [
+			'clean_logs_nonce' => wp_create_nonce('wbcr_factory_logger_125_clean_logs'),
+			'plugin_prefix' => $this->plugin->getPrefix(),
 		]);
 	}
 
@@ -66,7 +67,7 @@ class Wbcr_FactoryLogger115_PageBase extends \WBCR\Factory_Templates_100\Pages\P
 	 */
 	public function getMenuTitle()
 	{
-		return __('Plugin Log', 'wbcr_factory_logger_115');
+		return __('Plugin Log', 'wbcr_factory_logger_125');
 	}
 
 	/**
@@ -77,33 +78,33 @@ class Wbcr_FactoryLogger115_PageBase extends \WBCR\Factory_Templates_100\Pages\P
 		$buttons = "
             <div class='btn-group'>
                 <a href='" . wp_nonce_url($this->getActionUrl('export')) . "'
-                   class='button button-primary'>" . __('Export Debug Information', 'wbcr_factory_logger_115') . "</a>
+                   class='button button-primary'>" . __('Export Debug Information', 'wbcr_factory_logger_125') . "</a>
                 <a href='#'
                    class='button button-secondary'
-                   onclick='wbcr_factory_logger_115_LogCleanup(this);return false;'
-                   data-working='" . __('Working...', 'wbcr_factory_logger_115') . "'>" . sprintf(__('Clean-up Logs (<span id="wbcr-log-size">%s</span>)', 'wbcr_factory_logger_115'), $this->get_log_size_formatted()) . "
+                   onclick='wbcr_factory_logger_125_LogCleanup(this);return false;'
+                   data-working='" . __('Working...', 'wbcr_factory_logger_125') . "'>" . sprintf(__('Clean-up Logs (<span id="wbcr-log-size">%s</span>)', 'wbcr_factory_logger_125'), $this->get_log_size_formatted()) . "
                    </a>
             </div>";
 		?>
 		<div class="wbcr-factory-page-group-header" style="margin-top:0;">
-			<strong><?php _e('Plugin Log', 'wbcr_factory_logger_115') ?></strong>
+			<strong><?php _e('Plugin Log', 'wbcr_factory_logger_125') ?></strong>
 			<p>
-				<?php _e('In this section, you can track how the plugin works. Sending this log to the developer will help you resolve possible issues.', 'wbcr_factory_logger_115') ?>
+				<?php _e('In this section, you can track how the plugin works. Sending this log to the developer will help you resolve possible issues.', 'wbcr_factory_logger_125') ?>
 			</p>
 		</div>
 		<div class="wbcr-factory-page-group-body" style="padding: 0 20px">
-			<?= $buttons; ?>
+			<?php echo $buttons; ?>
 			<div class="wbcr-log-viewer" id="wbcr-log-viewer">
 				<?php echo $this->plugin->logger->prettify() ?>
 			</div>
-			<?= $buttons; ?>
+			<?php echo $buttons; ?>
 		</div>
 		<?php
 	}
 
 	public function ajax_cleanup()
 	{
-		check_admin_referer('wbcr_factory_logger_115_clean_logs', 'nonce');
+		check_admin_referer('wbcr_factory_logger_125_clean_logs', 'nonce');
 
 		if( !current_user_can('manage_options') ) {
 			wp_die(-1);
@@ -111,13 +112,13 @@ class Wbcr_FactoryLogger115_PageBase extends \WBCR\Factory_Templates_100\Pages\P
 
 		if( !$this->plugin->logger->clean_up() ) {
 			wp_send_json_error([
-				'message' => esc_html__('Failed to clean-up logs. Please try again later.', 'wbcr_factory_logger_115'),
+				'message' => esc_html__('Failed to clean-up logs. Please try again later.', 'wbcr_factory_logger_125'),
 				'type' => 'danger',
 			]);
 		}
 
 		wp_send_json([
-			'message' => esc_html__('Logs clean-up successfully', 'wbcr_factory_logger_115'),
+			'message' => esc_html__('Logs clean-up successfully', 'wbcr_factory_logger_125'),
 			'type' => 'success',
 		]);
 	}
@@ -127,7 +128,7 @@ class Wbcr_FactoryLogger115_PageBase extends \WBCR\Factory_Templates_100\Pages\P
 	 */
 	public function exportAction()
 	{
-		$export = new WBCR\Factory_Logger_115\Log_Export($this->plugin->logger);
+		$export = new WBCR\Factory_Logger_125\Log_Export($this->plugin->logger);
 
 		if( $export->prepare() ) {
 			$export->download(true);

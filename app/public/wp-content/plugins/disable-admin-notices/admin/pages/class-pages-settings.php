@@ -66,9 +66,9 @@ class WDN_Settings_Page extends WDN_Page {
 
 
 	/**
-	 * @param Wbcr_Factory450_Plugin $plugin
+	 * @param Wbcr_Factory461_Plugin $plugin
 	 */
-	public function __construct( Wbcr_Factory450_Plugin $plugin ) {
+	public function __construct( Wbcr_Factory461_Plugin $plugin ) {
 		$this->menu_title                  = __( 'Hide admin notices', 'disable-admin-notices' );
 		$this->page_menu_short_description = __( 'General settings', 'disable-admin-notices' );
 
@@ -88,11 +88,11 @@ class WDN_Settings_Page extends WDN_Page {
 	/**
 	 * Requests assets (js and css) for the page.
 	 *
-	 * @param Wbcr_Factory450_ScriptList $scripts
-	 * @param Wbcr_Factory450_StyleList $styles
+	 * @param Wbcr_Factory461_ScriptList $scripts
+	 * @param Wbcr_Factory461_StyleList $styles
 	 *
 	 * @return void
-	 * @see Wbcr_FactoryPages449_AdminPage
+	 * @see Wbcr_FactoryPages461_AdminPage
 	 *
 	 */
 	public function assets( $scripts, $styles ) {
@@ -110,10 +110,10 @@ class WDN_Settings_Page extends WDN_Page {
 	public function actionsNotice( $notices ) {
 		$notices[] = [
 			'conditions' => [
-				'wbcr_dan_reseted_notices' => 1
+				'wbcr_dan_reseted_notices' => 1,
 			],
 			'type'       => 'success',
-			'message'    => __( 'Hidden notices are successfully reset, now you can see them again!', 'disable-admin-notices' )
+			'message'    => __( 'Hidden notices are successfully reset, now you can see them again!', 'disable-admin-notices' ),
 		];
 
 		/*$notices[] = array(
@@ -122,7 +122,7 @@ class WDN_Settings_Page extends WDN_Page {
 				'wbcr_dan_code' => 'interal_error'
 			),
 			'type' => 'danger',
-			'message' => __('An error occurred while trying to delete comments. Internal error occured. Please try again later.', 'factory_pages_449')
+			'message' => __('An error occurred while trying to delete comments. Internal error occured. Please try again later.', 'factory_pages_461')
 		);*/
 
 		return $notices;

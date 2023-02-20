@@ -5,8 +5,6 @@
  *
  * PHP version 5 and 7
  *
- * @category  Crypt
- * @package   EC
  * @author    Jim Wigginton <terrafrost@php.net>
  * @copyright 2017 Jim Wigginton
  * @license   http://www.opensource.org/licenses/mit-license.html  MIT License
@@ -14,9 +12,9 @@
 namespace WPMailSMTP\Vendor\phpseclib3\Crypt\EC\Curves;
 
 use WPMailSMTP\Vendor\phpseclib3\Crypt\EC\BaseCurves\TwistedEdwards;
-use WPMailSMTP\Vendor\phpseclib3\Math\BigInteger;
 use WPMailSMTP\Vendor\phpseclib3\Crypt\Hash;
 use WPMailSMTP\Vendor\phpseclib3\Crypt\Random;
+use WPMailSMTP\Vendor\phpseclib3\Math\BigInteger;
 class Ed448 extends \WPMailSMTP\Vendor\phpseclib3\Crypt\EC\BaseCurves\TwistedEdwards
 {
     const HASH = 'shake256-912';
@@ -77,7 +75,7 @@ class Ed448 extends \WPMailSMTP\Vendor\phpseclib3\Crypt\EC\BaseCurves\TwistedEdw
      * Used by the various key handlers
      *
      * @param string $str
-     * @return \phpseclib3\Math\PrimeField\Integer
+     * @return array
      */
     public function extractSecret($str)
     {
@@ -100,7 +98,7 @@ class Ed448 extends \WPMailSMTP\Vendor\phpseclib3\Crypt\EC\BaseCurves\TwistedEdw
         // 3.  Interpret the buffer as the little-endian integer, forming a
         //     secret scalar s.
         $dA = new \WPMailSMTP\Vendor\phpseclib3\Math\BigInteger($h, 256);
-        $dA = $this->factory->newInteger($dA);
+        return ['dA' => $dA, 'secret' => $str];
         $dA->secret = $str;
         return $dA;
     }
@@ -127,7 +125,7 @@ class Ed448 extends \WPMailSMTP\Vendor\phpseclib3\Crypt\EC\BaseCurves\TwistedEdw
      */
     public function createRandomMultiplier()
     {
-        return $this->extractSecret(\WPMailSMTP\Vendor\phpseclib3\Crypt\Random::string(57));
+        return $this->extractSecret(\WPMailSMTP\Vendor\phpseclib3\Crypt\Random::string(57))['dA'];
     }
     /**
      * Converts an affine point to an extended homogeneous coordinate

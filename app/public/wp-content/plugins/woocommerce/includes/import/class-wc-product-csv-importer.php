@@ -79,6 +79,9 @@ class WC_Product_CSV_Importer extends WC_Product_Importer {
 		if ( false !== $handle ) {
 			$this->raw_keys = version_compare( PHP_VERSION, '5.3', '>=' ) ? array_map( 'trim', fgetcsv( $handle, 0, $this->params['delimiter'], $this->params['enclosure'], $this->params['escape'] ) ) : array_map( 'trim', fgetcsv( $handle, 0, $this->params['delimiter'], $this->params['enclosure'] ) ); // @codingStandardsIgnoreLine
 
+			// Remove line breaks in keys, to avoid mismatch mapping of keys.
+			$this->raw_keys = wc_clean( wp_unslash( $this->raw_keys ) );
+
 			// Remove BOM signature from the first item.
 			if ( isset( $this->raw_keys[0] ) ) {
 				$this->raw_keys[0] = $this->remove_utf8_bom( $this->raw_keys[0] );
@@ -606,7 +609,7 @@ class WC_Product_CSV_Importer extends WC_Product_Importer {
 	/**
 	 * Parse download file urls, we should allow shortcodes here.
 	 *
-	 * Allow shortcodes if present, othersiwe esc_url the value.
+	 * Allow shortcodes if present, otherwise esc_url the value.
 	 *
 	 * @param string $value Field value.
 	 *

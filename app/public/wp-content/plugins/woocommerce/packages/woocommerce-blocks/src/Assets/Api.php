@@ -61,6 +61,22 @@ class Api {
 	}
 
 	/**
+	 * Get the path to a block's metadata
+	 *
+	 * @param string $block_name The block to get metadata for.
+	 * @param string $path Optional. The path to the metadata file inside the 'build' folder.
+	 *
+	 * @return string|boolean False if metadata file is not found for the block.
+	 */
+	public function get_block_metadata_path( $block_name, $path = '' ) {
+		$path_to_metadata_from_plugin_root = $this->package->get_path( 'build/' . $path . $block_name . '/block.json' );
+		if ( ! file_exists( $path_to_metadata_from_plugin_root ) ) {
+			return false;
+		}
+		return $path_to_metadata_from_plugin_root;
+	}
+
+	/**
 	 * Get src, version and dependencies given a script relative src.
 	 *
 	 * @param string $relative_src Relative src to the script.
@@ -131,7 +147,16 @@ class Api {
 			}
 		}
 
-		wp_register_script( $handle, $script_data['src'], apply_filters( 'woocommerce_blocks_register_script_dependencies', $script_data['dependencies'], $handle ), $script_data['version'], true );
+		/**
+		 * Filters the list of script dependencies.
+		 *
+		 * @param array $dependencies The list of script dependencies.
+		 * @param string $handle The script's handle.
+		 * @return array
+		 */
+		$script_dependencies = apply_filters( 'woocommerce_blocks_register_script_dependencies', $script_data['dependencies'], $handle );
+
+		wp_register_script( $handle, $script_data['src'], $script_dependencies, $script_data['version'], true );
 
 		if ( $has_i18n && function_exists( 'wp_set_script_translations' ) ) {
 			wp_set_script_translations( $handle, 'woocommerce', $this->package->get_path( 'languages' ) );
@@ -158,20 +183,14 @@ class Api {
 	}
 
 	/**
-	 * Returns the appropriate asset path for loading either legacy builds or
-	 * current builds.
+	 * Returns the appropriate asset path for current builds.
 	 *
 	 * @param   string $filename  Filename for asset path (without extension).
 	 * @param   string $type      File type (.css or .js).
-	 *
 	 * @return  string             The generated path.
 	 */
 	public function get_block_asset_build_path( $filename, $type = 'js' ) {
-		global $wp_version;
-		$suffix = version_compare( $wp_version, '5.3', '>=' )
-			? ''
-			: '-legacy';
-		return "build/$filename$suffix.$type";
+		return "build/$filename.$type";
 	}
 
 	/**

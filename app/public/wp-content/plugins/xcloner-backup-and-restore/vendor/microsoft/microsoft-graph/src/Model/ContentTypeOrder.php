@@ -7,10 +7,9 @@
 *
 * @category  Library
 * @package   Microsoft.Graph
-* @copyright © Microsoft Corporation. All rights reserved.
+* @copyright (c) Microsoft Corporation. All rights reserved.
 * @license   https://opensource.org/licenses/MIT MIT License
-* @version   GIT: 1.4.0
-* @link      https://graph.microsoft.io/
+* @link      https://graph.microsoft.com
 */
 namespace Microsoft\Graph\Model;
 /**
@@ -18,10 +17,9 @@ namespace Microsoft\Graph\Model;
 *
 * @category  Model
 * @package   Microsoft.Graph
-* @copyright © Microsoft Corporation. All rights reserved.
+* @copyright (c) Microsoft Corporation. All rights reserved.
 * @license   https://opensource.org/licenses/MIT MIT License
-* @version   Release: 1.4.0
-* @link      https://graph.microsoft.io/
+* @link      https://graph.microsoft.com
 */
 class ContentTypeOrder extends Entity
 {
@@ -29,7 +27,7 @@ class ContentTypeOrder extends Entity
     * Gets the default
     * Whether this is the default Content Type
     *
-    * @return bool The default
+    * @return bool|null The default
     */
     public function getDefault()
     {
@@ -57,7 +55,7 @@ class ContentTypeOrder extends Entity
     * Gets the position
     * Specifies the position in which the Content Type appears in the selection UI.
     *
-    * @return int The position
+    * @return int|null The position
     */
     public function getPosition()
     {

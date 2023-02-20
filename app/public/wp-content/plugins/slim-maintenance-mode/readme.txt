@@ -2,7 +2,7 @@
 Contributors: wpdoc.de
 Tags: maintenance, unavailable, admin, maintenance mode, cache
 Requires at least: 3.5
-Tested up to: 5.8
+Tested up to: 6.1
 Stable tag: trunk
 License: GPL-2.0+
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
@@ -42,6 +42,15 @@ Please visit the [plugins page](https://translate.wordpress.org/projects/wp-plug
 2. Maintenance message for website visitors in German
 
 == Changelog ==
+= 1.4.3 =
+* Fixed a bug that prevented logging into the administration area
+
+= 1.4.2 =
+* Fixed a bug with the HTTP response code
+
+= 1.4.1 =
+* Fixed a bug that prevented the plugin from working reliably with block themes
+
 = 1.4 =
 * Disable Web feeds (e.g. RSS, Atom) when the plugin is active
 

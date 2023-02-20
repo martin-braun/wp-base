@@ -20,7 +20,7 @@ class Favicon_By_RealFaviconGenerator extends Favicon_By_RealFaviconGenerator_Co
 
 		// If the single instance hasn't been set, set it now.
 		if ( null == self::$instance ) {
-			self::$instance = new self;
+			self::$instance = new self();
 		}
 
 		return self::$instance;

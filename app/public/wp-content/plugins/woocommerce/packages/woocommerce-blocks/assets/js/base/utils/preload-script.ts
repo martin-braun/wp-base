@@ -1,4 +1,4 @@
-interface preloadScriptParams {
+interface PreloadScriptParams {
 	handle: string;
 	src: string;
 	version?: string;
@@ -12,10 +12,13 @@ const preloadScript = ( {
 	handle,
 	src,
 	version,
-}: preloadScriptParams ): void => {
-	const handleScriptElements = document.querySelectorAll(
-		`#${ handle }-js, #${ handle }-js-prefetch`
-	);
+}: PreloadScriptParams ): void => {
+	const srcParts = src.split( '?' );
+	if ( srcParts?.length > 1 ) {
+		src = srcParts[ 0 ];
+	}
+	const selector = `#${ handle }-js, #${ handle }-js-prefetch, script[src*="${ src }"]`;
+	const handleScriptElements = document.querySelectorAll( selector );
 
 	if ( handleScriptElements.length === 0 ) {
 		const prefetchLink = document.createElement( 'link' );

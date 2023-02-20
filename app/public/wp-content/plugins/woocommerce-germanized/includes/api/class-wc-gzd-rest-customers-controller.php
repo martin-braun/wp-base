@@ -1,5 +1,7 @@
 <?php
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Class WC_GZD_REST_Customers_Controller
  *
@@ -41,8 +43,10 @@ class WC_GZD_REST_Customers_Controller {
 		$customer               = new WC_Customer( $user_data->ID );
 		$response_customer_data = $response->get_data();
 
-		$response_customer_data['billing']['title']  = $customer->get_meta( 'billing_title' );
-		$response_customer_data['shipping']['title'] = $customer->get_meta( 'shipping_title' );
+		$response_customer_data['billing']['title']            = $customer->get_meta( 'billing_title' );
+		$response_customer_data['billing']['title_formatted']  = wc_gzd_get_customer_title( $customer->get_meta( 'billing_title' ) );
+		$response_customer_data['shipping']['title']           = $customer->get_meta( 'shipping_title' );
+		$response_customer_data['shipping']['title_formatted'] = wc_gzd_get_customer_title( $customer->get_meta( 'shipping_title' ) );
 
 		$holder = $customer->get_meta( 'direct_debit_holder' );
 		$iban   = $customer->get_meta( 'direct_debit_iban' );
@@ -56,7 +60,7 @@ class WC_GZD_REST_Customers_Controller {
 		$response_customer_data['direct_debit'] = array(
 			'holder' => $holder,
 			'iban'   => $iban,
-			'bic'    => $bic
+			'bic'    => $bic,
 		);
 
 		if ( WC_GZD_Customer_Helper::instance()->is_double_opt_in_enabled() ) {
@@ -80,7 +84,6 @@ class WC_GZD_REST_Customers_Controller {
 	 *
 	 */
 	public function insert( $user_data, $request, $creating ) {
-
 		$customer = new WC_Customer( $user_data->ID );
 
 		if ( isset( $request['billing']['title'] ) ) {
@@ -132,19 +135,30 @@ class WC_GZD_REST_Customers_Controller {
 	 *
 	 */
 	public function schema( $schema_properties ) {
-
 		$schema_properties['billing']['properties']['title'] = array(
 			'description' => __( 'Title', 'woocommerce-germanized' ),
-			'type'        => 'integer',
+			'type'        => 'string',
 			'context'     => array( 'view', 'edit' ),
-			'enum'        => array( 1, 2 )
+		);
+
+		$schema_properties['billing']['properties']['title_formatted'] = array(
+			'description' => __( 'Formatted title', 'woocommerce-germanized' ),
+			'type'        => 'string',
+			'context'     => array( 'view', 'edit' ),
+			'readonly'    => true,
 		);
 
 		$schema_properties['shipping']['properties']['title'] = array(
 			'description' => __( 'Title', 'woocommerce-germanized' ),
-			'type'        => 'integer',
+			'type'        => 'string',
 			'context'     => array( 'view', 'edit' ),
-			'enum'        => array( 1, 2 )
+		);
+
+		$schema_properties['shipping']['properties']['title_formatted'] = array(
+			'description' => __( 'Formatted title', 'woocommerce-germanized' ),
+			'type'        => 'string',
+			'context'     => array( 'view', 'edit' ),
+			'readonly'    => true,
 		);
 
 		if ( WC_GZD_Customer_Helper::instance()->is_double_opt_in_enabled() ) {
@@ -152,31 +166,31 @@ class WC_GZD_REST_Customers_Controller {
 				'description' => __( 'Has been activated via DOI?', 'woocommerce-germanized' ),
 				'type'        => 'boolean',
 				'context'     => array( 'view', 'edit' ),
-				'readonly'    => true
+				'readonly'    => true,
 			);
 		}
 
 		$schema_properties['direct_debit'] = array(
 			'description' => __( 'Direct Debit', 'woocommerce-germanized' ),
-			'type'        => 'array',
+			'type'        => 'object',
 			'context'     => array( 'view', 'edit' ),
 			'properties'  => array(
 				'holder' => array(
 					'description' => __( 'Account Holder', 'woocommerce-germanized' ),
 					'type'        => 'string',
-					'context'     => array( 'view', 'edit' )
+					'context'     => array( 'view', 'edit' ),
 				),
 				'iban'   => array(
 					'description' => __( 'IBAN', 'woocommerce-germanized' ),
 					'type'        => 'string',
-					'context'     => array( 'view', 'edit' )
+					'context'     => array( 'view', 'edit' ),
 				),
 				'bic'    => array(
 					'description' => __( 'BIC/SWIFT', 'woocommerce-germanized' ),
 					'type'        => 'string',
-					'context'     => array( 'view', 'edit' )
-				)
-			)
+					'context'     => array( 'view', 'edit' ),
+				),
+			),
 		);
 
 		return $schema_properties;

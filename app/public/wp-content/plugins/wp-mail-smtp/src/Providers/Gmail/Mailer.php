@@ -3,10 +3,12 @@
 namespace WPMailSMTP\Providers\Gmail;
 
 use WPMailSMTP\Admin\DebugEvents\DebugEvents;
+use WPMailSMTP\Helpers\Helpers;
 use WPMailSMTP\MailCatcherInterface;
 use WPMailSMTP\Providers\MailerAbstract;
 use WPMailSMTP\Vendor\Google\Service\Gmail;
 use WPMailSMTP\Vendor\Google\Service\Gmail\Message;
+use WPMailSMTP\WP;
 
 /**
  * Class Mailer.
@@ -35,22 +37,6 @@ class Mailer extends MailerAbstract {
 	protected $message;
 
 	/**
-	 * Mailer constructor.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param MailCatcherInterface $phpmailer The MailCatcher object.
-	 */
-	public function __construct( $phpmailer ) {
-
-	    parent::__construct( $phpmailer );
-
-		if ( ! $this->is_php_compatible() ) {
-			return;
-		}
-	}
-
-	/**
 	 * Re-use the MailCatcher class methods and properties.
 	 *
 	 * @since 1.2.0
@@ -77,7 +63,7 @@ class Mailer extends MailerAbstract {
 		// Include the Google library.
 		require_once wp_mail_smtp()->plugin_path . '/vendor/autoload.php';
 
-		$auth    = new Auth();
+		$auth    = new Auth( $this->connection );
 		$message = new Message();
 
 		// Set the authorized Gmail email address as the "from email" if the set email is not on the list of aliases.
@@ -109,7 +95,7 @@ class Mailer extends MailerAbstract {
 			$response = $service->users_messages->send( 'me', $message );
 
 			DebugEvents::add_debug(
-				esc_html__( 'An email request was sent to the Gmail API.' )
+				esc_html__( 'An email request was sent to the Gmail API.', 'wp-mail-smtp' )
 			);
 
 			$this->process_response( $response );
@@ -174,15 +160,14 @@ class Mailer extends MailerAbstract {
 	 *
 	 * @return string
 	 */
-	public function get_debug_info() {
+	public function get_debug_info() { // phpcs:ignore Generic.Metrics.CyclomaticComplexity.MaxExceeded
 
 		$gmail_text = array();
 
-		$options  = new \WPMailSMTP\Options();
-		$gmail    = $options->get_group( 'gmail' );
+		$gmail    = $this->connection_options->get_group( 'gmail' );
 		$curl_ver = 'No';
 		if ( function_exists( 'curl_version' ) ) {
-			$curl     = curl_version(); // phpcs:ignore
+			$curl     = curl_version();
 			$curl_ver = $curl['version'];
 		}
 
@@ -196,7 +181,7 @@ class Mailer extends MailerAbstract {
 		$gmail_text[] = '<strong>PHP.allow_url_fopen:</strong> ' . ( ini_get( 'allow_url_fopen' ) ? 'Yes' : 'No' );
 		$gmail_text[] = '<strong>PHP.stream_socket_client():</strong> ' . ( function_exists( 'stream_socket_client' ) ? 'Yes' : 'No' );
 		$gmail_text[] = '<strong>PHP.fsockopen():</strong> ' . ( function_exists( 'fsockopen' ) ? 'Yes' : 'No' );
-		$gmail_text[] = '<strong>PHP.curl_version():</strong> ' . $curl_ver; // phpcs:ignore
+		$gmail_text[] = '<strong>PHP.curl_version():</strong> ' . $curl_ver;
 		if ( function_exists( 'apache_get_modules' ) ) {
 			$modules      = apache_get_modules();
 			$gmail_text[] = '<strong>Apache.mod_security:</strong> ' . ( in_array( 'mod_security', $modules, true ) || in_array( 'mod_security2', $modules, true ) ? 'Yes' : 'No' );
@@ -224,7 +209,7 @@ class Mailer extends MailerAbstract {
 			return false;
 		}
 
-		$auth = new Auth();
+		$auth = new Auth( $this->connection );
 
 		if (
 			$auth->is_clients_saved() &&
@@ -255,22 +240,22 @@ class Mailer extends MailerAbstract {
 		}
 
 		// Define known errors, that we will scan the message with.
-		$known_errors = array(
-			array(
-				'errors'      => array(
+		$known_errors = [
+			[
+				'errors'      => [
 					'invalid_grant',
-				),
-				'explanation' => esc_html__( 'Please re-grant Google app permissions!', 'wp-mail-smtp' ) . ' ' . PHP_EOL .
-					esc_html__( 'Go to WP Mail SMTP plugin settings page. Click the “Remove Connection” button.', 'wp-mail-smtp' ) . ' ' . PHP_EOL .
+				],
+				'explanation' => esc_html__( 'Please re-grant Google app permissions!', 'wp-mail-smtp' ) . ' ' . WP::EOL .
+					esc_html__( 'Go to WP Mail SMTP plugin settings page. Click the “Remove OAuth Connection” button.', 'wp-mail-smtp' ) . ' ' . WP::EOL .
 					esc_html__( 'Then click the “Allow plugin to send emails using your Google account” button and re-enable access.', 'wp-mail-smtp' ),
-			),
-		);
+			],
+		];
 
 		// Check if we get a match and append the explanation to the original message.
 		foreach ( $known_errors as $error ) {
 			foreach ( $error['errors'] as $error_fragment ) {
 				if ( false !== strpos( $message, $error_fragment ) ) {
-					return $message . PHP_EOL . $error['explanation'];
+					return Helpers::format_error_message( $message, '', $error['explanation'] );
 				}
 			}
 		}
@@ -293,7 +278,7 @@ class Mailer extends MailerAbstract {
 
 		_deprecated_function( __CLASS__ . '::' . __METHOD__, '2.1.1 of WP Mail SMTP plugin' );
 
-		$gmail_creds = ( new Auth() )->get_user_info();
+		$gmail_creds = ( new Auth( $this->connection ) )->get_user_info();
 
 		if ( empty( $gmail_creds['email'] ) ) {
 			return [];

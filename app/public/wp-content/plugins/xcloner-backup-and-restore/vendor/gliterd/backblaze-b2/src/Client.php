@@ -2,6 +2,7 @@
 
 namespace BackblazeB2;
 
+use BackblazeB2\Exceptions\B2Exception;
 use BackblazeB2\Exceptions\NotFoundException;
 use BackblazeB2\Exceptions\ValidationException;
 use BackblazeB2\Http\Client as HttpClient;
@@ -10,8 +11,8 @@ use GuzzleHttp\Exception\GuzzleException;
 
 class Client
 {
-    private const B2_API_BASE_URL = 'https://api.backblazeb2.com';
-    private const B2_API_V1 = '/b2api/v1/';
+    const B2_API_BASE_URL = 'https://api.backblazeb2.com';
+    const B2_API_V1 = '/b2api/v1/';
     protected $accountId;
     protected $applicationKey;
     protected $authToken;
@@ -55,6 +56,8 @@ class Client
      * @param array $options
      *
      * @throws ValidationException
+     * @throws GuzzleException     If the request fails.
+     * @throws B2Exception         If the B2 server replies with an error.
      *
      * @return Bucket
      */
@@ -81,6 +84,8 @@ class Client
      * @param array $options
      *
      * @throws ValidationException
+     * @throws GuzzleException     If the request fails.
+     * @throws B2Exception         If the B2 server replies with an error.
      *
      * @return Bucket
      */
@@ -108,6 +113,9 @@ class Client
     /**
      * Returns a list of bucket objects representing the buckets on the account.
      *
+     * @throws GuzzleException If the request fails.
+     * @throws B2Exception     If the B2 server replies with an error.
+     *
      * @return array
      */
     public function listBuckets()
@@ -130,6 +138,9 @@ class Client
      *
      * @param array $options
      *
+     * @throws GuzzleException If the request fails.
+     * @throws B2Exception     If the B2 server replies with an error.
+     *
      * @return bool
      */
     public function deleteBucket(array $options)
@@ -150,6 +161,9 @@ class Client
      * Uploads a file to a bucket and returns a File object.
      *
      * @param array $options
+     *
+     * @throws GuzzleException If the request fails.
+     * @throws B2Exception     If the B2 server replies with an error.
      *
      * @return File
      */
@@ -198,15 +212,16 @@ class Client
             $options['FileContentType'] = 'b2/x-auto';
         }
 
-        $response = $this->client->request('POST', $uploadEndpoint, [
-            'headers' => [
+        $customHeaders = $options['Headers'] ?? [];
+        $response = $this->client->guzzleRequest('POST', $uploadEndpoint, [
+            'headers' => array_merge([
                 'Authorization'                      => $uploadAuthToken,
                 'Content-Type'                       => $options['FileContentType'],
                 'Content-Length'                     => $size,
                 'X-Bz-File-Name'                     => $options['FileName'],
                 'X-Bz-Content-Sha1'                  => $hash,
                 'X-Bz-Info-src_last_modified_millis' => $options['FileLastModified'],
-            ],
+            ], $customHeaders),
             'body' => $options['Body'],
         ]);
 
@@ -216,7 +231,10 @@ class Client
             $response['contentSha1'],
             $response['contentLength'],
             $response['contentType'],
-            $response['fileInfo']
+            $response['fileInfo'],
+            $response['bucketId'],
+            $response['action'],
+            $response['uploadTimestamp']
         );
     }
 
@@ -229,11 +247,18 @@ class Client
      */
     public function download(array $options)
     {
+        if (!isset($options['FileId']) && !isset($options['BucketName']) && isset($options['BucketId'])) {
+            $options['BucketName'] = $this->getBucketNameFromId($options['BucketId']);
+        }
+
+        $this->authorizeAccount();
+
         $requestUrl = null;
+        $customHeaders = $options['Headers'] ?? [];
         $requestOptions = [
-            'headers' => [
+            'headers' => array_merge([
                 'Authorization' => $this->authToken,
-            ],
+            ], $customHeaders),
             'sink' => isset($options['SaveAs']) ? $options['SaveAs'] : null,
         ];
 
@@ -241,24 +266,83 @@ class Client
             $requestOptions['query'] = ['fileId' => $options['FileId']];
             $requestUrl = $this->downloadUrl.'/b2api/v1/b2_download_file_by_id';
         } else {
-            if (!isset($options['BucketName']) && isset($options['BucketId'])) {
-                $options['BucketName'] = $this->getBucketNameFromId($options['BucketId']);
-            }
-
             $requestUrl = sprintf('%s/file/%s/%s', $this->downloadUrl, $options['BucketName'], $options['FileName']);
         }
 
-        $this->authorizeAccount();
-
-        $response = $this->client->request('GET', $requestUrl, $requestOptions, false);
+        $response = $this->client->guzzleRequest('GET', $requestUrl, $requestOptions, false);
 
         return isset($options['SaveAs']) ? true : $response;
+    }
+
+    /**
+     * Copy a file.
+     *
+     * $options:
+     * required BucketName or BucketId the source bucket
+     * required FileName the file to copy
+     * required SaveAs the path and file name to save to
+     * optional DestinationBucketId or DestinationBucketName, the destination bucket
+     *
+     * @param array $options
+     *
+     * @throws B2Exception
+     * @throws GuzzleException
+     * @throws NotFoundException
+     *
+     * @return File
+     */
+    public function copy(array $options)
+    {
+        $options['FileName'] = ltrim($options['FileName'], '/');
+        $options['SaveAs'] = ltrim($options['SaveAs'], '/');
+
+        if (!isset($options['DestinationBucketId']) && isset($options['DestinationBucketName'])) {
+            $options['DestinationBucketId'] = $this->getBucketIdFromName($options['DestinationBucketName']);
+        }
+
+        if (!isset($options['BucketId']) && isset($options['BucketName'])) {
+            $options['BucketId'] = $this->getBucketIdFromName($options['BucketName']);
+        }
+
+        $sourceFiles = $this->listFiles([
+            'BucketId' => $options['BucketId'],
+            'FileName' => $options['FileName'],
+        ]);
+        $sourceFileId = !empty($sourceFiles) ? $sourceFiles[0]->getId() : false;
+        if (!$sourceFileId) {
+            throw new NotFoundException('Source file not found in B2');
+        }
+
+        $json = [
+            'sourceFileId' => $sourceFileId,
+            'fileName'     => $options['SaveAs'],
+        ];
+        if (isset($options['DestinationBucketId'])) {
+            $json['DestinationBucketId'] = $options['DestinationBucketId'];
+        }
+
+        $response = $this->sendAuthorizedRequest('POST', 'b2_copy_file', $json);
+
+        return new File(
+            $response['fileId'],
+            $response['fileName'],
+            $response['contentSha1'],
+            $response['contentLength'],
+            $response['contentType'],
+            $response['fileInfo'],
+            $response['bucketId'],
+            $response['action'],
+            $response['uploadTimestamp']
+        );
     }
 
     /**
      * Retrieve a collection of File objects representing the files stored inside a bucket.
      *
      * @param array $options
+     *
+     * @throws GuzzleException If the request fails.
+     * @throws B2Exception     If the B2 server replies with an error.
      *
      * @return array
      */
@@ -299,7 +383,7 @@ class Client
             foreach ($response['files'] as $file) {
                 // if we have a file name set, only retrieve information if the file name matches
                 if (!$fileName || ($fileName === $file['fileName'])) {
-                    $files[] = new File($file['fileId'], $file['fileName'], null, $file['size']);
+                    $files[] = new File($file['fileId'], $file['fileName'], $file['contentSha1'], $file['size'], $file['contentType'], $file['fileInfo'], $file['bucketId'], $file['action'], $file['uploadTimestamp']);
                 }
             }
 
@@ -335,12 +419,25 @@ class Client
      *
      * @throws GuzzleException
      * @throws NotFoundException If no file id was provided and BucketName + FileName does not resolve to a file, a NotFoundException is thrown.
+     * @throws GuzzleException   If the request fails.
+     * @throws B2Exception       If the B2 server replies with an error.
      *
      * @return File
      */
     public function getFile(array $options)
     {
-        if (!isset($options['FileId']) && isset($options['BucketName']) && isset($options['FileName'])) {
+        if (!isset($options['FileId']) && isset($options['BucketId']) && isset($options['FileName'])) {
+            $files = $this->listFiles([
+                'BucketId' => $options['BucketId'],
+                'FileName' => $options['FileName'],
+            ]);
+
+            if (empty($files)) {
+                throw new NotFoundException();
+            }
+
+            $options['FileId'] = $files[0]->getId();
+        } elseif (!isset($options['FileId']) && isset($options['BucketName']) && isset($options['FileName'])) {
             $options['FileId'] = $this->getFileIdFromBucketAndFileName($options['BucketName'], $options['FileName']);
 
             if (!$options['FileId']) {
@@ -372,6 +469,8 @@ class Client
      *
      * @throws GuzzleException
      * @throws NotFoundException
+     * @throws GuzzleException   If the request fails.
+     * @throws B2Exception       If the B2 server replies with an error.
      *
      * @return bool
      */
@@ -398,6 +497,38 @@ class Client
     }
 
     /**
+     * Fetches authorization and uri for a file, to allow a third-party system to download public and private files.
+     *
+     * @param array $options
+     *
+     * @throws GuzzleException
+     * @throws NotFoundException
+     * @throws GuzzleException   If the request fails.
+     * @throws B2Exception       If the B2 server replies with an error.
+     *
+     * @return array
+     */
+    public function getFileUri(array $options)
+    {
+        if (!isset($options['FileId']) && !isset($options['BucketName']) && isset($options['BucketId'])) {
+            $options['BucketName'] = $this->getBucketNameFromId($options['BucketId']);
+        }
+
+        $this->authorizeAccount();
+
+        if (isset($options['FileId'])) {
+            $requestUri = $this->downloadUrl.'/b2api/v1/b2_download_file_by_id?fileId='.urlencode($options['FileId']);
+        } else {
+            $requestUri = sprintf('%s/file/%s/%s', $this->downloadUrl, $options['BucketName'], $options['FileName']);
+        }
+
+        return [
+            'Authorization' => $this->authToken,
+            'Uri'           => $requestUri,
+        ];
+    }
+
+    /**
      * Authorize the B2 account in order to get an auth token and API/download URLs.
      */
     protected function authorizeAccount()
@@ -406,12 +537,10 @@ class Client
             return;
         }
 
-        $response = $this->client->request('GET', self::B2_API_BASE_URL.self::B2_API_V1.'/b2_authorize_account', [
+        $response = $this->client->guzzleRequest('GET', self::B2_API_BASE_URL.self::B2_API_V1.'b2_authorize_account', [
             'auth' => [$this->accountId, $this->applicationKey],
         ]);
 
-
-        $this->accountId = $response['accountId'];
         $this->authToken = $response['authorizationToken'];
         $this->apiUrl = $response['apiUrl'].self::B2_API_V1;
         $this->downloadUrl = $response['downloadUrl'];
@@ -510,7 +639,7 @@ class Client
         $url = $this->getUploadPartUrl($start['fileId']);
 
         // 3) b2_upload_part for each part of the file
-        $parts = $this->uploadParts($options['FilePath'].$options['FileName'], $url['uploadUrl'], $url['authorizationToken']);
+        $parts = $this->uploadParts($options['FilePath'].$options['FileName'], $url['uploadUrl'], $url['authorizationToken'], $options);
 
         $sha1s = [];
 
@@ -529,6 +658,9 @@ class Client
      * @param $contentType
      * @param $bucketId
      *
+     * @throws GuzzleException If the request fails.
+     * @throws B2Exception     If the B2 server replies with an error.
+     *
      * @return mixed
      */
     protected function startLargeFile($fileName, $contentType, $bucketId)
@@ -545,6 +677,9 @@ class Client
      *
      * @param $fileId
      *
+     * @throws GuzzleException If the request fails.
+     * @throws B2Exception     If the B2 server replies with an error.
+     *
      * @return mixed
      */
     protected function getUploadPartUrl($fileId)
@@ -560,10 +695,11 @@ class Client
      * @param $filePath
      * @param $uploadUrl
      * @param $largeFileAuthToken
+     * @param $options
      *
      * @return array
      */
-    protected function uploadParts($filePath, $uploadUrl, $largeFileAuthToken)
+    protected function uploadParts($filePath, $uploadUrl, $largeFileAuthToken, $options = [])
     {
         $return = [];
 
@@ -589,13 +725,14 @@ class Client
             array_push($sha1_of_parts, sha1($data_part));
             fseek($file_handle, $total_bytes_sent);
 
-            $response = $this->client->request('POST', $uploadUrl, [
-                'headers' => [
+            $customHeaders = $options['Headers'] ?? [];
+            $response = $this->client->guzzleRequest('POST', $uploadUrl, [
+                'headers' => array_merge([
                     'Authorization'                      => $largeFileAuthToken,
                     'Content-Length'                     => $bytes_sent_for_part,
                     'X-Bz-Part-Number'                   => $part_no,
                     'X-Bz-Content-Sha1'                  => $sha1_of_parts[$part_no - 1],
-                ],
+                ], $customHeaders),
                 'body' => $data_part,
             ]);
 
@@ -616,6 +753,9 @@ class Client
      *
      * @param       $fileId
      * @param array $sha1s
+     *
+     * @throws GuzzleException If the request fails.
+     * @throws B2Exception     If the B2 server replies with an error.
      *
      * @return File
      */
@@ -646,18 +786,16 @@ class Client
      * @param string $route
      * @param array  $json
      *
+     * @throws GuzzleException If the request fails.
+     * @throws B2Exception     If the B2 server replies with an error.
+     *
      * @return mixed
      */
     protected function sendAuthorizedRequest($method, $route, $json = [])
     {
         $this->authorizeAccount();
 
-        //overwriting the accountID with master account ID after authentification
-        if (isset($json['accountId'])) {
-            $json['accountId'] = $this->accountId;
-        }
-
-        return $this->client->request($method, $this->apiUrl.$route, [
+        return $this->client->guzzleRequest($method, $this->apiUrl.$route, [
             'headers' => [
                 'Authorization' => $this->authToken,
             ],

@@ -7,10 +7,9 @@
 *
 * @category  Library
 * @package   Microsoft.Graph
-* @copyright © Microsoft Corporation. All rights reserved.
+* @copyright (c) Microsoft Corporation. All rights reserved.
 * @license   https://opensource.org/licenses/MIT MIT License
-* @version   GIT: 1.4.0
-* @link      https://graph.microsoft.io/
+* @link      https://graph.microsoft.com
 */
 namespace Microsoft\Graph\Model;
 
@@ -19,138 +18,50 @@ namespace Microsoft\Graph\Model;
 *
 * @category  Model
 * @package   Microsoft.Graph
-* @copyright © Microsoft Corporation. All rights reserved.
+* @copyright (c) Microsoft Corporation. All rights reserved.
 * @license   https://opensource.org/licenses/MIT MIT License
-* @version   Release: 1.4.0
-* @link      https://graph.microsoft.io/
+* @link      https://graph.microsoft.com
 */
 class DirectoryAudit extends Entity
 {
     /**
-    * Gets the category
-    * Indicates which resource category that's targeted by the activity. (For example: User Management, Group Management etc..)
+    * Gets the activityDateTime
+    * Indicates the date and time the activity was performed. The Timestamp type is always in UTC time. For example, midnight UTC on Jan 1, 2014 is 2014-01-01T00:00:00Z.
     *
-    * @return string The category
+    * @return \DateTime|null The activityDateTime
     */
-    public function getCategory()
+    public function getActivityDateTime()
     {
-        if (array_key_exists("category", $this->_propDict)) {
-            return $this->_propDict["category"];
-        } else {
-            return null;
-        }
-    }
-    
-    /**
-    * Sets the category
-    * Indicates which resource category that's targeted by the activity. (For example: User Management, Group Management etc..)
-    *
-    * @param string $val The category
-    *
-    * @return DirectoryAudit
-    */
-    public function setCategory($val)
-    {
-        $this->_propDict["category"] = $val;
-        return $this;
-    }
-    
-    /**
-    * Gets the correlationId
-    * Indicates a unique ID that helps correlate activities that span across various services. Can be used to trace logs across services.
-    *
-    * @return string The correlationId
-    */
-    public function getCorrelationId()
-    {
-        if (array_key_exists("correlationId", $this->_propDict)) {
-            return $this->_propDict["correlationId"];
-        } else {
-            return null;
-        }
-    }
-    
-    /**
-    * Sets the correlationId
-    * Indicates a unique ID that helps correlate activities that span across various services. Can be used to trace logs across services.
-    *
-    * @param string $val The correlationId
-    *
-    * @return DirectoryAudit
-    */
-    public function setCorrelationId($val)
-    {
-        $this->_propDict["correlationId"] = $val;
-        return $this;
-    }
-    
-    /**
-    * Gets the result
-    * Indicates the result of the activity.Possible values are: success, failure, timeout, unknownFutureValue.
-    *
-    * @return OperationResult The result
-    */
-    public function getResult()
-    {
-        if (array_key_exists("result", $this->_propDict)) {
-            if (is_a($this->_propDict["result"], "Microsoft\Graph\Model\OperationResult")) {
-                return $this->_propDict["result"];
+        if (array_key_exists("activityDateTime", $this->_propDict)) {
+            if (is_a($this->_propDict["activityDateTime"], "\DateTime") || is_null($this->_propDict["activityDateTime"])) {
+                return $this->_propDict["activityDateTime"];
             } else {
-                $this->_propDict["result"] = new OperationResult($this->_propDict["result"]);
-                return $this->_propDict["result"];
+                $this->_propDict["activityDateTime"] = new \DateTime($this->_propDict["activityDateTime"]);
+                return $this->_propDict["activityDateTime"];
             }
         }
         return null;
     }
-    
+
     /**
-    * Sets the result
-    * Indicates the result of the activity.Possible values are: success, failure, timeout, unknownFutureValue.
+    * Sets the activityDateTime
+    * Indicates the date and time the activity was performed. The Timestamp type is always in UTC time. For example, midnight UTC on Jan 1, 2014 is 2014-01-01T00:00:00Z.
     *
-    * @param OperationResult $val The result
+    * @param \DateTime $val The activityDateTime
     *
     * @return DirectoryAudit
     */
-    public function setResult($val)
+    public function setActivityDateTime($val)
     {
-        $this->_propDict["result"] = $val;
+        $this->_propDict["activityDateTime"] = $val;
         return $this;
     }
-    
-    /**
-    * Gets the resultReason
-    * Describes cause of 'failure' or 'timeout' results.
-    *
-    * @return string The resultReason
-    */
-    public function getResultReason()
-    {
-        if (array_key_exists("resultReason", $this->_propDict)) {
-            return $this->_propDict["resultReason"];
-        } else {
-            return null;
-        }
-    }
-    
-    /**
-    * Sets the resultReason
-    * Describes cause of 'failure' or 'timeout' results.
-    *
-    * @param string $val The resultReason
-    *
-    * @return DirectoryAudit
-    */
-    public function setResultReason($val)
-    {
-        $this->_propDict["resultReason"] = $val;
-        return $this;
-    }
-    
+
     /**
     * Gets the activityDisplayName
     * Indicates the activity name or the operation name (examples: 'Create User' and 'Add member to group'). For full list, see Azure AD activity list.
     *
-    * @return string The activityDisplayName
+    * @return string|null The activityDisplayName
     */
     public function getActivityDisplayName()
     {
@@ -160,7 +71,7 @@ class DirectoryAudit extends Entity
             return null;
         }
     }
-    
+
     /**
     * Sets the activityDisplayName
     * Indicates the activity name or the operation name (examples: 'Create User' and 'Add member to group'). For full list, see Azure AD activity list.
@@ -174,106 +85,105 @@ class DirectoryAudit extends Entity
         $this->_propDict["activityDisplayName"] = $val;
         return $this;
     }
-    
-    /**
-    * Gets the activityDateTime
-    * Indicates the date and time the activity was performed. The Timestamp type is always in UTC time. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'
-    *
-    * @return \DateTime The activityDateTime
-    */
-    public function getActivityDateTime()
+
+
+     /**
+     * Gets the additionalDetails
+    * Indicates additional details on the activity.
+     *
+     * @return array|null The additionalDetails
+     */
+    public function getAdditionalDetails()
     {
-        if (array_key_exists("activityDateTime", $this->_propDict)) {
-            if (is_a($this->_propDict["activityDateTime"], "\DateTime")) {
-                return $this->_propDict["activityDateTime"];
-            } else {
-                $this->_propDict["activityDateTime"] = new \DateTime($this->_propDict["activityDateTime"]);
-                return $this->_propDict["activityDateTime"];
-            }
-        }
-        return null;
-    }
-    
-    /**
-    * Sets the activityDateTime
-    * Indicates the date and time the activity was performed. The Timestamp type is always in UTC time. For example, midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'
-    *
-    * @param \DateTime $val The activityDateTime
-    *
-    * @return DirectoryAudit
-    */
-    public function setActivityDateTime($val)
-    {
-        $this->_propDict["activityDateTime"] = $val;
-        return $this;
-    }
-    
-    /**
-    * Gets the loggedByService
-    * Indicates information on which service initiated the activity (For example: Self-service Password Management, Core Directory, B2C, Invited Users, Microsoft Identity Manager, Privileged Identity Management.
-    *
-    * @return string The loggedByService
-    */
-    public function getLoggedByService()
-    {
-        if (array_key_exists("loggedByService", $this->_propDict)) {
-            return $this->_propDict["loggedByService"];
+        if (array_key_exists("additionalDetails", $this->_propDict)) {
+           return $this->_propDict["additionalDetails"];
         } else {
             return null;
         }
     }
-    
+
     /**
-    * Sets the loggedByService
-    * Indicates information on which service initiated the activity (For example: Self-service Password Management, Core Directory, B2C, Invited Users, Microsoft Identity Manager, Privileged Identity Management.
+    * Sets the additionalDetails
+    * Indicates additional details on the activity.
     *
-    * @param string $val The loggedByService
+    * @param KeyValue[] $val The additionalDetails
     *
     * @return DirectoryAudit
     */
-    public function setLoggedByService($val)
+    public function setAdditionalDetails($val)
     {
-        $this->_propDict["loggedByService"] = $val;
+        $this->_propDict["additionalDetails"] = $val;
         return $this;
     }
-    
+
     /**
-    * Gets the operationType
+    * Gets the category
+    * Indicates which resource category that's targeted by the activity. (For example: User Management, Group Management etc..)
     *
-    * @return string The operationType
+    * @return string|null The category
     */
-    public function getOperationType()
+    public function getCategory()
     {
-        if (array_key_exists("operationType", $this->_propDict)) {
-            return $this->_propDict["operationType"];
+        if (array_key_exists("category", $this->_propDict)) {
+            return $this->_propDict["category"];
         } else {
             return null;
         }
     }
-    
+
     /**
-    * Sets the operationType
+    * Sets the category
+    * Indicates which resource category that's targeted by the activity. (For example: User Management, Group Management etc..)
     *
-    * @param string $val The operationType
+    * @param string $val The category
     *
     * @return DirectoryAudit
     */
-    public function setOperationType($val)
+    public function setCategory($val)
     {
-        $this->_propDict["operationType"] = $val;
+        $this->_propDict["category"] = $val;
         return $this;
     }
-    
+
+    /**
+    * Gets the correlationId
+    * Indicates a unique ID that helps correlate activities that span across various services. Can be used to trace logs across services.
+    *
+    * @return string|null The correlationId
+    */
+    public function getCorrelationId()
+    {
+        if (array_key_exists("correlationId", $this->_propDict)) {
+            return $this->_propDict["correlationId"];
+        } else {
+            return null;
+        }
+    }
+
+    /**
+    * Sets the correlationId
+    * Indicates a unique ID that helps correlate activities that span across various services. Can be used to trace logs across services.
+    *
+    * @param string $val The correlationId
+    *
+    * @return DirectoryAudit
+    */
+    public function setCorrelationId($val)
+    {
+        $this->_propDict["correlationId"] = $val;
+        return $this;
+    }
+
     /**
     * Gets the initiatedBy
     * Indicates information about the user or app initiated the activity.
     *
-    * @return AuditActivityInitiator The initiatedBy
+    * @return AuditActivityInitiator|null The initiatedBy
     */
     public function getInitiatedBy()
     {
         if (array_key_exists("initiatedBy", $this->_propDict)) {
-            if (is_a($this->_propDict["initiatedBy"], "Microsoft\Graph\Model\AuditActivityInitiator")) {
+            if (is_a($this->_propDict["initiatedBy"], "\Microsoft\Graph\Model\AuditActivityInitiator") || is_null($this->_propDict["initiatedBy"])) {
                 return $this->_propDict["initiatedBy"];
             } else {
                 $this->_propDict["initiatedBy"] = new AuditActivityInitiator($this->_propDict["initiatedBy"]);
@@ -282,7 +192,7 @@ class DirectoryAudit extends Entity
         }
         return null;
     }
-    
+
     /**
     * Sets the initiatedBy
     * Indicates information about the user or app initiated the activity.
@@ -296,13 +206,133 @@ class DirectoryAudit extends Entity
         $this->_propDict["initiatedBy"] = $val;
         return $this;
     }
-    
 
-     /** 
+    /**
+    * Gets the loggedByService
+    * Indicates information on which service initiated the activity (For example: Self-service Password Management, Core Directory, B2C, Invited Users, Microsoft Identity Manager, Privileged Identity Management.
+    *
+    * @return string|null The loggedByService
+    */
+    public function getLoggedByService()
+    {
+        if (array_key_exists("loggedByService", $this->_propDict)) {
+            return $this->_propDict["loggedByService"];
+        } else {
+            return null;
+        }
+    }
+
+    /**
+    * Sets the loggedByService
+    * Indicates information on which service initiated the activity (For example: Self-service Password Management, Core Directory, B2C, Invited Users, Microsoft Identity Manager, Privileged Identity Management.
+    *
+    * @param string $val The loggedByService
+    *
+    * @return DirectoryAudit
+    */
+    public function setLoggedByService($val)
+    {
+        $this->_propDict["loggedByService"] = $val;
+        return $this;
+    }
+
+    /**
+    * Gets the operationType
+    * Indicates the type of operation that was performed. The possible values include but are not limited to the following: Add, Assign, Update, Unassign, and Delete.
+    *
+    * @return string|null The operationType
+    */
+    public function getOperationType()
+    {
+        if (array_key_exists("operationType", $this->_propDict)) {
+            return $this->_propDict["operationType"];
+        } else {
+            return null;
+        }
+    }
+
+    /**
+    * Sets the operationType
+    * Indicates the type of operation that was performed. The possible values include but are not limited to the following: Add, Assign, Update, Unassign, and Delete.
+    *
+    * @param string $val The operationType
+    *
+    * @return DirectoryAudit
+    */
+    public function setOperationType($val)
+    {
+        $this->_propDict["operationType"] = $val;
+        return $this;
+    }
+
+    /**
+    * Gets the result
+    * Indicates the result of the activity. Possible values are: success, failure, timeout, unknownFutureValue.
+    *
+    * @return OperationResult|null The result
+    */
+    public function getResult()
+    {
+        if (array_key_exists("result", $this->_propDict)) {
+            if (is_a($this->_propDict["result"], "\Microsoft\Graph\Model\OperationResult") || is_null($this->_propDict["result"])) {
+                return $this->_propDict["result"];
+            } else {
+                $this->_propDict["result"] = new OperationResult($this->_propDict["result"]);
+                return $this->_propDict["result"];
+            }
+        }
+        return null;
+    }
+
+    /**
+    * Sets the result
+    * Indicates the result of the activity. Possible values are: success, failure, timeout, unknownFutureValue.
+    *
+    * @param OperationResult $val The result
+    *
+    * @return DirectoryAudit
+    */
+    public function setResult($val)
+    {
+        $this->_propDict["result"] = $val;
+        return $this;
+    }
+
+    /**
+    * Gets the resultReason
+    * Indicates the reason for failure if the result is failure or timeout.
+    *
+    * @return string|null The resultReason
+    */
+    public function getResultReason()
+    {
+        if (array_key_exists("resultReason", $this->_propDict)) {
+            return $this->_propDict["resultReason"];
+        } else {
+            return null;
+        }
+    }
+
+    /**
+    * Sets the resultReason
+    * Indicates the reason for failure if the result is failure or timeout.
+    *
+    * @param string $val The resultReason
+    *
+    * @return DirectoryAudit
+    */
+    public function setResultReason($val)
+    {
+        $this->_propDict["resultReason"] = $val;
+        return $this;
+    }
+
+
+     /**
      * Gets the targetResources
     * Indicates information on which resource was changed due to the activity. Target Resource Type can be User, Device, Directory, App, Role, Group, Policy or Other.
      *
-     * @return array The targetResources
+     * @return array|null The targetResources
      */
     public function getTargetResources()
     {
@@ -312,49 +342,19 @@ class DirectoryAudit extends Entity
             return null;
         }
     }
-    
-    /** 
+
+    /**
     * Sets the targetResources
     * Indicates information on which resource was changed due to the activity. Target Resource Type can be User, Device, Directory, App, Role, Group, Policy or Other.
     *
-    * @param TargetResource $val The targetResources
+    * @param TargetResource[] $val The targetResources
     *
     * @return DirectoryAudit
     */
     public function setTargetResources($val)
     {
-		$this->_propDict["targetResources"] = $val;
+        $this->_propDict["targetResources"] = $val;
         return $this;
     }
-    
 
-     /** 
-     * Gets the additionalDetails
-    * Indicates additional details on the activity.
-     *
-     * @return array The additionalDetails
-     */
-    public function getAdditionalDetails()
-    {
-        if (array_key_exists("additionalDetails", $this->_propDict)) {
-           return $this->_propDict["additionalDetails"];
-        } else {
-            return null;
-        }
-    }
-    
-    /** 
-    * Sets the additionalDetails
-    * Indicates additional details on the activity.
-    *
-    * @param KeyValue $val The additionalDetails
-    *
-    * @return DirectoryAudit
-    */
-    public function setAdditionalDetails($val)
-    {
-		$this->_propDict["additionalDetails"] = $val;
-        return $this;
-    }
-    
 }

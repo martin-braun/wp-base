@@ -5,8 +5,6 @@
  *
  * PHP version 5 and 7
  *
- * @category  Math
- * @package   BigInteger
  * @author    Jim Wigginton <terrafrost@php.net>
  * @copyright 2017 Jim Wigginton
  * @license   http://www.opensource.org/licenses/mit-license.html  MIT License
@@ -14,14 +12,12 @@
  */
 namespace WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines;
 
-use WPMailSMTP\Vendor\ParagonIE\ConstantTime\Hex;
+use WPMailSMTP\Vendor\phpseclib3\Common\Functions\Strings;
 use WPMailSMTP\Vendor\phpseclib3\Exception\BadConfigurationException;
 /**
  * BCMath Engine.
  *
- * @package BCMath
  * @author  Jim Wigginton <terrafrost@php.net>
- * @access  public
  */
 class BCMath extends \WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\Engine
 {
@@ -30,57 +26,19 @@ class BCMath extends \WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\Engin
      *
      * @see parent::bitwise_leftRotate()
      * @see parent::bitwise_rightRotate()
-     * @access protected
      */
     const FAST_BITWISE = \false;
     /**
      * Engine Directory
      *
      * @see parent::setModExpEngine
-     * @access protected
      */
     const ENGINE_DIR = 'BCMath';
     /**
-     * Modular Exponentiation Engine
-     *
-     * @var string
-     */
-    protected static $modexpEngine;
-    /**
-     * Engine Validity Flag
-     *
-     * @var bool
-     */
-    protected static $isValidEngine;
-    /**
-     * BigInteger(0)
-     *
-     * @var \phpseclib3\Math\BigInteger\Engines\BCMath
-     */
-    protected static $zero;
-    /**
-     * BigInteger(1)
-     *
-     * @var \phpseclib3\Math\BigInteger\Engines\BCMath
-     */
-    protected static $one;
-    /**
-     * BigInteger(2)
-     *
-     * @var \phpseclib3\Math\BigInteger\Engines\BCMath
-     */
-    protected static $two;
-    /**
-     * Primes > 2 and < 1000
-     *
-     * @var array
-     */
-    protected static $primes;
-    /**
      * Test for engine validity
      *
-     * @see parent::__construct()
      * @return bool
+     * @see parent::__construct()
      */
     public static function isValidEngine()
     {
@@ -92,14 +50,13 @@ class BCMath extends \WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\Engin
      * @param mixed $x integer Base-10 number or base-$base number if $base set.
      * @param int $base
      * @see parent::__construct()
-     * @return \phpseclib3\Math\BigInteger\Engines\BCMath
      */
     public function __construct($x = 0, $base = 10)
     {
-        if (!isset(self::$isValidEngine)) {
-            self::$isValidEngine = self::isValidEngine();
+        if (!isset(static::$isValidEngine[static::class])) {
+            static::$isValidEngine[static::class] = self::isValidEngine();
         }
-        if (!self::$isValidEngine) {
+        if (!static::$isValidEngine[static::class]) {
             throw new \WPMailSMTP\Vendor\phpseclib3\Exception\BadConfigurationException('BCMath is not setup correctly on this system');
         }
         $this->value = '0';
@@ -116,7 +73,7 @@ class BCMath extends \WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\Engin
         switch (\abs($base)) {
             case 256:
                 // round $len to the nearest 4
-                $len = \strlen($this->value) + 3 & 0xfffffffc;
+                $len = \strlen($this->value) + 3 & ~3;
                 $x = \str_pad($this->value, $len, \chr(0), \STR_PAD_LEFT);
                 $this->value = '0';
                 for ($i = 0; $i < $len; $i += 4) {
@@ -130,7 +87,7 @@ class BCMath extends \WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\Engin
                 break;
             case 16:
                 $x = \strlen($this->value) & 1 ? '0' . $this->value : $this->value;
-                $temp = new self(\WPMailSMTP\Vendor\ParagonIE\ConstantTime\Hex::decode($x), 256);
+                $temp = new self(\WPMailSMTP\Vendor\phpseclib3\Common\Functions\Strings::hex2bin($x), 256);
                 $this->value = $this->is_negative ? '-' . $temp->value : $temp->value;
                 $this->is_negative = \false;
                 break;
@@ -158,7 +115,7 @@ class BCMath extends \WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\Engin
      * @param bool $twos_compliment
      * @return string
      */
-    function toBytes($twos_compliment = \false)
+    public function toBytes($twos_compliment = \false)
     {
         if ($twos_compliment) {
             return $this->toBytesHelper();
@@ -220,7 +177,7 @@ class BCMath extends \WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\Engin
      * and the divisor (basically, the "common residue" is the first positive modulo).
      *
      * @param BCMath $y
-     * @return BCMath
+     * @return array{static, static}
      */
     public function divide(\WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\BCMath $y)
     {
@@ -238,8 +195,8 @@ class BCMath extends \WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\Engin
      *
      * Say you have (30 mod 17 * x mod 17) mod 17 == 1.  x can be found using modular inverses.
      *
+     * @param BCMath $n
      * @return false|BCMath
-     * @param \phpseclib3\Math\BigInteger\Engines\BCMath $n
      */
     public function modInverse(\WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\BCMath $n)
     {
@@ -254,7 +211,7 @@ class BCMath extends \WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\Engin
      * {@link http://en.wikipedia.org/wiki/B%C3%A9zout%27s_identity Bezout's identity - Wikipedia} for more information.
      *
      * @param BCMath $n
-     * @return BCMath
+     * @return array{gcd: static, x: static, y: static}
      */
     public function extendedGCD(\WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\BCMath $n)
     {
@@ -298,7 +255,7 @@ class BCMath extends \WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\Engin
     /**
      * Absolute value.
      *
-     * @return \phpseclib3\Math\BigInteger\Engines\BCMath
+     * @return BCMath
      */
     public function abs()
     {
@@ -342,7 +299,7 @@ class BCMath extends \WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\Engin
      * Shifts BigInteger's by $shift bits, effectively dividing by 2**$shift.
      *
      * @param int $shift
-     * @return \phpseclib3\Math\BigInteger\Engines\BCMath
+     * @return BCMath
      */
     public function bitwise_rightShift($shift)
     {
@@ -356,7 +313,7 @@ class BCMath extends \WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\Engin
      * Shifts BigInteger's by $shift bits, effectively multiplying by 2**$shift.
      *
      * @param int $shift
-     * @return \phpseclib3\Math\BigInteger\Engines\BCMath
+     * @return BCMath
      */
     public function bitwise_leftShift($shift)
     {
@@ -367,8 +324,8 @@ class BCMath extends \WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\Engin
     /**
      * Compares two numbers.
      *
-     * Although one might think !$x->compare($y) means $x != $y, it, in fact, means the opposite.  The reason for this is
-     * demonstrated thusly:
+     * Although one might think !$x->compare($y) means $x != $y, it, in fact, means the opposite.  The reason for this
+     * is demonstrated thusly:
      *
      * $x  > $y: $x->compare($y)  > 0
      * $x  < $y: $x->compare($y)  < 0
@@ -432,7 +389,7 @@ class BCMath extends \WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\Engin
     protected function powModInner(\WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\BCMath $e, \WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\BCMath $n)
     {
         try {
-            $class = self::$modexpEngine;
+            $class = static::$modexpEngine[static::class];
             return $class::powModHelper($this, $e, $n, static::class);
         } catch (\Exception $err) {
             return \WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\BCMath\DefaultEngine::powModHelper($this, $e, $n, static::class);
@@ -515,7 +472,7 @@ class BCMath extends \WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\Engin
             return \false;
         }
         $value = $this->value;
-        foreach (self::$primes as $prime) {
+        foreach (self::PRIMES as $prime) {
             $r = \bcmod($this->value, $prime);
             if ($r == '0') {
                 return $this->value == $prime;
@@ -528,15 +485,15 @@ class BCMath extends \WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\Engin
      *
      * ie. $s = gmp_scan1($n, 0) and $r = gmp_div_q($n, gmp_pow(gmp_init('2'), $s));
      *
-     * @see self::isPrime()
      * @param BCMath $r
      * @return int
+     * @see self::isPrime()
      */
     public static function scan1divide(\WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\BCMath $r)
     {
         $r_value =& $r->value;
         $s = 0;
-        // if $n was 1, $r would be 0 and this would be an infinite loop, hence our $this->equals(static::$one) check earlier
+        // if $n was 1, $r would be 0 and this would be an infinite loop, hence our $this->equals(static::$one[static::class]) check earlier
         while ($r_value[\strlen($r_value) - 1] % 2 == 0) {
             $r_value = \bcdiv($r_value, '2', 0);
             ++$s;
@@ -589,19 +546,19 @@ class BCMath extends \WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\Engin
     /**
      * Set Bitmask
      *
-     * @return Engine
      * @param int $bits
+     * @return Engine
      * @see self::setPrecision()
      */
     protected static function setBitmask($bits)
     {
         $temp = parent::setBitmask($bits);
-        return $temp->add(static::$one);
+        return $temp->add(static::$one[static::class]);
     }
     /**
      * Is Odd?
      *
-     * @return boolean
+     * @return bool
      */
     public function isOdd()
     {
@@ -610,16 +567,16 @@ class BCMath extends \WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines\Engin
     /**
      * Tests if a bit is set
      *
-     * @return boolean
+     * @return bool
      */
     public function testBit($x)
     {
-        return \bccomp(\bcmod($this->value, \bcpow('2', $x + 1, 0), 0), \bcpow('2', $x, 0), 0) >= 0;
+        return \bccomp(\bcmod($this->value, \bcpow('2', $x + 1, 0)), \bcpow('2', $x, 0), 0) >= 0;
     }
     /**
      * Is Negative?
      *
-     * @return boolean
+     * @return bool
      */
     public function isNegative()
     {

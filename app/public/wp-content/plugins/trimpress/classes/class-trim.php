@@ -64,12 +64,8 @@ class Trim {
 			remove_filter( 'wp_mail', 'wp_staticize_emoji_for_email' );
 		}
 
-		if ( isset( $options['emojis'] ) && $options['emojis'] === '1' ) {
+		if ( isset( $options['heartbeat'] ) && $options['heartbeat'] === '1' ) {
 			add_filter( 'heartbeat_settings', array( $this, 'slow_heartbeat' ) );
-		}
-
-		if ( ! is_admin() && isset( $options['oembed'] ) && $options['oembed'] === '1' ) {
-			add_action( 'wp_footer', array( $this, 'disable_oembed' ), 11 );
 		}
 
 		if ( ! defined( 'WP_POST_REVISIONS' ) && isset( $options['revisions'] ) && $options['revisions'] === '1' ) {
@@ -128,12 +124,5 @@ class Trim {
 	public function slow_heartbeat( $settings ) {
 		$settings['interval'] = 60;
 		return $settings;
-	}
-
-	/**
-	 * Dequeue the oEmbed script.
-	 */
-	public function disable_oembed() { 
-		wp_dequeue_script( 'wp-embed' ); 
 	}
 }

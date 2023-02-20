@@ -7,11 +7,21 @@ import type { ReactNode } from 'react';
  * Internal dependencies
  */
 import type { CartTotals, Cart } from './cart';
-import {
+import type {
 	CartResponseBillingAddress,
 	CartResponseShippingAddress,
 } from './cart-response';
 import type { EmptyObjectType } from './objects';
+import type { CheckoutResponseSuccess } from './checkout';
+
+/**
+ * The shape of objects on the `globalPaymentMethods` object from `allSettings`.
+ */
+export interface GlobalPaymentMethod {
+	id: string | number;
+	title: string;
+	description: string;
+}
 
 export interface SupportsConfiguration {
 	showSavedCards?: boolean;
@@ -30,7 +40,7 @@ export interface CanMakePaymentArgument {
 	cart: Cart;
 	cartTotals: CartTotals;
 	cartNeedsShipping: boolean;
-	billingData: CartResponseBillingAddress;
+	billingData: CartResponseBillingAddress; // This needs to stay as billingData as third parties already use this key
 	shippingAddress: CartResponseShippingAddress;
 	selectedShippingMethods: Record< string, unknown >;
 	paymentRequirements: Array< string >;
@@ -69,7 +79,7 @@ export interface PaymentMethodConfiguration {
 	paymentMethodId?: string;
 	// Object that describes various features provided by the payment method.
 	supports: SupportsConfiguration;
-	// Array of card types (brands) supported by the payment method. (See stripe/credit-card for example.)
+	// Array of card types (brands) supported by the payment method.
 	icons?: null | PaymentMethodIcons;
 	// A react node that will be used as a label for the payment method in the checkout.
 	label: ReactNode;
@@ -89,6 +99,16 @@ export type ExpressPaymentMethodConfiguration = Omit<
 export type PaymentMethods =
 	| Record< string, PaymentMethodConfigInstance >
 	| EmptyObjectType;
+
+/**
+ * Used to represent payment methods in a context where storing objects is not allowed, i.e. in data stores.
+ */
+export type PlainPaymentMethods = Record< string, { name: string } >;
+
+/**
+ * Used to represent payment methods in a context where storing objects is not allowed, i.e. in data stores.
+ */
+export type PlainExpressPaymentMethods = PlainPaymentMethods;
 
 export type ExpressPaymentMethods =
 	| Record< string, ExpressPaymentMethodConfigInstance >
@@ -114,7 +134,17 @@ export interface ExpressPaymentMethodConfigInstance {
 	content: ReactNode;
 	edit: ReactNode;
 	paymentMethodId?: string;
+	placeOrderButtonLabel?: string;
 	supports: Supports;
 	canMakePaymentFromConfig: CanMakePaymentCallback;
 	canMakePayment: CanMakePaymentCallback;
+}
+
+export interface PaymentResult {
+	message: string;
+	paymentStatus:
+		| CheckoutResponseSuccess[ 'payment_result' ][ 'payment_status' ]
+		| 'not set';
+	paymentDetails: Record< string, string > | Record< string, never >;
+	redirectUrl: string;
 }

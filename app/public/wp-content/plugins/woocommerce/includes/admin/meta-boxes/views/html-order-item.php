@@ -59,10 +59,10 @@ $row_class    = apply_filters( 'woocommerce_admin_html_order_item_class', ! empt
 			<?php
 			echo '<small class="times">&times;</small> ' . esc_html( $item->get_quantity() );
 
-			$refunded_qty = $order->get_qty_refunded_for_item( $item_id );
+			$refunded_qty = -1 * $order->get_qty_refunded_for_item( $item_id );
 
 			if ( $refunded_qty ) {
-				echo '<small class="refunded">-' . esc_html( $refunded_qty * -1 ) . '</small>';
+				echo '<small class="refunded">' . esc_html( $refunded_qty * -1 ) . '</small>';
 			}
 			?>
 		</div>
@@ -108,10 +108,10 @@ $row_class    = apply_filters( 'woocommerce_admin_html_order_item_class', ! empt
 				echo '<span class="wc-order-item-discount">' . sprintf( esc_html__( '%s discount', 'woocommerce' ), wc_price( wc_format_decimal( $item->get_subtotal() - $item->get_total(), '' ), array( 'currency' => $order->get_currency() ) ) ) . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			}
 
-			$refunded = $order->get_total_refunded_for_item( $item_id );
+			$refunded = -1 * $order->get_total_refunded_for_item( $item_id );
 
 			if ( $refunded ) {
-				echo '<small class="refunded">-' . wc_price( $refunded, array( 'currency' => $order->get_currency() ) ) . '</small>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				echo '<small class="refunded">' . wc_price( $refunded, array( 'currency' => $order->get_currency() ) ) . '</small>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			}
 			?>
 		</div>
@@ -141,11 +141,6 @@ $row_class    = apply_filters( 'woocommerce_admin_html_order_item_class', ! empt
 			$tax_item_total    = isset( $tax_data['total'][ $tax_item_id ] ) ? $tax_data['total'][ $tax_item_id ] : '';
 			$tax_item_subtotal = isset( $tax_data['subtotal'][ $tax_item_id ] ) ? $tax_data['subtotal'][ $tax_item_id ] : '';
 
-			if ( '' !== $tax_item_subtotal ) {
-				$round_at_subtotal = 'yes' === get_option( 'woocommerce_tax_round_at_subtotal' );
-				$tax_item_total    = wc_round_tax_total( $tax_item_total, $round_at_subtotal ? wc_get_rounding_precision() : null );
-				$tax_item_subtotal = wc_round_tax_total( $tax_item_subtotal, $round_at_subtotal ? wc_get_rounding_precision() : null );
-			}
 			?>
 			<td class="line_tax" width="1%">
 				<div class="view">
@@ -156,10 +151,10 @@ $row_class    = apply_filters( 'woocommerce_admin_html_order_item_class', ! empt
 						echo '&ndash;';
 					}
 
-					$refunded = $order->get_tax_refunded_for_item( $item_id, $tax_item_id );
+					$refunded = -1 * $order->get_tax_refunded_for_item( $item_id, $tax_item_id );
 
 					if ( $refunded ) {
-						echo '<small class="refunded">-' . wc_price( $refunded, array( 'currency' => $order->get_currency() ) ) . '</small>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+						echo '<small class="refunded">' . wc_price( $refunded, array( 'currency' => $order->get_currency() ) ) . '</small>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 					}
 					?>
 				</div>

@@ -1,8 +1,6 @@
 /**
  * External dependencies
  */
-import { withRestApiHydration } from '@woocommerce/block-hocs';
-import { StoreNoticesProvider } from '@woocommerce/base-context';
 import { renderFrontend } from '@woocommerce/base-utils';
 
 /**
@@ -16,11 +14,7 @@ import Block from './block';
  * @param {*} props
  */
 const AllProductsFrontend = ( props ) => {
-	return (
-		<StoreNoticesProvider context="wc/all-products">
-			<Block { ...props } />
-		</StoreNoticesProvider>
-	);
+	return <Block { ...props } />;
 };
 
 const getProps = ( el ) => ( {
@@ -29,6 +23,6 @@ const getProps = ( el ) => ( {
 
 renderFrontend( {
 	selector: '.wp-block-woocommerce-all-products',
-	Block: withRestApiHydration( AllProductsFrontend ),
+	Block: AllProductsFrontend,
 	getProps,
 } );

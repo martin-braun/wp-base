@@ -31,7 +31,7 @@ class Helper {
 	 * Ensures only one instance of the Shipping Provider Helper is loaded or can be loaded.
 	 *
 	 * @return Helper Main instance
-	 *@since 1.0.5
+	 * @since 1.0.5
 	 */
 	public static function instance() {
 		if ( is_null( self::$_instance ) ) {
@@ -153,8 +153,14 @@ class Helper {
 	public function load_shipping_providers() {
 		$this->shipping_providers = array();
 
-		// Unique provider name => provider class name.
-		$shipping_providers = array_merge( $this->get_shipping_provider_class_names(), WC_Data_Store::load( 'shipping-provider' )->get_shipping_providers() );
+		$shipping_providers   = WC_Data_Store::load( 'shipping-provider' )->get_shipping_providers();
+		$registered_providers = $this->get_shipping_provider_class_names();
+
+		foreach ( $registered_providers as $k => $provider ) {
+			if ( ! array_key_exists( $k, $shipping_providers ) ) {
+				$shipping_providers[ $k ] = $provider;
+			}
+		}
 
 		// For the settings in the backend, and for non-shipping zone methods, we still need to load any registered classes here.
 		foreach ( $shipping_providers as $provider_name => $provider_class ) {

@@ -7,7 +7,7 @@ class Loco_admin_file_DeleteController extends Loco_admin_file_BaseController {
 
     /**
      * Expand single path to all files that will be deleted
-     * @param Loco_fs_File primary file being deleted, probably the PO
+     * @param Loco_fs_File $file primary file being deleted, probably the PO
      * @return array
      */
     private function expandFiles( Loco_fs_File $file ){
@@ -18,6 +18,7 @@ class Loco_admin_file_DeleteController extends Loco_admin_file_BaseController {
             $ext = $file->extension();
             throw new Loco_error_Exception( sprintf('Refusing to delete a %s file', strtoupper($ext) ) );
         }
+        $siblings->setDomain( $this->getDomain() );
         return $siblings->expand();
     }
 
@@ -37,7 +38,7 @@ class Loco_admin_file_DeleteController extends Loco_admin_file_BaseController {
             $path = $file->getPath();
             $action = 'delete:'.$path;
             // set up view now in case of late failure
-            $fields = new Loco_mvc_HiddenFields( array() );
+            $fields = new Loco_mvc_HiddenFields( [] );
             $fields->setNonce( $action );
             $this->set( 'hidden', $fields );
             // attempt delete if valid nonce posted back
@@ -61,7 +62,7 @@ class Loco_admin_file_DeleteController extends Loco_admin_file_BaseController {
                         // tolerate session failure
                     }
                     // redirect to bundle overview
-                    $href = Loco_mvc_AdminRouter::generate( $this->get('type').'-view', array( 'bundle' => $this->get('bundle') ) );
+                    $href = Loco_mvc_AdminRouter::generate( $this->get('type').'-view', [ 'bundle' => $this->get('bundle') ] );
                     if( wp_redirect($href) ){
                         exit;
                     }
@@ -91,13 +92,13 @@ class Loco_admin_file_DeleteController extends Loco_admin_file_BaseController {
         $files = $this->expandFiles( $file );
         $info = Loco_mvc_FileParams::create($file);
         $this->set( 'info', $info );
-        $this->set( 'title', sprintf( __('Delete %s','loco-translate'), $info->name ) );
+        $this->setFileTitle( $file, __('Delete %s','loco-translate') );
         
         // warn about additional files that will be deleted along with this
         if( $deps = array_slice($files,1) ){
             $count = count($deps);
             $this->set('warn', sprintf( _n( '%s dependent file will also be deleted', '%s dependent files will also be deleted', $count, 'loco-translate' ), $count ) );
-            $infos = array();
+            $infos = [];
             foreach( $deps as $depfile ){
                 $infos[] = Loco_mvc_FileParams::create( $depfile );
             }

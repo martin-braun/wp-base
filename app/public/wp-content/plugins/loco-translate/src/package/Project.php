@@ -141,7 +141,7 @@ class Loco_package_Project {
         $r = preg_split('/(?<!\\\\)\\./', $id, 2 );
         $domain = stripcslashes($r[0]);
         $slug = isset($r[1]) ? stripcslashes($r[1]) : $domain;
-        return array( $domain, $slug );
+        return [ $domain, $slug ];
     }
 
 
@@ -375,7 +375,7 @@ class Loco_package_Project {
         }
         // fallback to unconfigured, but possibly existent folders
         $base = $this->getBundle()->getDirectoryPath();
-        foreach( array('languages','language','lang','l10n','i18n') as $d ){
+        foreach( ['languages','language','lang','l10n','i18n'] as $d ){
             $d = new Loco_fs_Directory($d);
             $d->normalize($base);
             if( $this->isTargetExcluded($d) ){
@@ -421,18 +421,18 @@ class Loco_package_Project {
         $exts = $this->sexts;
         if( is_null($exts) ){
             $conf = Loco_data_Settings::get();
-            $exts = (array) $conf->php_alias;
-            $exts = array_merge( $exts, (array) $conf->jsx_alias );
+            $exts = $conf->php_alias;
+            $exts = array_merge( $exts, $conf->jsx_alias );
         }
         // always ensure we have at least PHP files scanned
-        return array_merge( $exts, array('php') );
+        return array_merge( $exts, ['php'] );
     }
 
 
     /**
-     * Utility excludes current exclude paths from target finder
+     * Utility excludes current exclude paths from passed target finder
      * @param Loco_fs_FileFinder
-     * @return Loco_fs_FileFinder
+     * @return void
      */
     private function excludeSources( Loco_fs_FileFinder $finder ){
         foreach( $this->xspaths as $file ){
@@ -445,7 +445,6 @@ class Loco_package_Project {
                 $finder->exclude( $path );
             }
         }
-        return $finder;
     }
 
 
@@ -581,7 +580,7 @@ class Loco_package_Project {
                     $targets->add( new Loco_fs_Directory($root) );
                     // look in alternative language directories if only root is configured
                     if( 1 === count($targets) ){
-                        foreach( array('languages','language','lang','l10n','i18n') as $d ) {
+                        foreach( ['languages','language','lang','l10n','i18n'] as $d ) {
                             $alt = new Loco_fs_Directory($root.'/'.$d);
                             if( ! $this->isTargetExcluded($alt) ){
                                 $targets->add($alt);
@@ -639,7 +638,7 @@ class Loco_package_Project {
         }
         $this->excludeTargets($finder);
         $files = $finder->group('pot','po','mo')->exportGroups();
-        foreach( array('pot','po') as $ext ){
+        foreach( ['pot','po'] as $ext ){
             /* @var $pot Loco_fs_File */
             foreach( $files[$ext] as $pot ){
                 $name = $pot->filename();
@@ -648,7 +647,7 @@ class Loco_package_Project {
                     return $pot;
                 }
                 // support unconventional <slug>-en_US.<ext>
-                foreach( array('-en_US'=>6, '-en'=>3 ) as $tail => $len ){
+                foreach( ['-en_US'=>6, '-en'=>3 ] as $tail => $len ){
                     if( '-en_US' === substr($name,-$len) && $slug === substr($name,0,-$len) ){
                         return $pot;
                     }
@@ -665,7 +664,7 @@ class Loco_package_Project {
         if( $this->isDomainDefault() ){
             $options = Loco_data_Settings::get();
             if( $aliases = $options->pot_alias ){
-                $found = array();
+                $found = [];
                 /* @var $pot Loco_fs_File */
                 foreach( $finder as $pot ){
                     $priority = array_search( $pot->basename(), $aliases, true );
@@ -691,21 +690,20 @@ class Loco_package_Project {
     public function findSourceFiles(){
         $source = $this->getSourceFinder();
         // augment file list from directories unless already done so
-        if( ! $source->isCached() ){
-            $crawled = $source->exportGroups();
-            foreach( $crawled as $ext => $files ){
-                /* @var Loco_fs_File $file */
-                foreach( $files as $file ){
-                    $name = $file->filename();
-                    // skip "{name}.min.{ext}" but only if "{name}.{ext}" exists
-                    if( '.min' === substr($name,-4) && file_exists( $file->dirname().'/'.substr($name,0,-4).'.'.$ext ) ){
-                        continue;
-                    }
-                    $this->sfiles->add($file);
+        $list = $this->sfiles->copy();
+        $crawled = $source->exportGroups();
+        foreach( $crawled as $ext => $files ){
+            /* @var Loco_fs_File $file */
+            foreach( $files as $file ){
+                $name = $file->filename();
+                // skip "{name}.min.{ext}" but only if "{name}.{ext}" exists
+                if( '.min' === substr($name,-4) && file_exists( $file->dirname().'/'.substr($name,0,-4).'.'.$ext ) ){
+                    continue;
                 }
+                $list->add($file);
             }
         }
-        return $this->sfiles;
+        return $list;
     }
 
 

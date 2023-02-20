@@ -1,29 +1,46 @@
 <?php
-namespace Automattic\WooCommerce\Blocks\StoreApi\Utilities;
+namespace Automattic\WooCommerce\StoreApi\Utilities;
 
-use Automattic\WooCommerce\Blocks\StoreApi\Routes\RouteException;
-use Automattic\WooCommerce\Blocks\StoreApi\Utilities\NoticeHandler;
-use Automattic\WooCommerce\Blocks\Utils\ArrayUtils;
 use Automattic\WooCommerce\Checkout\Helpers\ReserveStock;
+use Automattic\WooCommerce\StoreApi\Exceptions\InvalidCartException;
+use Automattic\WooCommerce\StoreApi\Exceptions\NotPurchasableException;
+use Automattic\WooCommerce\StoreApi\Exceptions\OutOfStockException;
+use Automattic\WooCommerce\StoreApi\Exceptions\PartialOutOfStockException;
+use Automattic\WooCommerce\StoreApi\Exceptions\RouteException;
+use Automattic\WooCommerce\StoreApi\Exceptions\TooManyInCartException;
+use Automattic\WooCommerce\StoreApi\Utilities\ArrayUtils;
+use Automattic\WooCommerce\StoreApi\Utilities\DraftOrderTrait;
+use Automattic\WooCommerce\StoreApi\Utilities\NoticeHandler;
+use Automattic\WooCommerce\StoreApi\Utilities\QuantityLimits;
+use Automattic\WooCommerce\Blocks\Package;
 use WP_Error;
 
 /**
  * Woo Cart Controller class.
- * Helper class to bridge the gap between the cart API and Woo core.
  *
- * @internal This API is used internally by Blocks--it is still in flux and may be subject to revisions.
- * @since 2.5.0
+ * Helper class to bridge the gap between the cart API and Woo core.
  */
 class CartController {
+	use DraftOrderTrait;
+
 	/**
 	 * Makes the cart and sessions available to a route by loading them from core.
 	 */
 	public function load_cart() {
 		if ( ! did_action( 'woocommerce_load_cart_from_session' ) && function_exists( 'wc_load_cart' ) ) {
-			include_once WC_ABSPATH . 'includes/wc-cart-functions.php';
-			include_once WC_ABSPATH . 'includes/wc-notice-functions.php';
 			wc_load_cart();
 		}
+	}
+
+	/**
+	 * Recalculates the cart totals.
+	 */
+	public function calculate_totals() {
+		$cart = $this->get_cart_instance();
+		$cart->get_cart();
+		$cart->calculate_fees();
+		$cart->calculate_shipping();
+		$cart->calculate_totals();
 	}
 
 	/**
@@ -36,7 +53,7 @@ class CartController {
 	 * @throws RouteException Exception if invalid data is detected.
 	 *
 	 * @param array $request Add to cart request params.
-	 * @return string|Error
+	 * @return string
 	 */
 	public function add_to_cart( $request ) {
 		$cart    = $this->get_cart_instance();
@@ -61,25 +78,42 @@ class CartController {
 
 		$this->validate_add_to_cart( $product, $request );
 
+		$quantity_limits  = new QuantityLimits();
 		$existing_cart_id = $cart->find_product_in_cart( $cart_id );
 
 		if ( $existing_cart_id ) {
-			if ( $product->is_sold_individually() ) {
-				throw new RouteException(
-					'woocommerce_rest_cart_product_sold_individually',
-					sprintf(
-						/* translators: %s: product name */
-						__( 'You cannot add another "%s" to your cart.', 'woocommerce' ),
-						$product->get_name()
-					),
-					400
-				);
+			$cart_item           = $cart->cart_contents[ $existing_cart_id ];
+			$quantity_validation = $quantity_limits->validate_cart_item_quantity( $request['quantity'] + $cart_item['quantity'], $cart_item );
+
+			if ( is_wp_error( $quantity_validation ) ) {
+				throw new RouteException( $quantity_validation->get_error_code(), $quantity_validation->get_error_message(), 400 );
 			}
+
 			$cart->set_quantity( $existing_cart_id, $request['quantity'] + $cart->cart_contents[ $existing_cart_id ]['quantity'], true );
 
 			return $existing_cart_id;
 		}
 
+		// Normalize quantity.
+		$add_to_cart_limits = $quantity_limits->get_add_to_cart_limits( $product );
+		$request_quantity   = (int) $request['quantity'];
+
+		if ( $add_to_cart_limits['maximum'] ) {
+			$request_quantity = min( $request_quantity, $add_to_cart_limits['maximum'] );
+		}
+
+		$request_quantity = max( $request_quantity, $add_to_cart_limits['minimum'] );
+		$request_quantity = $quantity_limits->limit_to_multiple( $request_quantity, $add_to_cart_limits['multiple_of'] );
+
+		/**
+		 * Filters the item being added to the cart.
+		 *
+		 * @internal Matches filter name in WooCommerce core.
+		 *
+		 * @param array $cart_item_data Array of cart item data being added to the cart.
+		 * @param string $cart_id Id of the item in the cart.
+		 * @return array Updated cart item data.
+		 */
 		$cart->cart_contents[ $cart_id ] = apply_filters(
 			'woocommerce_add_cart_item',
 			array_merge(
@@ -89,7 +123,7 @@ class CartController {
 					'product_id'   => $this->get_product_id( $product ),
 					'variation_id' => $this->get_variation_id( $product ),
 					'variation'    => $request['variation'],
-					'quantity'     => $request['quantity'],
+					'quantity'     => $request_quantity,
 					'data'         => $product,
 					'data_hash'    => wc_get_cart_item_data_hash( $product ),
 				)
@@ -97,13 +131,36 @@ class CartController {
 			$cart_id
 		);
 
+		/**
+		 * Filters the entire cart contents when the cart changes.
+		 *
+		 * @internal Matches filter name in WooCommerce core.
+		 *
+		 * @param array $cart_contents Array of all cart items.
+		 * @return array Updated array of all cart items.
+		 */
 		$cart->cart_contents = apply_filters( 'woocommerce_cart_contents_changed', $cart->cart_contents );
 
+		/**
+		 * Fires when an item is added to the cart.
+		 *
+		 * This hook fires when an item is added to the cart. This is triggered from the Store API in this context, but
+		 * WooCommerce core add to cart events trigger the same hook.
+		 *
+		 * @internal Matches action name in WooCommerce core.
+		 *
+		 * @param string $cart_id ID of the item in the cart.
+		 * @param integer $product_id ID of the product added to the cart.
+		 * @param integer $request_quantity Quantity of the item added to the cart.
+		 * @param integer $variation_id Variation ID of the product added to the cart.
+		 * @param array $variation Array of variation data.
+		 * @param array $cart_item_data Array of other cart item data.
+		 */
 		do_action(
 			'woocommerce_add_to_cart',
 			$cart_id,
 			$this->get_product_id( $product ),
-			$request['quantity'],
+			$request_quantity,
 			$this->get_variation_id( $product ),
 			$request['variation'],
 			$request['cart_item_data']
@@ -113,7 +170,8 @@ class CartController {
 	}
 
 	/**
-	 * Based on core `set_quantity` method, but validates if an item is sold individually first.
+	 * Based on core `set_quantity` method, but validates if an item is sold individually first and enforces any limits in
+	 * place.
 	 *
 	 * @throws RouteException Exception if invalid data is detected.
 	 *
@@ -124,7 +182,7 @@ class CartController {
 		$cart_item = $this->get_cart_item( $item_id );
 
 		if ( empty( $cart_item ) ) {
-			throw new RouteException( 'woocommerce_rest_cart_invalid_key', __( 'Cart item does not exist.', 'woocommerce' ), 404 );
+			throw new RouteException( 'woocommerce_rest_cart_invalid_key', __( 'Cart item does not exist.', 'woocommerce' ), 409 );
 		}
 
 		$product = $cart_item['data'];
@@ -133,17 +191,12 @@ class CartController {
 			throw new RouteException( 'woocommerce_rest_cart_invalid_product', __( 'Cart item is invalid.', 'woocommerce' ), 404 );
 		}
 
-		if ( $product->is_sold_individually() && $quantity > 1 ) {
-			throw new RouteException(
-				'woocommerce_rest_cart_product_sold_individually',
-				sprintf(
-					/* translators: %s: product name */
-					__( 'You cannot add another "%s" to your cart.', 'woocommerce' ),
-					$product->get_name()
-				),
-				400
-			);
+		$quantity_validation = ( new QuantityLimits() )->validate_cart_item_quantity( $quantity, $cart_item );
+
+		if ( is_wp_error( $quantity_validation ) ) {
+			throw new RouteException( $quantity_validation->get_error_code(), $quantity_validation->get_error_message(), 400 );
 		}
+
 		$cart = $this->get_cart_instance();
 		$cart->set_quantity( $item_id, $quantity );
 	}
@@ -163,7 +216,7 @@ class CartController {
 
 		if ( ! $product->is_in_stock() ) {
 			throw new RouteException(
-				'woocommerce_rest_cart_product_no_stock',
+				'woocommerce_rest_product_out_of_stock',
 				sprintf(
 					/* translators: %s: product name */
 					__( 'You cannot add &quot;%s&quot; to the cart because the product is out of stock.', 'woocommerce' ),
@@ -179,7 +232,7 @@ class CartController {
 
 			if ( $qty_remaining < $qty_in_cart + $request['quantity'] ) {
 				throw new RouteException(
-					'woocommerce_rest_cart_product_no_stock',
+					'woocommerce_rest_product_partially_out_of_stock',
 					sprintf(
 						/* translators: 1: product name 2: quantity in stock */
 						__( 'You cannot add that amount of &quot;%1$s&quot; to the cart because there is not enough stock (%2$s remaining).', 'woocommerce' ),
@@ -192,11 +245,19 @@ class CartController {
 		}
 
 		/**
-		 * Hook: woocommerce_add_to_cart_validation (legacy).
+		 * Filters if an item being added to the cart passed validation checks.
 		 *
 		 * Allow 3rd parties to validate if an item can be added to the cart. This is a legacy hook from Woo core.
 		 * This filter will be deprecated because it encourages usage of wc_add_notice. For the API we need to capture
 		 * notices and convert to exceptions instead.
+		 *
+		 * @deprecated
+		 * @param boolean $passed_validation True if the item passed validation.
+		 * @param integer $product_id Product ID being validated.
+		 * @param integer $quantity Quantity added to the cart.
+		 * @param integer $variation_id Variation ID being added to the cart.
+		 * @param array $variation Variation data.
+		 * @return boolean
 		 */
 		$passed_validation = apply_filters(
 			'woocommerce_add_to_cart_validation',
@@ -216,13 +277,33 @@ class CartController {
 		}
 
 		/**
+		 * Fires during validation when adding an item to the cart via the Store API.
+		 *
+		 * @param \WC_Product $product Product object being added to the cart.
+		 * @param array       $request Add to cart request params including id, quantity, and variation attributes.
+		 * @deprecated 7.1.0 Use woocommerce_store_api_validate_add_to_cart instead.
+		 */
+		wc_do_deprecated_action(
+			'wooocommerce_store_api_validate_add_to_cart',
+			array(
+				$product,
+				$request,
+			),
+			'7.1.0',
+			'woocommerce_store_api_validate_add_to_cart',
+			'This action was deprecated in WooCommerce Blocks version 7.1.0. Please use woocommerce_store_api_validate_add_to_cart instead.'
+		);
+
+		/**
+		 * Fires during validation when adding an item to the cart via the Store API.
+		 *
 		 * Fire action to validate add to cart. Functions hooking into this should throw an \Exception to prevent
-		 * add to cart from occuring.
+		 * add to cart from happening.
 		 *
 		 * @param \WC_Product $product Product object being added to the cart.
 		 * @param array       $request Add to cart request params including id, quantity, and variation attributes.
 		 */
-		do_action( 'wooocommerce_store_api_validate_add_to_cart', $product, $request );
+		do_action( 'woocommerce_store_api_validate_add_to_cart', $product, $request );
 	}
 
 	/**
@@ -314,14 +395,74 @@ class CartController {
 	}
 
 	/**
+	 * Validate cart and check for errors.
+	 *
+	 * @throws InvalidCartException Exception if invalid data is detected in the cart.
+	 */
+	public function validate_cart() {
+		$this->validate_cart_items();
+		$this->validate_cart_coupons();
+
+		$cart        = $this->get_cart_instance();
+		$cart_errors = new WP_Error();
+
+		/**
+		 * Fires an action to validate the cart.
+		 *
+		 * Functions hooking into this should add custom errors using the provided WP_Error instance.
+		 *
+		 * @example See docs/examples/validate-cart.md
+		 *
+		 * @param \WP_Error $errors  WP_Error object.
+		 * @param \WC_Cart  $cart    Cart object.
+		 */
+		do_action( 'woocommerce_store_api_cart_errors', $cart_errors, $cart );
+
+		if ( $cart_errors->has_errors() ) {
+			throw new InvalidCartException(
+				'woocommerce_cart_error',
+				$cart_errors,
+				409
+			);
+		}
+
+		// Before running the woocommerce_check_cart_items hook, unhook validation from the core cart.
+		remove_action( 'woocommerce_check_cart_items', array( $cart, 'check_cart_items' ), 1 );
+		remove_action( 'woocommerce_check_cart_items', array( $cart, 'check_cart_coupons' ), 1 );
+
+		/**
+		 * Fires when cart items are being validated.
+		 *
+		 * Allow 3rd parties to validate cart items. This is a legacy hook from Woo core.
+		 * This filter will be deprecated because it encourages usage of wc_add_notice. For the API we need to capture
+		 * notices and convert to wp errors instead.
+		 *
+		 * @deprecated
+		 * @internal Matches action name in WooCommerce core.
+		 */
+		do_action( 'woocommerce_check_cart_items' );
+
+		$cart_errors = NoticeHandler::convert_notices_to_wp_errors( 'woocommerce_rest_cart_item_error' );
+
+		if ( $cart_errors->has_errors() ) {
+			throw new InvalidCartException(
+				'woocommerce_cart_error',
+				$cart_errors,
+				409
+			);
+		}
+	}
+
+	/**
 	 * Validate all items in the cart and check for errors.
 	 *
-	 * @throws InvalidStockLevelsInCartException Exception if invalid data is detected due to insufficient stock levels.
+	 * @throws InvalidCartException Exception if invalid data is detected due to insufficient stock levels.
 	 */
 	public function validate_cart_items() {
 		$cart       = $this->get_cart_instance();
 		$cart_items = $this->get_cart_items();
 
+		$errors                        = [];
 		$out_of_stock_products         = [];
 		$too_many_in_cart_products     = [];
 		$partial_out_of_stock_products = [];
@@ -330,6 +471,8 @@ class CartController {
 		foreach ( $cart_items as $cart_item_key => $cart_item ) {
 			try {
 				$this->validate_cart_item( $cart_item );
+			} catch ( RouteException $error ) {
+				$errors[] = new WP_Error( $error->getErrorCode(), $error->getMessage(), $error->getAdditionalData() );
 			} catch ( TooManyInCartException $error ) {
 				$too_many_in_cart_products[] = $error;
 			} catch ( NotPurchasableException $error ) {
@@ -341,93 +484,51 @@ class CartController {
 			}
 		}
 
-		$error = new WP_Error();
+		if ( count( $errors ) > 0 ) {
 
-		if ( count( $out_of_stock_products ) > 0 ) {
-			$singular_error = $this->get_error_message_for_stock_exception_type( 'out_of_stock', 'singular' );
-			$plural_error   = $this->get_error_message_for_stock_exception_type( 'out_of_stock', 'plural' );
+			$error = new WP_Error();
+			foreach ( $errors as $wp_error ) {
+				$error->merge_from( $wp_error );
+			}
 
-			$error->add(
-				409,
-				$this->add_product_names_to_message( $singular_error, $plural_error, $out_of_stock_products )
+			throw new InvalidCartException(
+				'woocommerce_cart_error',
+				$error,
+				409
 			);
 		}
 
-		if ( count( $not_purchasable_products ) > 0 ) {
-			$singular_error = $this->get_error_message_for_stock_exception_type( 'not_purchasable', 'singular' );
-			$plural_error   = $this->get_error_message_for_stock_exception_type( 'not_purchasable', 'plural' );
-
-			$error->add(
-				409,
-				$this->add_product_names_to_message( $singular_error, $plural_error, $not_purchasable_products )
-			);
-		}
-
-		if ( count( $too_many_in_cart_products ) > 0 ) {
-			$singular_error = $this->get_error_message_for_stock_exception_type( 'too_many_in_cart', 'singular' );
-			$plural_error   = $this->get_error_message_for_stock_exception_type( 'too_many_in_cart', 'plural' );
-
-			$error->add(
-				409,
-				$this->add_product_names_to_message( $singular_error, $plural_error, $too_many_in_cart_products )
-			);
-		}
-
-		if ( count( $partial_out_of_stock_products ) > 0 ) {
-			$singular_error = $this->get_error_message_for_stock_exception_type( 'partial_out_of_stock', 'singular' );
-			$plural_error   = $this->get_error_message_for_stock_exception_type( 'partial_out_of_stock', 'plural' );
-
-			$error->add(
-				409,
-				$this->add_product_names_to_message( $singular_error, $plural_error, $partial_out_of_stock_products )
-			);
-		}
-
+		$error = $this->stock_exceptions_to_wp_errors( $too_many_in_cart_products, $not_purchasable_products, $partial_out_of_stock_products, $out_of_stock_products );
 		if ( $error->has_errors() ) {
-			throw new InvalidStockLevelsInCartException(
+
+			throw new InvalidCartException(
 				'woocommerce_stock_availability_error',
-				$error
+				$error,
+				409
 			);
 		}
-
-		// Before running the woocommerce_check_cart_items hook, unhook validation from the core cart.
-		remove_action( 'woocommerce_check_cart_items', array( $cart, 'check_cart_items' ), 1 );
-		remove_action( 'woocommerce_check_cart_items', array( $cart, 'check_cart_coupons' ), 1 );
-
-		/**
-		 * Hook: woocommerce_check_cart_items
-		 *
-		 * Allow 3rd parties to validate cart items. This is a legacy hook from Woo core.
-		 * This filter will be deprecated because it encourages usage of wc_add_notice. For the API we need to capture
-		 * notices and convert to exceptions instead.
-		 */
-		do_action( 'woocommerce_check_cart_items' );
-		NoticeHandler::convert_notices_to_exceptions( 'woocommerce_rest_cart_item_error' );
 	}
 
 	/**
 	 * This method will take arrays of exceptions relating to stock, and will convert them to a WP_Error object.
 	 *
-	 * @param TooManyInCartException[]     $too_many_in_cart_products         Array of TooManyInCartExceptions.
-	 * @param NotPurchasableException[]    $not_purchasable_products         Array of NotPurchasableExceptions.
+	 * @param TooManyInCartException[]     $too_many_in_cart_products     Array of TooManyInCartExceptions.
+	 * @param NotPurchasableException[]    $not_purchasable_products      Array of NotPurchasableExceptions.
 	 * @param PartialOutOfStockException[] $partial_out_of_stock_products Array of PartialOutOfStockExceptions.
-	 * @param OutOfStockException[]        $out_of_stock_products                Array of OutOfStockExceptions.
+	 * @param OutOfStockException[]        $out_of_stock_products         Array of OutOfStockExceptions.
 	 *
-	 * @return WP_Error[] The WP_Error object returned. Will have errors if any exceptions were in the args. It will be empty if they do not.
+	 * @return WP_Error  The WP_Error object returned. Will have errors if any exceptions were in the args. It will be empty if they do not.
 	 */
 	private function stock_exceptions_to_wp_errors( $too_many_in_cart_products, $not_purchasable_products, $partial_out_of_stock_products, $out_of_stock_products ) {
-		$too_many_in_cart_error     = new WP_Error();
-		$out_of_stock_error         = new WP_Error();
-		$partial_out_of_stock_error = new WP_Error();
-		$not_purchasable_error      = new WP_Error();
+		$error = new WP_Error();
 
 		if ( count( $out_of_stock_products ) > 0 ) {
 
 			$singular_error = $this->get_error_message_for_stock_exception_type( 'out_of_stock', 'singular' );
 			$plural_error   = $this->get_error_message_for_stock_exception_type( 'out_of_stock', 'plural' );
 
-			$out_of_stock_error->add(
-				'woocommerce-blocks-product-out-of-stock',
+			$error->add(
+				'woocommerce_rest_product_out_of_stock',
 				$this->add_product_names_to_message( $singular_error, $plural_error, $out_of_stock_products )
 			);
 		}
@@ -436,8 +537,8 @@ class CartController {
 			$singular_error = $this->get_error_message_for_stock_exception_type( 'not_purchasable', 'singular' );
 			$plural_error   = $this->get_error_message_for_stock_exception_type( 'not_purchasable', 'plural' );
 
-			$not_purchasable_error->add(
-				'woocommerce-blocks-product-not-purchasable',
+			$error->add(
+				'woocommerce_rest_product_not_purchasable',
 				$this->add_product_names_to_message( $singular_error, $plural_error, $not_purchasable_products )
 			);
 		}
@@ -446,8 +547,8 @@ class CartController {
 			$singular_error = $this->get_error_message_for_stock_exception_type( 'too_many_in_cart', 'singular' );
 			$plural_error   = $this->get_error_message_for_stock_exception_type( 'too_many_in_cart', 'plural' );
 
-			$too_many_in_cart_error->add(
-				'woocommerce-blocks-too-many-of-product-in-cart',
+			$error->add(
+				'woocommerce_rest_product_too_many_in_cart',
 				$this->add_product_names_to_message( $singular_error, $plural_error, $too_many_in_cart_products )
 			);
 		}
@@ -456,23 +557,13 @@ class CartController {
 			$singular_error = $this->get_error_message_for_stock_exception_type( 'partial_out_of_stock', 'singular' );
 			$plural_error   = $this->get_error_message_for_stock_exception_type( 'partial_out_of_stock', 'plural' );
 
-			$partial_out_of_stock_error->add(
-				'woocommerce-blocks-product-partially-out-of-stock',
+			$error->add(
+				'woocommerce_rest_product_partially_out_of_stock',
 				$this->add_product_names_to_message( $singular_error, $plural_error, $partial_out_of_stock_products )
 			);
 		}
 
-		return array_filter(
-			[
-				$too_many_in_cart_error,
-				$partial_out_of_stock_error,
-				$out_of_stock_error,
-				$not_purchasable_error,
-			],
-			function( $error ) {
-				return $error->has_errors();
-			}
-		);
+		return $error;
 	}
 
 	/**
@@ -494,21 +585,21 @@ class CartController {
 
 		if ( ! $product->is_purchasable() ) {
 			throw new NotPurchasableException(
-				'woocommerce_rest_cart_product_not_purchasable',
+				'woocommerce_rest_product_not_purchasable',
 				$product->get_name()
 			);
 		}
 
 		if ( $product->is_sold_individually() && $cart_item['quantity'] > 1 ) {
 			throw new TooManyInCartException(
-				'woocommerce_rest_cart_product_sold_individually',
+				'woocommerce_rest_product_too_many_in_cart',
 				$product->get_name()
 			);
 		}
 
 		if ( ! $product->is_in_stock() ) {
 			throw new OutOfStockException(
-				'woocommerce_rest_cart_product_no_stock',
+				'woocommerce_rest_product_out_of_stock',
 				$product->get_name()
 			);
 		}
@@ -519,7 +610,7 @@ class CartController {
 
 			if ( $qty_remaining < $qty_in_cart ) {
 				throw new PartialOutOfStockException(
-					'woocommerce_rest_cart_product_partially_no_stock',
+					'woocommerce_rest_product_partially_out_of_stock',
 					$product->get_name()
 				);
 			}
@@ -531,77 +622,78 @@ class CartController {
 		 *
 		 * @param \WC_Product $product Product object being added to the cart.
 		 * @param array       $cart_item Cart item array.
+		 * @deprecated 7.1.0 Use woocommerce_store_api_validate_cart_item instead.
 		 */
-		do_action( 'wooocommerce_store_api_validate_cart_item', $product, $cart_item );
+		wc_do_deprecated_action(
+			'wooocommerce_store_api_validate_cart_item',
+			array(
+				$product,
+				$cart_item,
+			),
+			'7.1.0',
+			'woocommerce_store_api_validate_cart_item',
+			'This action was deprecated in WooCommerce Blocks version 7.1.0. Please use woocommerce_store_api_validate_cart_item instead.'
+		);
+
+		/**
+		 * Fire action to validate add to cart. Functions hooking into this should throw an \Exception to prevent
+		 * add to cart from occurring.
+		 *
+		 * @param \WC_Product $product Product object being added to the cart.
+		 * @param array       $cart_item Cart item array.
+		 */
+		do_action( 'woocommerce_store_api_validate_cart_item', $product, $cart_item );
 	}
 
 	/**
 	 * Validate all coupons in the cart and check for errors.
 	 *
-	 * @throws RouteException Exception if invalid data is detected.
+	 * @throws InvalidCartException Exception if invalid data is detected.
 	 */
 	public function validate_cart_coupons() {
 		$cart_coupons = $this->get_cart_coupons();
+		$errors       = [];
 
 		foreach ( $cart_coupons as $code ) {
 			$coupon = new \WC_Coupon( $code );
-			$this->validate_cart_coupon( $coupon );
-		}
-	}
-
-	/**
-	 * Validate all items in the cart and get a list of errors.
-	 *
-	 * @return WP_Error[] An array of WP_Errors describing the cart's error state.
-	 */
-	public function get_cart_item_errors() {
-		$errors     = [];
-		$cart_items = $this->get_cart_items();
-
-		$too_many_in_cart_exceptions     = [];
-		$not_purchasable_exceptions      = [];
-		$partial_out_of_stock_exceptions = [];
-		$out_of_stock_exceptions         = [];
-
-		foreach ( $cart_items as $cart_item_key => $cart_item ) {
 			try {
-				$this->validate_cart_item( $cart_item );
-			} catch ( RouteException $error ) {
-				$errors[] = new WP_Error( $error->getErrorCode(), $error->getMessage() );
-			} catch ( TooManyInCartException $error ) {
-				$too_many_in_cart_exceptions[] = $error;
-			} catch ( NotPurchasableException $error ) {
-				$not_purchasable_exceptions[] = $error;
-			} catch ( PartialOutOfStockException $error ) {
-				$partial_out_of_stock_exceptions[] = $error;
-			} catch ( OutOfStockException $error ) {
-				$out_of_stock_exceptions[] = $error;
-			}
-		}
-
-		if ( count( $errors ) > 0 ) {
-			return $errors;
-		}
-
-		return $this->stock_exceptions_to_wp_errors( $too_many_in_cart_exceptions, $not_purchasable_exceptions, $partial_out_of_stock_exceptions, $out_of_stock_exceptions );
-	}
-
-	/**
-	 * Validate all items in the cart and get a list of errors.
-	 *
-	 * @throws RouteException Exception if invalid data is detected.
-	 */
-	public function get_cart_coupon_errors() {
-		$errors       = [];
-		$cart_coupons = $this->get_cart_coupons();
-
-		foreach ( $cart_coupons as $code ) {
-			try {
-				$coupon = new \WC_Coupon( $code );
 				$this->validate_cart_coupon( $coupon );
 			} catch ( RouteException $error ) {
-				$errors[] = new \WP_Error( $error->getErrorCode(), $error->getMessage() );
+				$errors[] = new WP_Error( $error->getErrorCode(), $error->getMessage(), $error->getAdditionalData() );
 			}
+		}
+
+		if ( ! empty( $errors ) ) {
+
+			$error = new WP_Error();
+			foreach ( $errors as $wp_error ) {
+				$error->merge_from( $wp_error );
+			}
+
+			throw new InvalidCartException(
+				'woocommerce_coupons_error',
+				$error,
+				409
+			);
+		}
+	}
+
+	/**
+	 * Validate the cart and get a list of errors.
+	 *
+	 * @return WP_Error A WP_Error instance containing the cart's errors.
+	 */
+	public function get_cart_errors() {
+		$errors = new WP_Error();
+
+		try {
+			$this->validate_cart();
+		} catch ( RouteException $error ) {
+			$errors->add( $error->getErrorCode(), $error->getMessage(), $error->getAdditionalData() );
+		} catch ( InvalidCartException $error ) {
+			$errors->merge_from( $error->getError() );
+		} catch ( \Exception $error ) {
+			$errors->add( $error->getCode(), $error->getMessage() );
 		}
 
 		return $errors;
@@ -723,7 +815,9 @@ class CartController {
 			);
 		}
 
-		return $calculate_rates ? wc()->shipping()->calculate_shipping( $packages ) : $packages;
+		$packages = $calculate_rates ? wc()->shipping()->calculate_shipping( $packages ) : $packages;
+
+		return $packages;
 	}
 
 	/**
@@ -734,15 +828,25 @@ class CartController {
 	 * @return string
 	 */
 	protected function get_package_name( $package, $index ) {
+		/**
+		 * Filters the shipping package name.
+		 *
+		 * @internal Matches filter name in WooCommerce core.
+		 *
+		 * @param string $shipping_package_name Shipping package name.
+		 * @param string $package_id Shipping package ID.
+		 * @param array $package Shipping package from WooCommerce.
+		 * @return string Shipping package name.
+		 */
 		return apply_filters(
 			'woocommerce_shipping_package_name',
 			$index > 1 ?
 				sprintf(
 					/* translators: %d: shipping package number */
-					_x( 'Shipping method %d', 'shipping packages', 'woocommerce' ),
+					_x( 'Shipment %d', 'shipping packages', 'woocommerce' ),
 					$index
 				) :
-				_x( 'Shipping method', 'shipping packages', 'woocommerce' ),
+				_x( 'Shipment 1', 'shipping packages', 'woocommerce' ),
 			$package['package_id'],
 			$package
 		);
@@ -821,6 +925,17 @@ class CartController {
 		foreach ( $individual_use_coupons as $code ) {
 			$individual_use_coupon = new \WC_Coupon( $code );
 
+			/**
+			 * Filters if a coupon can be applied alongside other individual use coupons.
+			 *
+			 * @internal Matches filter name in WooCommerce core.
+			 *
+			 * @param boolean $apply_with_individual_use_coupon Defaults to false.
+			 * @param \WC_Coupon $coupon Coupon object applied to the cart.
+			 * @param \WC_Coupon $individual_use_coupon Individual use coupon already applied to the cart.
+			 * @param array $applied_coupons Array of applied coupons already applied to the cart.
+			 * @return boolean
+			 */
 			if ( false === apply_filters( 'woocommerce_apply_with_individual_use_coupon', false, $coupon, $individual_use_coupon, $applied_coupons ) ) {
 				throw new RouteException(
 					'woocommerce_rest_cart_coupon_error',
@@ -835,6 +950,16 @@ class CartController {
 		}
 
 		if ( $coupon->get_individual_use() ) {
+			/**
+			 * Filter coupons to remove when applying an individual use coupon.
+			 *
+			 * @internal Matches filter name in WooCommerce core.
+			 *
+			 * @param array $coupons Array of coupons to remove from the cart.
+			 * @param \WC_Coupon $coupon Coupon object applied to the cart.
+			 * @param array $applied_coupons Array of applied coupons already applied to the cart.
+			 * @return array
+			 */
 			$coupons_to_remove = array_diff( $applied_coupons, apply_filters( 'woocommerce_apply_individual_use_coupon', array(), $coupon, $applied_coupons ) );
 
 			foreach ( $coupons_to_remove as $code ) {
@@ -847,6 +972,13 @@ class CartController {
 		$applied_coupons[] = $coupon_code;
 		$cart->set_applied_coupons( $applied_coupons );
 
+		/**
+		 * Fires after a coupon has been applied to the cart.
+		 *
+		 * @internal Matches action name in WooCommerce core.
+		 *
+		 * @param string $coupon_code The coupon code that was applied.
+		 */
 		do_action( 'woocommerce_applied_coupon', $coupon_code );
 	}
 
@@ -897,8 +1029,7 @@ class CartController {
 	 */
 	protected function get_remaining_stock_for_product( $product ) {
 		$reserve_stock = new ReserveStock();
-		$draft_order   = wc()->session->get( 'store_api_draft_order', 0 );
-		$qty_reserved  = $reserve_stock->get_reserved_stock( $product, $draft_order );
+		$qty_reserved  = $reserve_stock->get_reserved_stock( $product, $this->get_draft_order_id() );
 
 		return $product->get_stock_quantity() - $qty_reserved;
 	}
@@ -948,13 +1079,13 @@ class CartController {
 	/**
 	 * Default exception thrown when an item cannot be added to the cart.
 	 *
-	 * @throws RouteException Exception with code woocommerce_rest_cart_product_is_not_purchasable.
+	 * @throws RouteException Exception with code woocommerce_rest_product_not_purchasable.
 	 *
 	 * @param \WC_Product $product Product object associated with the cart item.
 	 */
 	protected function throw_default_product_exception( \WC_Product $product ) {
 		throw new RouteException(
-			'woocommerce_rest_cart_product_is_not_purchasable',
+			'woocommerce_rest_product_not_purchasable',
 			sprintf(
 				/* translators: %s: product name */
 				__( '&quot;%s&quot; is not available for purchase.', 'woocommerce' ),
@@ -980,6 +1111,17 @@ class CartController {
 			$variation_id = $product->get_id();
 		}
 
+		/**
+		 * Filter cart item data for add to cart requests.
+		 *
+		 * @internal Matches filter name in WooCommerce core.
+		 *
+		 * @param array $cart_item_data Array of other cart item data.
+		 * @param integer $product_id ID of the product added to the cart.
+		 * @param integer $variation_id Variation ID of the product added to the cart.
+		 * @param integer $quantity Quantity of the item added to the cart.
+		 * @return array
+		 */
 		$request['cart_item_data'] = (array) apply_filters(
 			'woocommerce_add_cart_item_data',
 			$request['cart_item_data'],
@@ -989,6 +1131,18 @@ class CartController {
 		);
 
 		if ( $product->is_sold_individually() ) {
+			/**
+			 * Filter sold individually quantity for add to cart requests.
+			 *
+			 * @internal Matches filter name in WooCommerce core.
+			 *
+			 * @param integer $sold_individually_quantity Defaults to 1.
+			 * @param integer $quantity Quantity of the item added to the cart.
+			 * @param integer $product_id ID of the product added to the cart.
+			 * @param integer $variation_id Variation ID of the product added to the cart.
+			 * @param array $cart_item_data Array of other cart item data.
+			 * @return integer
+			 */
 			$request['quantity'] = apply_filters( 'woocommerce_add_to_cart_sold_individually_quantity', 1, $request['quantity'], $product_id, $variation_id, $request['cart_item_data'] );
 		}
 

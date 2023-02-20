@@ -7,8 +7,6 @@
  *
  * PHP version 5 and 7
  *
- * @category  Math
- * @package   BigInteger
  * @author    Jim Wigginton <terrafrost@php.net>
  * @copyright 2017 Jim Wigginton
  * @license   http://www.opensource.org/licenses/mit-license.html  MIT License
@@ -21,9 +19,7 @@ use WPMailSMTP\Vendor\phpseclib3\Math\PrimeField\Integer;
 /**
  * Prime Finite Fields
  *
- * @package Math
  * @author  Jim Wigginton <terrafrost@php.net>
- * @access  public
  */
 class PrimeField extends \WPMailSMTP\Vendor\phpseclib3\Math\Common\FiniteField
 {
@@ -47,22 +43,23 @@ class PrimeField extends \WPMailSMTP\Vendor\phpseclib3\Math\Common\FiniteField
         //if (!$modulo->isPrime()) {
         //    throw new \UnexpectedValueException('PrimeField requires a prime number be passed to the constructor');
         //}
-        $this->modulo = $modulo;
         $this->instanceID = self::$instanceCounter++;
         \WPMailSMTP\Vendor\phpseclib3\Math\PrimeField\Integer::setModulo($this->instanceID, $modulo);
         \WPMailSMTP\Vendor\phpseclib3\Math\PrimeField\Integer::setRecurringModuloFunction($this->instanceID, $modulo->createRecurringModuloFunction());
     }
     /**
      * Use a custom defined modular reduction function
+     *
+     * @return void
      */
-    public function setReduction(callable $func)
+    public function setReduction(\Closure $func)
     {
         $this->reduce = $func->bindTo($this, $this);
     }
     /**
      * Returns an instance of a dynamically generated PrimeFieldInteger class
      *
-     * @return object
+     * @return Integer
      */
     public function newInteger(\WPMailSMTP\Vendor\phpseclib3\Math\BigInteger $num)
     {
@@ -71,7 +68,7 @@ class PrimeField extends \WPMailSMTP\Vendor\phpseclib3\Math\Common\FiniteField
     /**
      * Returns an integer on the finite field between one and the prime modulo
      *
-     * @return object
+     * @return Integer
      */
     public function randomInteger()
     {
@@ -84,7 +81,7 @@ class PrimeField extends \WPMailSMTP\Vendor\phpseclib3\Math\Common\FiniteField
     /**
      * Returns the length of the modulo in bytes
      *
-     * @return integer
+     * @return int
      */
     public function getLengthInBytes()
     {
@@ -93,7 +90,7 @@ class PrimeField extends \WPMailSMTP\Vendor\phpseclib3\Math\Common\FiniteField
     /**
      * Returns the length of the modulo in bits
      *
-     * @return integer
+     * @return int
      */
     public function getLength()
     {

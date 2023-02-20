@@ -4,8 +4,8 @@ Tags: elementor, header footer builder, header template, footer template, elemen
 Donate link: https://www.paypal.me/BrainstormForce
 Requires at least: 4.4
 Requires PHP: 5.4
-Tested up to: 5.8
-Stable tag: 1.6.5
+Tested up to: 6.1
+Stable tag: 1.6.13
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -137,6 +137,36 @@ This same applies when you are creating your Header/Footer using this plugin.
 5. Default widgets available with Elementor Header & Footer Builder.
 
 == Changelog ==
+
+= 1.6.13 =
+- Compatibility with Elementor version 3.7.2 and Elementor Pro version 3.7.3.
+
+= 1.6.12 =
+- Compatibility with Elementor and Elementor Pro.
+
+= 1.6.11 =
+- Improvement: Compatibility with Elementor Pro version 3.7
+- Fix: Removed meta tag attribute [maximum-scale=1] for a better accessibility.
+
+= 1.6.10 =
+- Improvement: Compatibility with Elementor version 3.6.
+  Removed elementor deprecated functions and replaced with latest functions.
+  Now to work with Elementor Header & Footer Builder, Elementor minimum version 3.5.0 or higher will be required.
+
+= 1.6.9 =
+- Improvement: Compatibility with Elementor Pro version 3.6
+- Fix: Navigation Menu - If Polylang language switcher is present in the menu, it closes the menu with a click.
+
+= 1.6.8 =
+- Improvement: WordPress 5.9 compatibility.
+
+= 1.6.7 =
+- Improvement: Added GDPR support to Subscription form.
+
+= 1.6.6 =
+- Improvement: Added compatibility to Elementor core version 3.5.0. Now to work with EHF, Elementor minimum version 3.1.0 or higher will be required.
+- Fix: PHP warning of undefined array key on responsive controls in all widgets.
+
 = 1.6.5 =
 - Fix: Hide empty cart count badge hiding even when cart is not empty.
 

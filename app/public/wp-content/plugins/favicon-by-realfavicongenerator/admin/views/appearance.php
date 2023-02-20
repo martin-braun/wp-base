@@ -8,83 +8,102 @@
 
 <?php if ( $new_favicon_params_url ) { ?>
 	<div id="install_in_progress_message" class="updated">
-		<p><?php _e( 'Favicon installation in progress. Please wait...', FBRFG_PLUGIN_SLUG ) ?></p>
+		<p><?php esc_html_e( 'Favicon installation in progress. Please wait...', FBRFG_PLUGIN_SLUG ); ?></p>
 	</div>
 
 	<div id="install_completed_message" class="updated" style="display:none">
 		<p>
-			<?php _e( 'Favicon installed!', FBRFG_PLUGIN_SLUG ) ?>
+			<?php esc_html_e( 'Favicon installed!', FBRFG_PLUGIN_SLUG ); ?>
 			<span id="rank_notice" style="display:none">
-				<?php printf( __( 'Do you like the result? If so, would you like to <a %s>rate the plugin</a>?', FBRFG_PLUGIN_SLUG ),
-					'target="_blank" href="https://wordpress.org/support/view/plugin-reviews/favicon-by-realfavicongenerator"' ) ?>
+				<?php
+				printf(
+					__( 'Do you like the result? If so, would you like to <a %s>rate the plugin</a>?', FBRFG_PLUGIN_SLUG ),
+					'target="_blank" href="https://wordpress.org/support/view/plugin-reviews/favicon-by-realfavicongenerator"'
+				)
+				?>
 			</span>
 		</p>
 	</div>
 	<div id="install_error_message" class="error" style="display:none"><p></p></div>
 
 	<div id="install_completed_container" style="display:none">
-		<h3><?php _e( 'Current favicon', FBRFG_PLUGIN_SLUG ) ?></h3>
+		<h3><?php esc_html_e( 'Current favicon', FBRFG_PLUGIN_SLUG ); ?></h3>
 
-		<?php include_once( plugin_dir_path(__FILE__) . DIRECTORY_SEPARATOR .
-			'keep_active_notice.php' ); ?>
+		<?php
+		include_once plugin_dir_path( __FILE__ ) . DIRECTORY_SEPARATOR .
+		'keep_active_notice.php';
+		?>
 		
-		<p><?php _e( 'The favicon is up and ready.', FBRFG_PLUGIN_SLUG ) ?></p>
+		<p><?php esc_html_e( 'The favicon is up and ready.', FBRFG_PLUGIN_SLUG ); ?></p>
 		<img id="preview_image">
 
 		<p>
-			<?php printf( __( '<a %s>Check your favicon</a> with RealFaviconGenerator\'s favicon checker.', FBRFG_PLUGIN_SLUG ),
-				'id="checker_link" class="button-primary" href="#"' ) ?>
-			<?php _e( 'This option works only if your site is accessible from the outside.', FBRFG_PLUGIN_SLUG ) ?>
+			<?php
+			printf(
+				__( '<a %s>Check your favicon</a> with RealFaviconGenerator\'s favicon checker.', FBRFG_PLUGIN_SLUG ),
+				'id="checker_link" class="button-primary" href="#"'
+			)
+			?>
+			<?php esc_html_e( 'This option works only if your site is accessible from the outside.', FBRFG_PLUGIN_SLUG ); ?>
 		</p>
 	</div>
 <?php } else { ?>
-	<h3><?php _e( 'Current favicon', FBRFG_PLUGIN_SLUG ) ?></h3>
+	<h3><?php esc_html_e( 'Current favicon', FBRFG_PLUGIN_SLUG ); ?></h3>
 
-<?php 	if ( $favicon_configured) { ?>
-	<?php include_once( plugin_dir_path(__FILE__) . DIRECTORY_SEPARATOR .
-		'keep_active_notice.php' ); ?>
-	<p><?php _e( 'The favicon is up and ready.', FBRFG_PLUGIN_SLUG ) ?></p>
-<?php 	} else { ?>
-	<p><?php _e( 'No favicon has been configured yet.', FBRFG_PLUGIN_SLUG ) ?></p>
-<?php 	} ?>
+	<?php if ( $favicon_configured ) { ?>
+		<?php
+		include_once plugin_dir_path( __FILE__ ) . DIRECTORY_SEPARATOR .
+		'keep_active_notice.php';
+		?>
+	<p><?php esc_html_e( 'The favicon is up and ready.', FBRFG_PLUGIN_SLUG ); ?></p>
+	<?php } else { ?>
+	<p><?php esc_html_e( 'No favicon has been configured yet.', FBRFG_PLUGIN_SLUG ); ?></p>
+	<?php } ?>
 
-<?php 	if ( $favicon_configured ) {
-			if ( $preview_url ) { ?>
+	<?php
+	if ( $favicon_configured ) {
+		if ( $preview_url ) {
+			?>
 
-	<img src="<?php echo $preview_url ?>">
+	<img src="<?php echo esc_html( $preview_url ) ?>">
 
-<?php 		} ?>
+<?php } ?>
 	<p>
-		<?php printf( __( '<a %s>Check your favicon</a> with RealFaviconGenerator\'s favicon checker.', FBRFG_PLUGIN_SLUG ),
-			'class="button-primary" ' .
-			'href="https://realfavicongenerator.net/favicon_checker?site=' . urlencode( home_url() ) . ($favicon_in_root ? '' : '&ignore_root_issues=on') . '"' ) ?>
-		<?php _e( 'This option works only if your site is accessible from the outside.', FBRFG_PLUGIN_SLUG ) ?>
+		  <?php
+			printf(
+				__( '<a %s>Check your favicon</a> with RealFaviconGenerator\'s favicon checker.', FBRFG_PLUGIN_SLUG ),
+				'class="button-primary" ' .
+				'href="https://realfavicongenerator.net/favicon_checker?site=' . urlencode( home_url() ) . ( $favicon_in_root ? '' : '&ignore_root_issues=on' ) . '"'
+			)
+			?>
+			<?php esc_html_e( 'This option works only if your site is accessible from the outside.', FBRFG_PLUGIN_SLUG ); ?>
 	</p>
-<?php
-		}
-	  } ?>
+		<?php
+	}
+}
+?>
 
-	<div id="favicon_form_container" <?php echo $new_favicon_params_url ? 'style="display:none"' : '' ?>>
-		<h3><?php _e( 'Favicon generation', FBRFG_PLUGIN_SLUG ) ?></h3>
+	<div id="favicon_form_container" <?php echo $new_favicon_params_url ? 'style="display:none"' : ''; ?>>
+		<h3><?php esc_html_e( 'Favicon generation', FBRFG_PLUGIN_SLUG ); ?></h3>
 <?php if ( $favicon_configured || $new_favicon_params_url ) { ?>
-	<p><?php _e( 'You can replace the existing favicon.', FBRFG_PLUGIN_SLUG ) ?></p>
+	<p><?php esc_html_e( 'You can replace the existing favicon.', FBRFG_PLUGIN_SLUG ); ?></p>
 <?php } ?>
 		<form role="form" method="post" action="https://realfavicongenerator.net/api/favicon_generator" id="favicon_form">
 			<input type="hidden" name="json_params" id="json_params"/>
 			<table class="form-table"><tbody>
 				<tr valign="top">
 					<th scope="row">
-						<label for="master_picture_url"><?php _e( 'Master picture URL', FBRFG_PLUGIN_SLUG ) ?></label>
+						<label for="master_picture_url"><?php esc_html_e( 'Master picture URL', FBRFG_PLUGIN_SLUG ); ?></label>
 					</th>
 					<td>
 						<input id="master_picture_url" name="master_picture_url" size="55">
-						<button id="upload_image_button" value="<?php _e( 'Select from the Media Library', FBRFG_PLUGIN_SLUG ) ?>">
-							<?php _e( 'Select from the Media Library', FBRFG_PLUGIN_SLUG ) ?>
+						<button id="upload_image_button" value="<?php esc_html_e( 'Select from the Media Library', FBRFG_PLUGIN_SLUG ); ?>">
+							<?php esc_html_e( 'Select from the Media Library', FBRFG_PLUGIN_SLUG ); ?>
 						</button>
 						<p class="description">
-							<?php _e( 'Submit a square picture, at least 70x70 (recommended: 260x260 or more)', FBRFG_PLUGIN_SLUG ) ?>
+							<?php esc_html_e( 'Submit a square picture, at least 70x70 (recommended: 260x260 or more)', FBRFG_PLUGIN_SLUG ); ?>
 							<br>
-							<?php _e( 'If the picture is on your hard drive, you can leave this field blank and upload the picture from RealFaviconGenerator.', FBRFG_PLUGIN_SLUG ) ?>
+							<?php esc_html_e( 'If the picture is on your hard drive, you can leave this field blank and upload the picture from RealFaviconGenerator.', FBRFG_PLUGIN_SLUG ); ?>
 						</p>
 					</td>
 				</tr>
@@ -92,15 +111,15 @@
 <?php if ( $can_rewrite ) { ?>
 				<tr valign="top">
 					<th scope="row">
-						<label for="rewrite"><?php _e( 'Favicon files in root directory', FBRFG_PLUGIN_SLUG ) ?></label>
+						<label for="rewrite"><?php esc_html_e( 'Favicon files in root directory', FBRFG_PLUGIN_SLUG ); ?></label>
 					</th>
 					<td>
 						<input type="checkbox" name="rewrite" id="rewrite" checked="true">
 						<p class="description">
-							<?php _e( 'The plugin always stores the favicon files in a dedicated directory.', FBRFG_PLUGIN_SLUG ) ?>
+							<?php esc_html_e( 'The plugin always stores the favicon files in a dedicated directory.', FBRFG_PLUGIN_SLUG ); ?>
 							<br>
-							<?php _e( 'However, if this option is enabled, the plugin takes advantage of the permalink feature and the favicon files appear to be in the root directory', FBRFG_PLUGIN_SLUG ) ?>
-							(<a href="https://realfavicongenerator.net/faq#why_icons_in_root"><?php _e( 'recommended', FBRFG_PLUGIN_SLUG ) ?></a>)
+							<?php esc_html_e( 'However, if this option is enabled, the plugin takes advantage of the permalink feature and the favicon files appear to be in the root directory', FBRFG_PLUGIN_SLUG ); ?>
+							(<a href="https://realfavicongenerator.net/faq#why_icons_in_root"><?php esc_html_e( 'recommended', FBRFG_PLUGIN_SLUG ); ?></a>)
 						</p>
 					</td>
 				</tr>
@@ -109,7 +128,7 @@
 
 			<p class="submit">
 				<input type="submit" name="Generate favicon" id="generate_favicon_button" class="button-primary"
-					value="<?php _e( 'Generate favicon', FBRFG_PLUGIN_SLUG ) ?>">
+					value="<?php esc_html_e( 'Generate favicon', FBRFG_PLUGIN_SLUG ); ?>">
 			</p>
 		</form>
 	</div>
@@ -177,20 +196,26 @@
 		}
 		else {
 			params.favicon_generation.files_location.type = 'path';
-			params.favicon_generation.files_location.path = '<?php echo $pic_path ?>';
+			params.favicon_generation.files_location.path = '<?php echo esc_html( $pic_path ) ?>';
 		}
 <?php } else { ?>
 		params.favicon_generation.files_location.type = 'path';
-		params.favicon_generation.files_location.path = '<?php echo $pic_path ?>';
+		params.favicon_generation.files_location.path = '<?php echo esc_html( $pic_path ) ?>';
 <?php } ?>
 
 		params.favicon_generation.callback.type = 'url';
-		params.favicon_generation.callback.url = "<?php echo admin_url('themes.php?page=' . ( ( isset( $_REQUEST['page'] ) )
-			? $_REQUEST['page']
-			: 'favicon-by-realfavicongenerator/admin/class-favicon-by-realfavicongenerator-admin.phpfavicon_appearance_menu' ) ) ?>";
+		params.favicon_generation.callback.url = "<?php
+			echo esc_html( admin_url(
+				'themes.php?page=' . ( ( isset( $_GET['page'] ) )
+				? preg_replace( '/^http:\/\//', '', esc_url_raw( $_GET['page'] ) )
+					// esc_url_raw is used to sanitize the path. This functio adds a 'http://' prefix, which is then removed.
+					// This code cannot be moved to a helper, as phpcs won't detect it and report an issue.
+				: 'favicon-by-realfavicongenerator/admin/class-favicon-by-realfavicongenerator-admin.phpfavicon_appearance_menu' )
+			) )
+			?>";
 		params.favicon_generation.callback.short_url = 'true';
 		params.favicon_generation.callback.path_only = 'true';
-		params.favicon_generation.callback.custom_parameter = "<?php echo $nonce ?>";
+		params.favicon_generation.callback.custom_parameter = "<?php echo esc_html( $nonce ) ?>";
 
 		return params;
 	}
@@ -203,7 +228,7 @@
 		pictureContentTimestamp	= timestamp;
 
 		jQuery('#generate_favicon_button').attr('disabled', 'disabled');
-		jQuery('#generate_favicon_button').val("<?php _e( 'Preparing master picture...', FBRFG_PLUGIN_SLUG ) ?>");
+		jQuery('#generate_favicon_button').val("<?php esc_html_e( 'Preparing master picture...', FBRFG_PLUGIN_SLUG ); ?>");
 
 		pictureContent = null;
 
@@ -223,13 +248,13 @@
 
 	function restoreGenerateFaviconButton() {
 		jQuery('#generate_favicon_button').removeAttr('disabled');
-		jQuery('#generate_favicon_button').val("<?php _e( 'Generate favicon', FBRFG_PLUGIN_SLUG ) ?>");
+		jQuery('#generate_favicon_button').val("<?php esc_html_e( 'Generate favicon', FBRFG_PLUGIN_SLUG ); ?>");
 	}
 
 <?php if ( $new_favicon_params_url ) { ?>
 	var data = {
-		action: '<?php echo Favicon_By_RealFaviconGenerator_Common::PLUGIN_PREFIX . '_install_new_favicon' ?>',
-		json_result_url: '<?php echo $new_favicon_params_url ?>'
+		action: '<?php echo esc_html( Favicon_By_RealFaviconGenerator_Common::PLUGIN_PREFIX . '_install_new_favicon' ) ?>',
+		json_result_url: '<?php echo esc_html( $new_favicon_params_url ) ?>'
 	};
 <?php } ?>
 
@@ -239,11 +264,11 @@
 		});
 
 <?php if ( $new_favicon_params_url ) { ?>
-		jQuery.get('<?php echo $ajax_url ?>', data)
+		jQuery.get('<?php echo esc_html( $ajax_url ) ?>', data)
 			.done(function(response) {
 				if (response.status == 'success') {
 					jQuery('#preview_image').attr('src', response.preview_url);
-					var checkerUrl = "https://realfavicongenerator.net/favicon_checker?site=<?php echo urlencode( home_url() ) ?>" +
+					var checkerUrl = "https://realfavicongenerator.net/favicon_checker?site=<?php echo urlencode( home_url() ); ?>" +
 						(response.favicon_in_root ? '' : '&ignore_root_issues=on');
 					jQuery('#checker_link').attr('href', checkerUrl);
 					jQuery('#install_in_progress_message').fadeOut(function() {
@@ -260,7 +285,7 @@
 					});
 				}
 				else {
-					var msg = "<?php _e( "An error occured", FBRFG_PLUGIN_SLUG ) ?>";
+					var msg = "<?php esc_html_e( 'An error occured', FBRFG_PLUGIN_SLUG ); ?>";
 					if (response.message != null) {
 						msg += ": " + response.message;
 					}
@@ -271,7 +296,7 @@
 				}
 			})
 			.fail(function() {
-				var msg = "<?php _e( "An internal error occurred", FBRFG_PLUGIN_SLUG ) ?>";
+				var msg = "<?php esc_html_e( 'An internal error occurred', FBRFG_PLUGIN_SLUG ); ?>";
 				jQuery('#install_error_message p').html(msg);
 				jQuery('#install_in_progress_message').fadeOut(function() {
 					jQuery('#install_error_message').fadeIn();

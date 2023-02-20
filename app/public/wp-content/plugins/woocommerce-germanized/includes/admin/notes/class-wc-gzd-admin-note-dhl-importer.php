@@ -10,7 +10,7 @@ class WC_GZD_Admin_Note_DHL_Importer extends WC_GZD_Admin_Note {
 	public function is_disabled() {
 		$is_disabled = true;
 
-		if ( class_exists( 'Vendidero\Germanized\DHL\Admin\Importer\DHL' ) && Vendidero\Germanized\DHL\Admin\Importer\DHL::is_plugin_enabled() && Vendidero\Germanized\DHL\Admin\Importer\DHL::is_available() ) {
+		if ( class_exists( 'Vendidero\Germanized\DHL\Admin\Importer\DHL' ) && Vendidero\Germanized\DHL\Admin\Importer\DHL::is_plugin_enabled() ) {
 			$is_disabled = false;
 		}
 
@@ -40,13 +40,18 @@ class WC_GZD_Admin_Note_DHL_Importer extends WC_GZD_Admin_Note {
 		return $content;
 	}
 
+	protected function has_nonce_action() {
+		return true;
+	}
+
 	public function get_actions() {
 		return array(
 			array(
-				'url'        => wp_nonce_url( add_query_arg( 'wc-gzd-dhl-import', 'yes' ), 'woocommerce_gzd_dhl_import_nonce' ) ,
-				'title'      => _x( 'Import settings and activate', 'dhl', 'woocommerce-germanized' ),
-				'target'     => '_self',
-				'is_primary' => true,
+				'url'          => add_query_arg( 'wc-gzd-dhl-import', 'yes', admin_url( 'admin.php?page=wc-settings&tab=germanized-shipping_provider&provider=dhl' ) ),
+				'title'        => Vendidero\Germanized\DHL\Admin\Importer\DHL::is_available() ? _x( 'Import settings and activate', 'dhl', 'woocommerce-germanized' ) : _x( 'Use integration', 'dhl', 'woocommerce-germanized' ),
+				'target'       => '_self',
+				'is_primary'   => true,
+				'nonce_action' => 'woocommerce_gzd_dhl_import_nonce',
 			),
 			array(
 				'url'        => 'https://vendidero.de/dokument/dhl-labels-zu-sendungen-erstellen',

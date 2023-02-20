@@ -7,10 +7,9 @@
 *
 * @category  Library
 * @package   Microsoft.Graph
-* @copyright © Microsoft Corporation. All rights reserved.
+* @copyright (c) Microsoft Corporation. All rights reserved.
 * @license   https://opensource.org/licenses/MIT MIT License
-* @version   GIT: 1.4.0
-* @link      https://graph.microsoft.io/
+* @link      https://graph.microsoft.com
 */
 namespace Microsoft\Graph\Model;
 /**
@@ -18,10 +17,9 @@ namespace Microsoft\Graph\Model;
 *
 * @category  Model
 * @package   Microsoft.Graph
-* @copyright © Microsoft Corporation. All rights reserved.
+* @copyright (c) Microsoft Corporation. All rights reserved.
 * @license   https://opensource.org/licenses/MIT MIT License
-* @version   Release: 1.4.0
-* @link      https://graph.microsoft.io/
+* @link      https://graph.microsoft.com
 */
 class ExtensionSchemaProperty extends Entity
 {
@@ -29,7 +27,7 @@ class ExtensionSchemaProperty extends Entity
     * Gets the name
     * The name of the strongly-typed property defined as part of a schema extension.
     *
-    * @return string The name
+    * @return string|null The name
     */
     public function getName()
     {
@@ -55,9 +53,9 @@ class ExtensionSchemaProperty extends Entity
     }
     /**
     * Gets the type
-    * The type of the property that is defined as part of a schema extension.  Allowed values are Binary, Boolean, DateTime, Integer or String.  See the table below for more details.
+    * The type of the property that is defined as part of a schema extension.  Allowed values are Binary, Boolean, DateTime, Integer or String. See the table below for more details.
     *
-    * @return string The type
+    * @return string|null The type
     */
     public function getType()
     {
@@ -70,7 +68,7 @@ class ExtensionSchemaProperty extends Entity
 
     /**
     * Sets the type
-    * The type of the property that is defined as part of a schema extension.  Allowed values are Binary, Boolean, DateTime, Integer or String.  See the table below for more details.
+    * The type of the property that is defined as part of a schema extension.  Allowed values are Binary, Boolean, DateTime, Integer or String. See the table below for more details.
     *
     * @param string $val The value of the type
     *

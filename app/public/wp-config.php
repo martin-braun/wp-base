@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The base configuration for WordPress
  *
@@ -25,47 +26,47 @@
  * Set this value only to “true” when the website runs in LocalWP, locally.
  * Setting this value to “true” on a live instance will cause a database error!
  */
-define( 'WP_LOCAL', true );
+define('WP_LOCAL', true);
 
 // ** MySQL settings - You can get this info from your web host ** //
 /** The name of the database for WordPress */
-define( 'DB_NAME', defined( 'WP_LOCAL' ) && WP_LOCAL ? 'local' : 'database_name_here' );
+define('DB_NAME', defined('WP_LOCAL') && WP_LOCAL ? 'local' : 'database_name_here');
 
 /** MySQL database username */
-define( 'DB_USER',  defined( 'WP_LOCAL' ) && WP_LOCAL ? 'root' : 'username_here' );
+define('DB_USER',  defined('WP_LOCAL') && WP_LOCAL ? 'root' : 'username_here');
 
 /** MySQL database password */
-define( 'DB_PASSWORD',  defined( 'WP_LOCAL' ) && WP_LOCAL ? 'root' : 'password_here' );
+define('DB_PASSWORD',  defined('WP_LOCAL') && WP_LOCAL ? 'root' : 'password_here');
 
 /** MySQL hostname */
-define( 'DB_HOST',  defined( 'WP_LOCAL' ) && WP_LOCAL ? 'localhost' : 'localhost' );
+define('DB_HOST',  defined('WP_LOCAL') && WP_LOCAL ? 'localhost' : 'localhost');
 
 /** Database Charset to use in creating database tables. */
-define( 'DB_CHARSET', 'utf8' );
+define('DB_CHARSET', 'utf8');
 
 /** The Database Collate type. Don't change this if in doubt. */
-define( 'DB_COLLATE', '' );
+define('DB_COLLATE', '');
 
 /** Adjust memory limit */
-define( 'WP_MEMORY_LIMIT', '512M' );
+define('WP_MEMORY_LIMIT', '8G');
 
 /** Define SSL force for admins */
-define( 'FORCE_SSL_ADMIN', true );
+define('FORCE_SSL_ADMIN', true);
 
 /** Define file edit lock */
-define( 'DISALLOW_FILE_EDIT', true );
+define('DISALLOW_FILE_EDIT', true);
 
 /** Define CRON DIY setting. */
-define( 'DISABLE_WP_CRON', ! ( defined( 'WP_LOCAL' ) && WP_LOCAL ) );
+define('DISABLE_WP_CRON', !(defined('WP_LOCAL') && WP_LOCAL));
 
 /** Define free product on free product campaign. */
-define( 'WOOCOMMERCE_FREE_PRODUCT_CAMPAIGN_FREE_PRODUCT_ID', 0 );
+define('WOOCOMMERCE_FREE_PRODUCT_CAMPAIGN_FREE_PRODUCT_ID', 0);
 
 /** Define price trigger on free product campaign. */
-define( 'WOOCOMMERCE_FREE_PRODUCT_CAMPAIGN_PRICE_TRIGGER', 0 );
+define('WOOCOMMERCE_FREE_PRODUCT_CAMPAIGN_PRICE_TRIGGER', 0);
 
 /** Define product trigger on free product campaign. */
-define( 'WOOCOMMERCE_FREE_PRODUCT_CAMPAIGN_PRODUCT_TRIGGER_PRODUCT_ID', 0 );
+define('WOOCOMMERCE_FREE_PRODUCT_CAMPAIGN_PRODUCT_TRIGGER_PRODUCT_ID', 0);
 
 /**
  * WP Mail SMTP settings.
@@ -112,7 +113,7 @@ define('NONCE_SALT',       '/ARBkolc/iUUnWpIgPM4Gf8seVeyUuA0oMOLHanIt6N7oG08Flip
  * Value of false – Development, minor, and major updates are all disabled
  * Value of 'minor' – Minor updates are enabled, development, and major updates are disabled
  */
-define( 'WP_AUTO_UPDATE_CORE', defined( 'WP_LOCAL' ) && WP_LOCAL || 'minor' );
+define('WP_AUTO_UPDATE_CORE', defined('WP_LOCAL') && WP_LOCAL || 'minor');
 
 /**
  * WordPress Database Table prefix.
@@ -134,7 +135,7 @@ $table_prefix = 'wp_';
  *
  * @link https://wordpress.org/support/article/debugging-in-wordpress/
  */
-define( 'WP_DEBUG', defined( 'WP_LOCAL' ) && WP_LOCAL || false );
+define('WP_DEBUG', defined('WP_LOCAL') && WP_LOCAL || false);
 
 /**
  * For developers: WordPress logging.
@@ -146,23 +147,28 @@ define( 'WP_DEBUG', defined( 'WP_LOCAL' ) && WP_LOCAL || false );
  *
  * @link https://wordpress.org/support/article/debugging-in-wordpress/#wp_debug_log
  */
-define( 'WP_DEBUG_LOG', defined( 'WP_LOCAL' ) && WP_LOCAL || false );
+define('WP_DEBUG_LOG', defined('WP_LOCAL') && WP_LOCAL || false);
 
 /* That's all, stop editing! Happy publishing. */
 
 /** Absolute path to the WordPress directory. */
-if ( ! defined( 'ABSPATH' ) ) {
-	define( 'ABSPATH', dirname( __FILE__ ) . '/' );
+if (!defined('ABSPATH')) {
+	define('ABSPATH', dirname(__FILE__) . '/');
 }
 
-/** Include MB WP debug helper */
-if ( defined( 'WP_DEBUG' ) && WP_DEBUG && file_exists( ABSPATH . 'mb-wp-debug.php' ) ) {
-    include_once ABSPATH . 'mb-wp-debug.php';
-}
-if ( ! function_exists( 'console_log' ) ) {
-    function console_log() {
-    }
+/** Include debug helper */
+if ((defined('WP_LOCAL') && WP_LOCAL) || (defined('WP_DEBUG') && WP_DEBUG) && file_exists(ABSPATH . 'mb-wp-debug.php')) {
+	include_once ABSPATH . 'mb-wp-debug.php';
+} else {
+	function console_log()
+	{
+	}
 }
 
 /** Sets up WordPress vars and included files. */
 require_once ABSPATH . 'wp-settings.php';
+
+/** Ensure staging color indicator for local dev environments for safety reasons. */
+if (defined('WP_LOCAL') && WP_LOCAL && function_exists('add_local_wp_css')) {
+	add_local_wp_css();
+}

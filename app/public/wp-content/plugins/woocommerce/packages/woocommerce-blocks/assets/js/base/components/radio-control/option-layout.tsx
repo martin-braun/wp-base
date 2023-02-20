@@ -1,8 +1,7 @@
 /**
- * External dependencies
+ * Internal dependencies
  */
-import type { ReactElement } from 'react';
-import type { PackageRateOption } from '@woocommerce/type-defs/shipping';
+import type { RadioControlOptionLayout } from './types';
 
 const OptionLayout = ( {
 	label,
@@ -10,7 +9,7 @@ const OptionLayout = ( {
 	description,
 	secondaryDescription,
 	id,
-}: Partial< PackageRateOption > ): ReactElement => {
+}: RadioControlOptionLayout ): JSX.Element => {
 	return (
 		<div className="wc-block-components-radio-control__option-layout">
 			<div className="wc-block-components-radio-control__label-group">
@@ -31,24 +30,26 @@ const OptionLayout = ( {
 					</span>
 				) }
 			</div>
-			<div className="wc-block-components-radio-control__description-group">
-				{ description && (
-					<span
-						id={ id && `${ id }__description` }
-						className="wc-block-components-radio-control__description"
-					>
-						{ description }
-					</span>
-				) }
-				{ secondaryDescription && (
-					<span
-						id={ id && `${ id }__secondary-description` }
-						className="wc-block-components-radio-control__secondary-description"
-					>
-						{ secondaryDescription }
-					</span>
-				) }
-			</div>
+			{ ( description || secondaryDescription ) && (
+				<div className="wc-block-components-radio-control__description-group">
+					{ description && (
+						<span
+							id={ id && `${ id }__description` }
+							className="wc-block-components-radio-control__description"
+						>
+							{ description }
+						</span>
+					) }
+					{ secondaryDescription && (
+						<span
+							id={ id && `${ id }__secondary-description` }
+							className="wc-block-components-radio-control__secondary-description"
+						>
+							{ secondaryDescription }
+						</span>
+					) }
+				</div>
+			) }
 		</div>
 	);
 };

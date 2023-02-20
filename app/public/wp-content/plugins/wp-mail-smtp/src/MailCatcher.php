@@ -2,9 +2,6 @@
 
 namespace WPMailSMTP;
 
-use WPMailSMTP\Admin\DebugEvents\DebugEvents;
-use WPMailSMTP\Providers\MailerAbstract;
-
 // Load PHPMailer class, so we can subclass it.
 if ( ! class_exists( 'PHPMailer', false ) ) {
 	require_once ABSPATH . WPINC . '/class-phpmailer.php';
@@ -17,6 +14,8 @@ if ( ! class_exists( 'PHPMailer', false ) ) {
  * @since 1.0.0
  */
 class MailCatcher extends \PHPMailer implements MailCatcherInterface {
+
+	use MailCatcherTrait;
 
 	/**
 	 * Callback Action function name.
@@ -31,185 +30,6 @@ class MailCatcher extends \PHPMailer implements MailCatcherInterface {
 	public $action_function = '\WPMailSMTP\Processor::send_callback';
 
 	/**
-	 * Modify the default send() behaviour.
-	 * For those mailers, that relies on PHPMailer class - call it directly.
-	 * For others - init the correct provider and process it.
-	 *
-	 * @since 1.0.0
-	 * @since 1.4.0 Process "Do Not Send" option, but always allow test email.
-	 *
-	 * @throws \phpmailerException When sending via PhpMailer fails for some reason.
-	 *
-	 * @return bool
-	 */
-	public function send() { // phpcs:ignore Generic.Metrics.CyclomaticComplexity.MaxExceeded
-
-		$options     = new Options();
-		$mail_mailer = sanitize_key( $options->get( 'mail', 'mailer' ) );
-
-		$is_emailing_blocked = false;
-
-		if ( wp_mail_smtp()->is_blocked() ) {
-			$is_emailing_blocked = true;
-		}
-
-		// Always allow a test email - check for the specific header.
-		foreach ( (array) $this->getCustomHeaders() as $header ) {
-			if (
-				! empty( $header[0] ) &&
-				! empty( $header[1] ) &&
-				$header[0] === 'X-Mailer-Type' &&
-				trim( $header[1] ) === 'WPMailSMTP/Admin/Test'
-			) {
-				$is_emailing_blocked = false;
-			}
-		};
-
-		// Do not send emails if admin desired that.
-		if ( $is_emailing_blocked ) {
-			return false;
-		}
-
-		// Define a custom header, that will be used to identify the plugin and the mailer.
-		$this->XMailer = 'WPMailSMTP/Mailer/' . $mail_mailer . ' ' . WPMS_PLUGIN_VER; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-
-		// Use the default PHPMailer, as we inject our settings there for certain providers.
-		if (
-			$mail_mailer === 'mail' ||
-			$mail_mailer === 'smtp' ||
-			$mail_mailer === 'pepipost'
-		) {
-			try {
-
-				/**
-				 * Fires before email pre send via SMTP.
-				 *
-				 * Allow to hook early to catch any early failed emails.
-				 *
-				 * @since 2.9.0
-				 *
-				 * @param MailCatcherInterface $mailcatcher The MailCatcher object.
-				 */
-				do_action( 'wp_mail_smtp_mailcatcher_smtp_pre_send_before', $this );
-
-				// Prepare all the headers.
-				if ( ! $this->preSend() ) {
-					return false;
-				}
-
-				/**
-				 * Fires before email send via SMTP.
-				 *
-				 * Allow to hook after all the preparation before the actual sending.
-				 *
-				 * @since 2.9.0
-				 *
-				 * @param MailCatcherInterface $mailcatcher The MailCatcher object.
-				 */
-				do_action( 'wp_mail_smtp_mailcatcher_smtp_send_before', $this );
-
-				$post_send = $this->postSend();
-
-				DebugEvents::add_debug(
-					esc_html__( 'An email request was sent.' )
-				);
-
-				return $post_send;
-			} catch ( \phpmailerException $e ) {
-				$this->mailHeader = ''; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-				$this->setError( $e->getMessage() );
-
-				// Set the debug error, but not for default PHP mailer.
-				if ( $mail_mailer !== 'mail' ) {
-					Debug::set(
-						'Mailer: ' . esc_html( wp_mail_smtp()->get_providers()->get_options( $mail_mailer )->get_title() ) . PHP_EOL .
-						$e->getMessage()
-					);
-				}
-
-				if ( $this->exceptions ) {
-					throw $e;
-				}
-
-				return false;
-			}
-		}
-
-		// We need this so that the \PHPMailer class will correctly prepare all the headers.
-		$this->Mailer = 'mail'; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-
-		/**
-		 * Fires before email pre send.
-		 *
-		 * Allow to hook early to catch any early failed emails.
-		 *
-		 * @since 2.9.0
-		 *
-		 * @param MailCatcherInterface $mailcatcher The MailCatcher object.
-		 */
-		do_action( 'wp_mail_smtp_mailcatcher_pre_send_before', $this );
-
-		// Prepare everything (including the message) for sending.
-		if ( ! $this->preSend() ) {
-			return false;
-		}
-
-		$mailer = wp_mail_smtp()->get_providers()->get_mailer( $mail_mailer, $this );
-
-		if ( ! $mailer ) {
-			return false;
-		}
-
-		if ( ! $mailer->is_php_compatible() ) {
-			return false;
-		}
-
-		/*
-		 * Send the actual email.
-		 * We reuse everything, that was preprocessed for usage in \PHPMailer.
-		 */
-		$mailer->send();
-
-		$is_sent = $mailer->is_email_sent();
-
-		if ( ! $is_sent ) {
-			$error = $mailer->get_response_error();
-
-			if ( ! empty( $error ) ) {
-
-				// Add mailer to the beginning and save to display later.
-				$message = 'Mailer: ' . esc_html( wp_mail_smtp()->get_providers()->get_options( $mailer->get_mailer_name() )->get_title() ) . "\r\n";
-
-				$conflicts = new Conflicts();
-
-				if ( $conflicts->is_detected() ) {
-					$message .= 'Conflicts: ' . esc_html( $conflicts->get_conflict_name() ) . "\r\n";
-				}
-
-				Debug::set( $message . $error );
-			}
-		} else {
-
-			// Clear debug messages if email is successfully sent.
-			Debug::clear();
-		}
-
-		/**
-		 * Fires after email send.
-		 *
-		 * Allow to perform any actions with the data.
-		 *
-		 * @since  {VERSION}
-		 *
-		 * @param MailerAbstract       $mailer      The Mailer object.
-		 * @param MailCatcherInterface $mailcatcher The MailCatcher object.
-		 */
-		do_action( 'wp_mail_smtp_mailcatcher_send_after', $mailer, $this );
-
-		return $is_sent;
-	}
-
-	/**
 	 * Returns all custom headers.
 	 * In older versions of \PHPMailer class this method didn't exist.
 	 * As we support WordPress 3.6+ - we need to make sure this method is always present.
@@ -220,7 +40,7 @@ class MailCatcher extends \PHPMailer implements MailCatcherInterface {
 	 */
 	public function getCustomHeaders() {
 
-		return $this->CustomHeader;
+		return $this->CustomHeader; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 	}
 
 	/**
@@ -232,18 +52,6 @@ class MailCatcher extends \PHPMailer implements MailCatcherInterface {
 	 */
 	public function get_line_ending() {
 
-		return $this->LE; // phpcs:ignore
-	}
-
-	/**
-	 * Create a unique ID to use for multipart email boundaries.
-	 *
-	 * @since 2.4.0
-	 *
-	 * @return string
-	 */
-	public function generate_id() {
-
-		return $this->generateId();
+		return $this->LE; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 	}
 }

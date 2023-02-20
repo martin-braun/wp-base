@@ -44,6 +44,10 @@ class Widget_WordPress extends Widget_Base {
 		return $this->get_widget_instance() instanceof \Pojo_Widget_Base;
 	}
 
+	public function hide_on_search() {
+		return true;
+	}
+
 	/**
 	 * Get widget name.
 	 *

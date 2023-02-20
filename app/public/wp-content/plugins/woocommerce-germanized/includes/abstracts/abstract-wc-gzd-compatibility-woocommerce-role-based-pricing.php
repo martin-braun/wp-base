@@ -1,5 +1,7 @@
 <?php
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * WC GZD Role Based Pricing Compatibility Base Helper
  *
@@ -23,10 +25,15 @@ abstract class WC_GZD_Compatibility_Woocommerce_Role_Based_Pricing extends WC_GZ
 		add_filter( 'woocommerce_gzd_order_item_unit_price', array( $this, 'unit_price_order_item' ), 10, 4 );
 
 		// Support variable products
-		add_filter( 'woocommerce_gzd_get_variation_unit_prices_hash', array(
-			$this,
-			'variable_unit_prices_hash'
-		), 10, 1 );
+		add_filter(
+			'woocommerce_gzd_get_variation_unit_prices_hash',
+			array(
+				$this,
+				'variable_unit_prices_hash',
+			),
+			10,
+			1
+		);
 
 		$this->adjust_cart_hooks();
 
@@ -35,6 +42,22 @@ abstract class WC_GZD_Compatibility_Woocommerce_Role_Based_Pricing extends WC_GZ
 		 * Germanized adds hooks on `woocommerce_before_mini_cart_contents`.
 		 */
 		add_action( 'woocommerce_before_mini_cart_contents', array( $this, 'adjust_cart_hooks' ), 40 );
+
+		/**
+		 * Force refreshing unit prices via AJAX on load.
+		 */
+		add_filter( 'woocommerce_gzd_unit_price_observer_params', array( $this, 'refresh_on_load' ) );
+
+		/**
+		 * Recalculate unit price during cart & checkout via cart data.
+		 */
+		add_filter( 'woocommerce_gzd_recalculate_unit_price_cart', '__return_true' );
+	}
+
+	public function refresh_on_load( $params ) {
+		$params['refresh_on_load'] = true;
+
+		return $params;
 	}
 
 	public function adjust_cart_hooks() {
@@ -54,10 +77,12 @@ abstract class WC_GZD_Compatibility_Woocommerce_Role_Based_Pricing extends WC_GZ
 	public function unit_price_order_item( $price, $gzd_product, $item, $order ) {
 		$product_price = $order->get_item_subtotal( $item, true );
 
-		$gzd_product->recalculate_unit_price( array(
-			'regular_price' => $product_price,
-			'price'         => $product_price,
-		) );
+		$gzd_product->recalculate_unit_price(
+			array(
+				'regular_price' => $product_price,
+				'price'         => $product_price,
+			)
+		);
 
 		return $gzd_product->get_unit_html( false );
 	}
@@ -65,12 +90,20 @@ abstract class WC_GZD_Compatibility_Woocommerce_Role_Based_Pricing extends WC_GZ
 	public function set_unit_price_filter() {
 		add_action( 'woocommerce_gzd_before_get_unit_price', array( $this, 'calculate_unit_price' ), 10, 1 );
 		// Adjust variable from-to unit prices
-		add_action( 'woocommerce_gzd_before_get_variable_variation_unit_price', array(
-			$this,
-			'calculate_unit_price'
-		), 10, 1 );
+		add_action(
+			'woocommerce_gzd_before_get_variable_variation_unit_price',
+			array(
+				$this,
+				'calculate_unit_price',
+			),
+			10,
+			1
+		);
 	}
 
+	/**
+	 * @param WC_GZD_Product $product
+	 */
 	public function calculate_unit_price( $product ) {
 		$product->recalculate_unit_price();
 	}

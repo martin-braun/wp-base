@@ -17,9 +17,33 @@ use Vendidero\Germanized\Shopmarks;
 
 require WC_GERMANIZED_ABSPATH . 'includes/wc-gzd-product-functions.php';
 
+/**
+ * Defect Description.
+ */
+if ( function_exists( 'do_blocks' ) ) {
+	add_filter( 'woocommerce_gzd_defect_description', 'do_blocks', 9 );
+}
+add_filter( 'woocommerce_gzd_defect_description', 'wptexturize' );
+add_filter( 'woocommerce_gzd_defect_description', 'convert_smilies' );
+add_filter( 'woocommerce_gzd_defect_description', 'convert_chars' );
+add_filter( 'woocommerce_gzd_defect_description', 'wpautop' );
+add_filter( 'woocommerce_gzd_defect_description', 'shortcode_unautop' );
+add_filter( 'woocommerce_gzd_defect_description', 'prepend_attachment' );
+add_filter( 'woocommerce_gzd_defect_description', 'do_shortcode', 11 ); // After wpautop().
+add_filter( 'woocommerce_gzd_defect_description', 'wc_format_product_short_description', 9999999 );
+add_filter( 'woocommerce_gzd_defect_description', 'wc_do_oembeds' );
+add_filter( 'woocommerce_gzd_defect_description', array( $GLOBALS['wp_embed'], 'run_shortcode' ), 8 ); // Before wpautop().
+
+/**
+ * @param null $instance
+ *
+ * @return WC_GZD_Dependencies
+ */
 function wc_gzd_get_dependencies( $instance = null ) {
+	wc_deprecated_function( 'WC_GZD_Dependencies', '4.0.0' );
+
 	/** This filter is documented in woocommerce-germanized.php */
-	return apply_filters( 'woocommerce_gzd_dependencies_instance', WC_GZD_Dependencies::instance( $instance ) );
+	return apply_filters( 'woocommerce_gzd_dependencies_instance', WC_GZD_Dependencies::class );
 }
 
 function wc_gzd_post_has_woocommerce_block( $post_content ) {
@@ -59,6 +83,13 @@ function wc_gzd_get_product_loop_shopmarks() {
 /**
  * @return Vendidero\Germanized\Shopmark[]
  */
+function wc_gzd_get_product_block_shopmarks() {
+	return Shopmarks::get( 'product_block' );
+}
+
+/**
+ * @return Vendidero\Germanized\Shopmark[]
+ */
 function wc_gzd_get_cart_shopmarks() {
 
 	$cart = Shopmarks::get( 'cart' );
@@ -92,14 +123,16 @@ function wc_gzd_get_mini_cart_shopmarks() {
 function _wc_gzd_get_differential_taxation_shopmark( $location ) {
 	$default_filter = 'order' === $location ? 'woocommerce_order_item_name' : 'woocommerce_cart_item_name';
 
-	$shopmark = new Shopmark( array(
-		'default_priority' => wc_gzd_get_hook_priority( 'cart_product_differential_taxation' ),
-		'callback'         => 'wc_gzd_cart_product_differential_taxation_mark',
-		'default_filter'   => $default_filter,
-		'location'         => $location,
-		'type'             => 'differential_taxation',
-		'default_enabled'  => true,
-	) );
+	$shopmark = new Shopmark(
+		array(
+			'default_priority' => wc_gzd_get_hook_priority( 'cart_product_differential_taxation' ),
+			'callback'         => 'wc_gzd_cart_product_differential_taxation_mark',
+			'default_filter'   => $default_filter,
+			'location'         => $location,
+			'type'             => 'differential_taxation',
+			'default_enabled'  => true,
+		)
+	);
 
 	return $shopmark;
 }
@@ -112,8 +145,8 @@ function wc_gzd_get_checkout_shopmarks() {
 
 	if ( 'yes' === get_option( 'woocommerce_gzd_differential_taxation_checkout_notices' ) ) {
 		if ( wc_gzd_cart_contains_differential_taxed_product() ) {
-			$shopmark    = _wc_gzd_get_differential_taxation_shopmark( 'checkout' );
-			$checkout[]  = $shopmark;
+			$shopmark   = _wc_gzd_get_differential_taxation_shopmark( 'checkout' );
+			$checkout[] = $shopmark;
 		}
 	}
 
@@ -173,7 +206,15 @@ function wc_gzd_shopmark_is_enabled( $location, $type ) {
 	return false;
 }
 
-function wc_gzd_send_instant_order_confirmation() {
+/**
+ * @param WC_Order|integer|null $order
+ *
+ * @return bool
+ */
+function wc_gzd_send_instant_order_confirmation( $order = null ) {
+	if ( is_numeric( $order ) ) {
+		$order = wc_get_order( $order );
+	}
 
 	/**
 	 * Filter to enable/disable instant order confirmation.
@@ -189,11 +230,11 @@ function wc_gzd_send_instant_order_confirmation() {
 	 * ```
 	 *
 	 * @param bool $enable Set to `false` to disable instant order confirmation.
+	 * @param WC_Order|null $order The order, if available.
 	 *
 	 * @since 1.0.0
-	 *
 	 */
-	return ( apply_filters( 'woocommerce_gzd_instant_order_confirmation', true ) && ( 'yes' !== get_option( 'woocommerce_gzd_disable_instant_order_confirmation' ) ) );
+	return ( apply_filters( 'woocommerce_gzd_instant_order_confirmation', true, $order ) && ( 'yes' !== get_option( 'woocommerce_gzd_disable_instant_order_confirmation' ) ) );
 }
 
 function wc_gzd_get_legal_product_notice_types() {
@@ -220,17 +261,20 @@ function wc_gzd_get_age_verification_min_ages() {
 	 * @since 2.3.5
 	 *
 	 */
-	return apply_filters( 'woocommerce_gzd_age_verification_min_ages', array(
-		12 => __( '>= 12 years', 'woocommerce-germanized' ),
-		16 => __( '>= 16 years', 'woocommerce-germanized' ),
-		18 => __( '>= 18 years', 'woocommerce-germanized' ),
-		21 => __( '>= 21 years', 'woocommerce-germanized' ),
-		25 => __( '>= 25 years', 'woocommerce-germanized' )
-	) );
+	return apply_filters(
+		'woocommerce_gzd_age_verification_min_ages',
+		array(
+			12 => __( '>= 12 years', 'woocommerce-germanized' ),
+			16 => __( '>= 16 years', 'woocommerce-germanized' ),
+			18 => __( '>= 18 years', 'woocommerce-germanized' ),
+			21 => __( '>= 21 years', 'woocommerce-germanized' ),
+			25 => __( '>= 25 years', 'woocommerce-germanized' ),
+		)
+	);
 }
 
 function wc_gzd_get_age_verification_min_ages_select() {
-	$age_select = array( "-1" => _x( 'None', 'age', 'woocommerce-germanized' ) ) + wc_gzd_get_age_verification_min_ages();
+	$age_select = array( '-1' => _x( 'None', 'age', 'woocommerce-germanized' ) ) + wc_gzd_get_age_verification_min_ages();
 
 	return $age_select;
 }
@@ -245,6 +289,44 @@ function wc_gzd_get_age_verification_min_ages_select() {
  */
 function wc_gzd_format_tax_rate_percentage( $rate, $percent = false ) {
 	return str_replace( '.', ',', wc_format_decimal( str_replace( '%', '', $rate ), true, true ) ) . ( $percent ? ' %' : '' );
+}
+
+function wc_gzd_format_alcohol_content( $alcohol_content ) {
+	return apply_filters( 'woocommerce_gzd_formatted_alcohol_content', sprintf( '%1$s %% vol', wc_gzd_format_food_attribute_value( $alcohol_content, array( 'attribute_type' => 'alcohol_content' ) ) ) );
+}
+
+function wc_gzd_format_food_attribute_value( $decimal, $args = array() ) {
+	/**
+	 * Some strings might not be numeric, e.g. < 0,5 g - do not format them again.
+	 */
+	if ( ! is_numeric( $decimal ) ) {
+		return $decimal;
+	}
+
+	$args = apply_filters(
+		'wc_gzdp_food_attribute_args',
+		wp_parse_args(
+			$args,
+			array(
+				'decimal_separator'  => wc_get_price_decimal_separator(),
+				'thousand_separator' => '',
+				'decimals'           => 3,
+				'attribute_type'     => 'nutrient',
+			)
+		)
+	);
+
+	$original_decimal = $decimal;
+
+	// Convert to float to avoid issues on PHP 8.
+	$decimal = (float) $decimal;
+	$decimal = apply_filters( 'woocommerce_gzd_formatted_food_attribute_value', number_format( $decimal, $args['decimals'], $args['decimal_separator'], $args['thousand_separator'] ), $decimal, $args, $original_decimal );
+
+	if ( apply_filters( 'woocommerce_gzd_food_attribute_trim_zeros', true, $args ) && $args['decimals'] > 0 ) {
+		$decimal = preg_replace( '/' . preg_quote( $args['decimal_separator'], '/' ) . '*(0+)$/', '', $decimal );
+	}
+
+	return $decimal;
 }
 
 function wc_gzd_is_customer_activated( $user_id = '' ) {
@@ -273,8 +355,9 @@ function wc_gzd_get_legal_pages( $email_attachable_only = false ) {
 	);
 
 	$secondary_pages = array(
-		'payment_methods' => __( 'Payment Methods', 'woocommerce-germanized' ),
-		'shipping_costs'  => __( 'Shipping Costs', 'woocommerce-germanized' ),
+		'payment_methods'     => __( 'Payment Methods', 'woocommerce-germanized' ),
+		'shipping_costs'      => __( 'Shipping Costs', 'woocommerce-germanized' ),
+		'review_authenticity' => __( 'Review Authenticity', 'woocommerce-germanized' ),
 	);
 
 	if ( ! $email_attachable_only ) {
@@ -293,13 +376,24 @@ function wc_gzd_get_legal_pages( $email_attachable_only = false ) {
 	return apply_filters( 'woocommerce_gzd_legal_pages', $legal_pages, $email_attachable_only );
 }
 
-function wc_gzd_get_email_attachment_order() {
-	$order       = explode( ',', get_option( 'woocommerce_gzd_mail_attach_order', 'terms,revocation,data_security,imprint' ) );
-	$items       = array();
-	$legal_pages = wc_gzd_get_legal_pages( true );
+function wc_gzd_get_default_email_attachment_order() {
+	return 'terms,revocation,data_security,imprint,warranties,review_authenticity';
+}
 
-	foreach ( $order as $key => $item ) {
-		$items[ $item ] = ( isset( $legal_pages[ $item ] ) ? $legal_pages[ $item ] : '' );
+function wc_gzd_get_email_attachment_order( $legal_pages_only = false ) {
+	$available = wc_gzd_get_legal_pages( true );
+
+	if ( ! $legal_pages_only ) {
+		$available += array( 'warranties' => __( 'Product Warranties', 'woocommerce-germanized' ) );
+	}
+
+	$current_order = explode( ',', get_option( 'woocommerce_gzd_mail_attach_order', wc_gzd_get_default_email_attachment_order() ) );
+	// Mare sure all default items exist within option order array
+	$current_order = array_replace( array_keys( $available ), $current_order );
+	$items         = array();
+
+	foreach ( $current_order as $key => $item ) {
+		$items[ $item ] = ( isset( $available[ $item ] ) ? $available[ $item ] : '' );
 	}
 
 	return $items;
@@ -312,7 +406,7 @@ function wc_gzd_get_page_permalink( $type ) {
 		$page_id = wc_gzd_get_privacy_policy_page_id();
 	}
 
-	$link = $page_id ? get_permalink( $page_id ) : '';
+	$link = ( $page_id > 0 ) ? get_permalink( $page_id ) : '';
 
 	/**
 	 * Filters the page permalink for a certain legal page.
@@ -336,14 +430,12 @@ function wc_gzd_is_small_business() {
 }
 
 function wc_gzd_get_small_business_notice() {
-
 	/**
 	 * Filter the (global) small business notice.
 	 *
 	 * @param string $html The notice HTML.
 	 *
 	 * @since 1.0.0
-	 *
 	 */
 	return apply_filters( 'woocommerce_gzd_small_business_notice', get_option( 'woocommerce_gzd_small_enterprise_text', __( 'Value added tax is not collected, as small businesses according to §19 (1) UStG.', 'woocommerce-germanized' ) ) );
 }
@@ -385,7 +477,7 @@ function wc_gzd_shipping_method_id_matches_supported( $method_id, $supported = a
 	/**
 	 * E.g. Flexible shipping uses underscores. Add them to the search array.
 	 */
-	foreach( $supported as $supported_method ) {
+	foreach ( $supported as $supported_method ) {
 		$supported_method = str_replace( ':', '_', $supported_method );
 		$new_supported[]  = $supported_method;
 	}
@@ -397,10 +489,10 @@ function wc_gzd_shipping_method_id_matches_supported( $method_id, $supported = a
 	$method_parts = explode( '_', $new_method_id );
 
 	if ( ! empty( $method_parts ) ) {
-		$last_part = $method_parts[ sizeof( $method_parts ) - 1 ];
+		$last_part = $method_parts[ count( $method_parts ) - 1 ];
 
 		if ( is_numeric( $last_part ) ) {
-			$method_parts = array_slice( $method_parts, 0, ( sizeof( $method_parts ) - 1 ) );
+			$method_parts = array_slice( $method_parts, 0, ( count( $method_parts ) - 1 ) );
 
 			if ( ! empty( $method_parts ) ) {
 				$new_method_id = implode( '_', $method_parts );
@@ -408,7 +500,7 @@ function wc_gzd_shipping_method_id_matches_supported( $method_id, $supported = a
 		}
 	}
 
-	$is_supported = in_array( $new_method_id, $new_supported ) ? true : false;
+	$is_supported = in_array( $new_method_id, $new_supported ) ? true : false; // phpcs:ignore WordPress.PHP.StrictInArray.MissingTrueStrict
 
 	/**
 	 * Filter to check whether a certain shipping method id matches one of the
@@ -479,9 +571,9 @@ function wc_gzd_show_taxes_before_total( $location = 'checkout' ) {
 
 function wc_gzd_get_tax_rate_label( $rate_percentage, $type = 'incl' ) {
 	if ( 'incl' === $type ) {
-		$label = ( get_option( 'woocommerce_tax_total_display' ) == 'itemized' ? sprintf( __( 'incl. %s%% VAT', 'woocommerce-germanized' ), wc_gzd_format_tax_rate_percentage( $rate_percentage ) ) : __( 'incl. VAT', 'woocommerce-germanized' ) );
+		$label = ( 'itemized' === get_option( 'woocommerce_tax_total_display' ) ? sprintf( __( 'incl. %s%% VAT', 'woocommerce-germanized' ), wc_gzd_format_tax_rate_percentage( $rate_percentage ) ) : __( 'incl. VAT', 'woocommerce-germanized' ) );
 	} else {
-		$label = ( get_option( 'woocommerce_tax_total_display' ) == 'itemized' ? sprintf( __( '%s%% VAT', 'woocommerce-germanized' ), wc_gzd_format_tax_rate_percentage( $rate_percentage ) ) : __( 'VAT', 'woocommerce-germanized' ) );
+		$label = ( 'itemized' === get_option( 'woocommerce_tax_total_display' ) ? sprintf( __( '%s%% VAT', 'woocommerce-germanized' ), wc_gzd_format_tax_rate_percentage( $rate_percentage ) ) : __( 'VAT', 'woocommerce-germanized' ) );
 	}
 
 	/**
@@ -506,8 +598,8 @@ function wc_gzd_get_order_tax_rate_percentage( $tax_rate_id, $order ) {
 	$taxes      = $order->get_taxes();
 	$percentage = null;
 
-	foreach( $taxes as $tax ) {
-		if ( $tax->get_rate_id() == $tax_rate_id ) {
+	foreach ( $taxes as $tax ) {
+		if ( (int) $tax->get_rate_id() === (int) $tax_rate_id ) {
 			if ( is_callable( array( $tax, 'get_rate_percent' ) ) ) {
 				$percentage = $tax->get_rate_percent();
 				break;
@@ -575,8 +667,17 @@ function wc_gzd_get_shipping_costs_text( $product = false ) {
 	}
 }
 
+/**
+ * Sanitize html text field, e.g. to be passed to wp_editor.
+ * Be aware that calling update_post_meta with the value returned might
+ * lead to losing slashes as update_post_meta calls wp_unslash itself.
+ *
+ * @param string $value Slashed data expected
+ *
+ * @return string Unslashed HTML
+ */
 function wc_gzd_sanitize_html_text_field( $value ) {
-	return wp_kses_post( esc_html( wp_unslash( $value ) ) );
+	return trim( wp_unslash( wp_filter_post_kses( addslashes( $value ) ) ) );
 }
 
 function wc_gzd_convert_coupon_to_voucher( $coupon ) {
@@ -591,7 +692,6 @@ function wc_gzd_get_differential_taxation_notice_text() {
 	 * @param string $html The notice.
 	 *
 	 * @since 1.9.1
-	 *
 	 */
 	return apply_filters( 'woocommerce_gzd_differential_taxation_notice_text', get_option( 'woocommerce_gzd_differential_taxation_notice_text' ) );
 }
@@ -632,12 +732,15 @@ function wc_gzd_get_customer_title_options() {
 	 * @since 1.0.0
 	 *
 	 */
-	$titles = apply_filters( 'woocommerce_gzd_title_options', array(
-		0 => _x( 'None', 'title-option', 'woocommerce-germanized' ),
-		1  => __( 'Mr.', 'woocommerce-germanized' ),
-		2  => __( 'Ms.', 'woocommerce-germanized' ),
-		3  => __( 'Mx', 'woocommerce-germanized' )
-	) );
+	$titles = apply_filters(
+		'woocommerce_gzd_title_options',
+		array(
+			0 => _x( 'None', 'title-option', 'woocommerce-germanized' ),
+			1 => __( 'Mr.', 'woocommerce-germanized' ),
+			2 => __( 'Ms.', 'woocommerce-germanized' ),
+			3 => __( 'Mx', 'woocommerce-germanized' ),
+		)
+	);
 
 	return $titles;
 }
@@ -706,18 +809,6 @@ function wc_gzd_checkbox_is_enabled( $id ) {
 	}
 
 	return $enabled;
-}
-
-if ( ! function_exists( 'is_ajax' ) ) {
-
-	/**
-	 * Is_ajax - Returns true when the page is loaded via ajax.
-	 *
-	 * @return bool
-	 */
-	function is_ajax() {
-		return defined( 'DOING_AJAX' );
-	}
 }
 
 /**
@@ -847,7 +938,7 @@ function wc_gzd_replace_label_shortcodes( $html, $replacements ) {
 			// Check whether the closing tag is missing
 			if ( ! strstr( $original_html, $search ) && strstr( $original_html, $opener ) ) {
 				$needs_closing[ $search ] = $replace;
-			// Check whether the closing tag exists but the opener is missing
+				// Check whether the closing tag exists but the opener is missing
 			} elseif ( strstr( $original_html, $search ) && ! strstr( $original_html, $opener ) && array_key_exists( $opener, $replacements ) ) {
 				$needs_closing[ $opener ] = $replacements[ $opener ];
 			}
@@ -859,7 +950,7 @@ function wc_gzd_replace_label_shortcodes( $html, $replacements ) {
 	/**
 	 * Close missing opened/closed placeholders
 	 */
-	foreach( $needs_closing as $search => $replace ) {
+	foreach ( $needs_closing as $search => $replace ) {
 		if ( strstr( $search, '{/' ) ) {
 			$html = $html . $replace;
 		} else {
@@ -869,7 +960,7 @@ function wc_gzd_replace_label_shortcodes( $html, $replacements ) {
 
 	global $shortcode_tags;
 	$original_shortcode_tags = $shortcode_tags;
-	$shortcode_tags          = array();
+	$shortcode_tags          = array(); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 
 	add_shortcode( 'page', '_wc_gzd_page_shortcode' );
 
@@ -879,18 +970,21 @@ function wc_gzd_replace_label_shortcodes( $html, $replacements ) {
 
 	$html = do_shortcode( $html );
 
-	$shortcode_tags = $original_shortcode_tags;
+	$shortcode_tags = $original_shortcode_tags; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 
 	return $html;
 }
 
 function _wc_gzd_page_shortcode( $atts, $content = '' ) {
-	$atts = wp_parse_args( $atts, array(
-		'id'     => 0,
-		'target' => '_blank',
-		'text'   => '',
-		'url'    => '',
-	) );
+	$atts = wp_parse_args(
+		$atts,
+		array(
+			'id'     => 0,
+			'target' => '_blank',
+			'text'   => '',
+			'url'    => '',
+		)
+	);
 
 	if ( ( empty( $atts['id'] ) || ! get_post( $atts['id'] ) ) && empty( $atts['url'] ) ) {
 		return false;
@@ -917,7 +1011,7 @@ function _wc_gzd_legal_page_shortcode( $atts, $content, $tag ) {
 }
 
 function woocommerce_gzd_show_add_more_variants_notice( $product ) {
-	if ( 'variable' === $product->get_type() && apply_filters( "woocommerce_gzd_show_variable_more_variants_notice", false, $product ) ) {
+	if ( 'variable' === $product->get_type() && apply_filters( 'woocommerce_gzd_show_variable_more_variants_notice', false, $product ) ) {
 		return true;
 	}
 
@@ -925,7 +1019,7 @@ function woocommerce_gzd_show_add_more_variants_notice( $product ) {
 }
 
 function woocommerce_gzd_get_more_variants_notice( $product ) {
-	$text  = apply_filters( "woocommerce_gzd_variable_more_variants_notice_text", __( 'More variants available', 'woocommerce-germanized' ), $product );
+	$text = apply_filters( 'woocommerce_gzd_variable_more_variants_notice_text', __( 'More variants available', 'woocommerce-germanized' ), $product );
 	$html = '<span class="small smaller wc-gzd-additional-info more-variants-available-info">' . $text . '</span>';
 
 	return $html;
@@ -951,16 +1045,24 @@ function woocommmerce_gzd_price_range( $price_html, $from, $to ) {
 	}
 
 	$format     = woocommerce_gzd_get_price_range_format();
-	$price_html = str_replace( array(
-		'{min_price}',
-		'{max_price}'
-	), array( is_numeric( $from ) ? wc_price( $from ) : $from, is_numeric( $to ) ? wc_price( $to ) : $to ), $format );
+	$price_html = str_replace(
+		array(
+			'{min_price}',
+			'{max_price}',
+		),
+		array( is_numeric( $from ) ? wc_price( $from ) : $from, is_numeric( $to ) ? wc_price( $to ) : $to ),
+		$format
+	);
 
 	return $price_html;
 }
 
 function woocommerce_gzd_price_range_format_is_min_price() {
 	return strpos( woocommerce_gzd_get_price_range_format(), '{max_price}' ) === false;
+}
+
+function woocommerce_gzd_price_range_format_is_max_price() {
+	return strpos( woocommerce_gzd_get_price_range_format(), '{min_price}' ) === false;
 }
 
 function woocommerce_gzd_get_price_range_format() {
@@ -984,17 +1086,19 @@ function wc_gzd_get_default_revocation_address() {
 	$default   = '';
 
 	if ( $countries ) {
-		$default = $countries->get_formatted_address( array(
-			'company'   => get_bloginfo( 'name' ),
-			'city'      => $countries->get_base_city(),
-			'country'   => $countries->get_base_country(),
-			'address_1' => $countries->get_base_address(),
-			'address_2' => $countries->get_base_address_2(),
-			'postcode'  => $countries->get_base_postcode(),
-		) );
+		$default = $countries->get_formatted_address(
+			array(
+				'company'   => get_bloginfo( 'name' ),
+				'city'      => $countries->get_base_city(),
+				'country'   => $countries->get_base_country(),
+				'address_1' => $countries->get_base_address(),
+				'address_2' => $countries->get_base_address_2(),
+				'postcode'  => $countries->get_base_postcode(),
+			)
+		);
 	}
 
-	$address = str_replace( "<br/>", "\n", $default );
+	$address = str_replace( '<br/>', "\n", $default );
 
 	return $address;
 }
@@ -1099,19 +1203,69 @@ function wc_gzd_format_unit_base( $unit_base ) {
 	 *
 	 * @since 1.0.0
 	 */
-	$hide_amount = apply_filters( 'woocommerce_gzd_unit_base_hide_amount', 1 );
+	$hide_amount = apply_filters( 'woocommerce_gzd_unit_base_hide_amount', 1.0 );
 	$html        = '';
 
 	if ( '' !== $unit_base ) {
-		$html = ( $unit_base != $hide_amount ? '<span class="unit-base">' . $unit_base . '</span>' : '' );
+		$html = ( floatval( $unit_base ) !== floatval( $hide_amount ) ? '<span class="unit-base">' . $unit_base . '</span>' : '' );
 	}
 
 	return $html;
 }
 
-function wc_gzd_format_unit_price( $price, $unit, $unit_base ) {
-	$text         = get_option( 'woocommerce_gzd_unit_price_text' );
-	$replacements = array();
+function wc_gzd_format_product_units_decimal( $unit_product ) {
+	return str_replace( '.', ',', $unit_product );
+}
+
+function wc_gzd_format_deposit_amount( $amount, $args ) {
+	$args = wp_parse_args(
+		$args,
+		array(
+			'type'            => '',
+			'quantity'        => 1,
+			'packaging_type'  => '',
+			'amount_per_unit' => '',
+		)
+	);
+
+	$text                        = get_option( 'woocommerce_gzd_deposit_text' );
+	$deposit_type_name           = '';
+	$deposit_packaging_type_name = ! empty( $args['packaging_type'] ) ? WC_germanized()->deposit_types->get_packaging_type_title( $args['packaging_type'] ) : '';
+
+	if ( ! is_a( $args['type'], 'WP_Term' ) ) {
+		if ( $deposit_type_term = WC_germanized()->deposit_types->get_deposit_type_term( $args['type'] ) ) {
+			$deposit_type_name = $deposit_type_term->name;
+		} else {
+			$deposit_type_name = $args['type'];
+		}
+	} else {
+		$deposit_type_name = $args['type']->name;
+	}
+
+	$replacements = array(
+		'{amount}'          => $amount,
+		'{type}'            => '' === $deposit_type_name ? '' : '<span class="deposit-type">' . esc_html( $deposit_type_name ) . '</span>',
+		'{packaging_type}'  => '' === $deposit_packaging_type_name ? '' : '<span class="deposit-packaging-type">' . esc_html( $deposit_packaging_type_name ) . '</span>',
+		'{quantity}'        => '' === $args['quantity'] ? '' : '<span class="deposit-quantity">' . esc_html( $args['quantity'] ) . '</span>',
+		'{amount_per_unit}' => '' === $args['amount_per_unit'] ? '' : '<span class="deposit-amount-per-unit">' . $args['amount_per_unit'] . '</span>',
+	);
+
+	$html = wc_gzd_replace_label_shortcodes( $text, $replacements );
+
+	/**
+	 * Filter to adjust the formatted deposit amount.
+	 *
+	 * @param string $html  The html output
+	 * @param string $price The price html
+	 * @param array $args   Additional arguments
+	 *
+	 * @since 3.9.0
+	 */
+	return apply_filters( 'woocommerce_gzd_formatted_deposit_price', $html, $amount, $args );
+}
+
+function wc_gzd_format_unit_price( $price, $unit, $unit_base, $product_units = '' ) {
+	$text = get_option( 'woocommerce_gzd_unit_price_text' );
 
 	/**
 	 * Filter to adjust the unit price base separator.
@@ -1119,29 +1273,20 @@ function wc_gzd_format_unit_price( $price, $unit, $unit_base ) {
 	 * @param string $separator The separator.
 	 *
 	 * @since 1.0.0
-	 *
 	 */
 	$separator = apply_filters( 'wc_gzd_unit_price_base_seperator', ' ' );
 
-	if ( strpos( $text, '{price}' ) !== false ) {
-		$replacements = array(
-			/**
-			 * Filter to adjust the unit price separator.
-			 *
-			 * @param string $separator The separator.
-			 *
-			 * @since 1.0.0
-			 *
-			 */
-			'{price}' => $price . apply_filters( 'wc_gzd_unit_price_seperator', ' / ' ) . $unit_base . $separator . $unit,
-		);
-	} else {
-		$replacements = array(
-			'{unit_price}' => $price,
-			'{base_price}' => $price,
-			'{unit}'       => $unit,
-			'{base}'       => $unit_base
-		);
+	$replacements = array(
+		'{product_units}' => $product_units,
+		'{unit_price}'    => $price,
+		'{base_price}'    => $price,
+		'{unit}'          => $unit,
+		'{base}'          => $unit_base,
+		'{price}'         => $price . apply_filters( 'wc_gzd_unit_price_seperator', ' / ' ) . $unit_base . $separator . $unit,
+	);
+
+	if ( ! empty( $replacements['{product_units}'] ) ) {
+		$replacements['{product_units}'] = '<span class="product-units">' . $replacements['{product_units}'] . '</span>';
 	}
 
 	$html = wc_gzd_replace_label_shortcodes( $text, $replacements );
@@ -1177,7 +1322,354 @@ function wc_gzd_additional_costs_include_tax() {
 
 function wc_gzd_base_country_is_eu() {
 	$eu_countries = WC()->countries->get_european_union_countries();
-	$base_country = WC()->countries->get_base_country();
+	$base_country = wc_gzd_get_base_country();
 
-	return in_array( $base_country, $eu_countries );
+	return in_array( $base_country, $eu_countries, true );
+}
+
+function wc_gzd_get_cart_defect_descriptions( $items = false ) {
+	$items        = $items ? (array) $items : WC()->cart->get_cart();
+	$descriptions = array();
+	$is_cart      = true;
+
+	if ( ! empty( $items ) ) {
+		foreach ( $items as $cart_item_key => $values ) {
+			if ( is_a( $values, 'WC_Order_Item_Product' ) ) {
+				if ( $gzd_item = wc_gzd_get_order_item( $values ) ) {
+					if ( $gzd_item->get_defect_description() ) {
+						if ( ! empty( $values->get_product_id() ) && ! array_key_exists( $values->get_product_id(), $descriptions ) ) {
+							$descriptions[ wp_kses_post( $values->get_name() ) ] = $gzd_item->get_defect_description();
+						}
+					}
+				}
+
+				$is_cart = false;
+			} elseif ( isset( $values['data'] ) ) {
+				$_product = apply_filters( 'woocommerce_cart_item_product', $values['data'], $values, $cart_item_key );
+
+				if ( is_a( $_product, 'WC_Product' ) ) {
+					$_gzd_product = wc_gzd_get_gzd_product( $_product );
+
+					if ( $_gzd_product->is_defective_copy() && ! array_key_exists( $_product->get_id(), $descriptions ) ) {
+						$descriptions[ wp_kses_post( $_product->get_name() ) ] = $_gzd_product->get_formatted_defect_description();
+					}
+				}
+			}
+		}
+	}
+
+	if ( ! $is_cart ) {
+		/**
+		 * Returns a list of defect descriptions on a per product base.
+		 *
+		 * @param string[] $descriptions The defect descriptions as key => value pairs.
+		 * @param array $items The order items.
+		 *
+		 * @since 3.8.0
+		 */
+		return apply_filters( 'woocommerce_gzd_order_defect_descriptions', $descriptions, $items );
+	} else {
+		/**
+		 * Returns a list of defect descriptions on a per product base.
+		 *
+		 * @param string[] $descriptions The defect descriptions as key => value pairs.
+		 * @param array $items The cart items.
+		 *
+		 * @since 3.8.0
+		 */
+		return apply_filters( 'woocommerce_gzd_cart_defect_descriptions', $descriptions, $items );
+	}
+}
+
+function wc_gzd_update_page_content( $page_id, $content, $append = true ) {
+	$page = get_post( $page_id );
+
+	if ( $page ) {
+		$is_shortcode    = preg_match( '/^\[[a-z]+(?:_[a-z]+)*]$/m', $content ) > 0;
+		$current_content = $append ? $page->post_content . "\n" : '';
+		$new_content     = $current_content . wp_kses_post( $content );
+
+		if ( function_exists( 'has_blocks' ) && has_blocks( $page_id ) ) {
+			if ( $is_shortcode ) {
+				$new_content = $current_content . "<!-- wp:shortcode -->\n" . ' ' . esc_html( $content ) . ' ' . "\n  <!-- /wp:shortcode -->";
+			} else {
+				$new_content = $current_content . wp_kses_post( $content );
+			}
+		}
+
+		wp_update_post(
+			array(
+				'ID'           => $page_id,
+				'post_content' => apply_filters( 'woocommerce_gzd_update_page_content', $new_content, $page_id, $content, $page->post_content, $append, $is_shortcode ),
+			)
+		);
+	}
+}
+
+function wc_gzd_content_has_shortcode( $content, $shortcode ) {
+	global $shortcode_tags;
+
+	$shortcode_exists = shortcode_exists( $shortcode );
+
+	/**
+	 * Temporarily register the shortcode to enable finding non-registered shortcodes too.
+	 */
+	if ( ! $shortcode_exists ) {
+		$shortcode_tags[ $shortcode ] = '__return_false'; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+	}
+
+	$has_shortcode = has_shortcode( $content, $shortcode );
+
+	if ( ! $shortcode_exists ) {
+		unset( $shortcode_tags[ $shortcode ] );
+	}
+
+	return $has_shortcode;
+}
+
+function wc_gzd_print_item_defect_descriptions( $descriptions, $echo = false ) {
+	$strings = array();
+
+	foreach ( $descriptions as $name => $description ) {
+		$strings[] = sprintf(
+			_x( '%1$s (%2$s)', 'defect-descriptions', 'woocommerce-germanized' ),
+			wp_kses(
+				$description,
+				array(
+					'strong' => array(),
+					'i'      => array(),
+					'em'     => array(),
+					'a'      => array(),
+					'b'      => array(),
+				)
+			),
+			$name
+		);
+	}
+
+	$string = implode( apply_filters( 'woocommerce_gzd_item_defect_descriptions_separator', '; ' ), $strings );
+
+	if ( $echo ) {
+		echo wp_kses_post( $string );
+	}
+
+	return $string;
+}
+
+function wc_gzd_get_post_plain_content( $content_post, $shortcodes_allowed = array() ) {
+	global $post;
+	$reset_post = $post;
+
+	if ( is_numeric( $content_post ) ) {
+		$post = get_post( $content_post ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+	} else {
+		$post = $content_post; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+	}
+
+	$content = '';
+
+	if ( is_a( $post, 'WP_Post' ) ) {
+		setup_postdata( $post );
+
+		do_action( 'woocommerce_gzd_before_get_post_plain_content', $post, $shortcodes_allowed );
+
+		$content = $post->post_content;
+
+		// Find all registered tag names in $content.
+		preg_match_all( '@\[([^<>&/\[\]\x00-\x20=]++)@', $content, $matches );
+		$shortcodes_to_remove = array_unique( array_diff( $matches[1], $shortcodes_allowed ) );
+
+		if ( ! empty( $shortcodes_to_remove ) ) {
+			$content = do_shortcodes_in_html_tags( $content, true, $shortcodes_to_remove );
+
+			foreach ( $shortcodes_to_remove as $shortcode_tag ) {
+				$pattern = get_shortcode_regex( array( $shortcode_tag ) );
+				$content = preg_replace_callback(
+					"/$pattern/s",
+					function( $matches ) {
+						if ( ! empty( $matches[5] ) ) {
+							return $matches[5];
+						}
+
+						return '';
+					},
+					$content
+				);
+			}
+		}
+
+		$content = preg_replace( '/<p[^>]*>(?:\s|&nbsp;)*<\/p>/', '', $content );
+		$content = apply_filters( 'the_content', $content );
+
+		/**
+		 * Remove shortcodes which may be added (but not rendered) during the apply_filters call too, e.g. by VC builder.
+		 */
+		$content = preg_replace( '~(?:\[/?)[^/\]]+/?\]~s', '', $content );
+		$content = unescape_invalid_shortcodes( $content );
+		$content = str_replace( ']]>', ']]&gt;', $content );
+
+		do_action( 'woocommerce_gzd_after_get_post_plain_content', $post, $shortcodes_allowed );
+	}
+
+	/**
+	 * Reset post data to keep global loop valid.
+	 */
+	if ( $reset_post && is_a( $reset_post, 'WP_Post' ) ) {
+		$post = $reset_post; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+
+		setup_postdata( $post );
+	}
+
+	// Remove empty p tags
+	$content = preg_replace( '/<p[^>]*>(?:\s|&nbsp;)*<\/p>/', '', $content );
+	$content = trim( $content );
+
+	return apply_filters( 'woocommerce_gzd_post_plain_content', $content, $content_post );
+}
+
+add_filter( 'woocommerce_gzd_dhl_enable_logging', 'wc_gzd_is_extended_debug_mode_enabled', 5 );
+add_filter( 'woocommerce_gzd_shipments_enable_logging', 'wc_gzd_is_extended_debug_mode_enabled', 5 );
+add_filter( 'oss_woocommerce_enable_extended_logging', 'wc_gzd_is_extended_debug_mode_enabled', 5 );
+
+function wc_gzd_is_extended_debug_mode_enabled() {
+	return 'yes' === get_option( 'woocommerce_gzd_extended_debug_mode' );
+}
+
+function wc_gzd_get_base_country() {
+	if ( WC()->countries ) {
+		return WC()->countries->get_base_country();
+	} elseif ( function_exists( 'wc_get_base_location' ) ) {
+		return wc_get_base_location()['country'];
+	} else {
+		return 'DE';
+	}
+}
+
+function wc_gzd_is_admin_order_request() {
+	return \Vendidero\EUTaxHelper\Helper::is_admin_order_request();
+}
+
+function wc_gzd_get_dom_document( $html ) {
+	if ( ! class_exists( 'DOMDocument' ) ) {
+		return false;
+	}
+
+	$html = trim( $html );
+
+	if ( empty( $html ) ) {
+		return false;
+	}
+
+	libxml_use_internal_errors( true );
+	$dom                      = new DOMDocument( '1.0', 'utf-8' );
+	$dom->preserveWhiteSpace  = true; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+	$dom->formatOutput        = false; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+	$dom->strictErrorChecking = false; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+
+	if ( ! defined( 'LIBXML_HTML_NOIMPLIED' ) ) {
+		return false;
+	}
+
+	/**
+	 * Load without HTML wrappers (html, body). Force UTF-8 encoding.
+	*/
+	@$dom->loadHTML( '<?xml version="1.0" encoding="UTF-8"?>' . "\n" . $html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+	// Explicitly force utf-8 encoding
+	$dom->encoding = 'UTF-8';
+
+	libxml_clear_errors();
+
+	if ( ! $dom->hasChildNodes() ) {
+		return false;
+	}
+
+	return $dom;
+}
+
+/**
+ * @param \DomDocument $dom
+ *
+ * @return string|false
+ */
+function wc_gzd_get_dom_document_html( $dom ) {
+	$html = $dom->saveHTML();
+
+	if ( $html ) {
+		$html = str_replace( '<?xml version="1.0" encoding="UTF-8"?>', '', $html );
+	}
+
+	return $html;
+}
+
+function wc_gzd_register_hooks_in_product_block_html( $html, $x_paths, $org_product, $hook_prefix = 'woocommerce_gzd_after_product_grid_block_after_' ) {
+	$dom = wc_gzd_get_dom_document( $html );
+
+	if ( ! $dom ) {
+		return $html;
+	}
+
+	$finder       = new DomXPath( $dom );
+	$html_updated = false;
+
+	foreach ( $x_paths as $location => $x_path ) {
+		$nodes = $finder->query( $x_path );
+
+		if ( count( $nodes ) <= 0 ) {
+			continue;
+		}
+
+		$node = $nodes->item( 0 );
+
+		ob_start();
+		global $product;
+		$old_product = false;
+
+		if ( $product && is_a( $product, 'WC_Product' ) ) {
+			$old_product = $product;
+		}
+
+		$product = $org_product;
+
+		do_action( $hook_prefix . $location );
+		$hook_html = ob_get_clean();
+
+		if ( $old_product ) {
+			$product = $old_product;
+		}
+
+		if ( ! empty( $hook_html ) ) {
+			$tmp_dom = wc_gzd_get_dom_document( $hook_html );
+
+			if ( $tmp_dom ) {
+				$fragment = $node->ownerDocument->createDocumentFragment(); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+
+				foreach ( $tmp_dom->childNodes as $child ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					$fragment->appendChild( $fragment->ownerDocument->importNode( $child, true ) ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				}
+
+				if ( count( $fragment->childNodes ) > 0 ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					$node->parentNode->insertBefore( $fragment, $node->nextSibling ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					$html_updated = true;
+				}
+			}
+		}
+	}
+
+	if ( $html_updated ) {
+		$new_html = wc_gzd_get_dom_document_html( $dom );
+
+		if ( $new_html ) {
+			$html = $new_html;
+		}
+	}
+
+	return $html;
+}
+
+function wc_gzd_get_html_classes( $classes ) {
+	if ( is_array( $classes ) ) {
+		$classes = implode( ' ', array_map( 'esc_attr', $classes ) );
+	}
+
+	return $classes;
 }

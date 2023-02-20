@@ -12,38 +12,46 @@
  *
  * @see https://github.com/vendidero/woocommerce-germanized/wiki/Overriding-Germanized-Templates
  * @package Germanized/DHL/Templates
- * @version 1.0.0
+ * @version 1.1.0
  */
 defined( 'ABSPATH' ) || exit;
 ?>
-
 <div id="parcel-content">
 	<div id="site-notice"></div>
-	<h4 class="parcel-title"><?php echo $result->gzd_name; ?></h4>
+	<h4 class="parcel-title"><?php echo esc_html( $result->gzd_name ); ?></h4>
 	<div id="bodyContent">
 		<address>
-			<?php echo $result->address->street; ?> <?php echo $result->address->streetNo; ?><br/>
-			<?php echo $result->address->zip; ?> <?php echo $result->address->city; ?><br/>
+			<?php
+			echo wp_kses_post(
+				WC()->countries->get_formatted_address(
+					array(
+						'address_1' => $result->place->address->streetAddress,
+						'postcode'  => $result->place->address->postalCode,
+						'city'      => $result->place->address->addressLocality,
+						'country'   => $result->place->address->countryCode,
+					)
+				)
+			);
+			?>
 		</address>
 
 		<?php if ( 'packstation' !== $result->gzd_type ) : ?>
 			<div class="parcel-opening-hours">
-				<h5 class="parcel-subtitle"><?php _ex( 'Opening Times', 'dhl', 'woocommerce-germanized' ); ?></h5>
+				<h5 class="parcel-subtitle"><?php echo esc_html_x( 'Opening Times', 'dhl', 'woocommerce-germanized' ); ?></h5>
 
-				<?php foreach( $result->gzd_opening_hours as $time ) : ?>
-					<?php echo $time['weekday']; ?>: <?php echo $time['time_html']; ?><br/>
+				<?php foreach ( $result->gzd_opening_hours as $time ) : ?>
+					<?php echo esc_html( $time['weekday'] ); ?>: <?php echo wp_kses_post( $time['time_html'] ); ?><br/>
 				<?php endforeach; ?>
 			</div>
 
 			<div class="parcel-services">
-				<h5 class="parcel-subtitle"><?php _ex( 'Services', 'dhl', 'woocommerce-germanized' ); ?></h5>
+				<h5 class="parcel-subtitle"><?php echo esc_html_x( 'Services', 'dhl', 'woocommerce-germanized' ); ?></h5>
 
-				<?php _ex( 'Handicap Accessible', 'dhl', 'woocommerce-germanized' ); ?>: <?php echo ( $result->hasHandicappedAccess ? _x( 'Yes', 'dhl', 'woocommerce-germanized' ) : _x( 'No', 'dhl', 'woocommerce-germanized' ) ); ?><br/>
-				<?php _ex( 'Parking', 'dhl', 'woocommerce-germanized' ); ?>: <?php echo ( $result->hasParkingArea ? _x( 'Yes', 'dhl', 'woocommerce-germanized' ) : _x( 'No', 'dhl', 'woocommerce-germanized' ) ); ?><br/>
+				<?php echo esc_html_x( 'Handicap Accessible', 'dhl', 'woocommerce-germanized' ); ?>: <?php echo ( in_array( 'handicapped-access', $result->serviceTypes, true ) ? esc_html_x( 'Yes', 'dhl', 'woocommerce-germanized' ) : esc_html_x( 'No', 'dhl', 'woocommerce-germanized' ) ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase ?><br/>
+				<?php echo esc_html_x( 'Parking', 'dhl', 'woocommerce-germanized' ); ?>: <?php echo ( ( in_array( 'parking', $result->serviceTypes, true ) ) ? esc_html_x( 'Yes', 'dhl', 'woocommerce-germanized' ) : esc_html_x( 'No', 'dhl', 'woocommerce-germanized' ) ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase ?><br/>
 			</div>
-		
 		<?php endif; ?>
 
-		<button type="button" class="dhl-parcelshop-select-btn" id="<?php echo esc_attr( $result->gzd_result_id ); ?>"><?php _ex( 'Select ', 'dhl', 'woocommerce-germanized' ); ?></button>
+		<button type="button" class="dhl-parcelshop-select-btn" id="<?php echo esc_attr( $result->gzd_result_id ); ?>"><?php echo esc_html_x( 'Select ', 'dhl', 'woocommerce-germanized' ); ?></button>
 	</div>
 </div>

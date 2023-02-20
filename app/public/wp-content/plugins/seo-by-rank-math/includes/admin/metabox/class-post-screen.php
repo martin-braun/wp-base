@@ -139,11 +139,8 @@ class Post_Screen implements IScreen {
 			'postName'               => get_post_field( 'post_name', get_post() ),
 			'permalinkFormat'        => $this->get_permalink_format(),
 			'assessor'               => [
-				'hasTOCPlugin'     => $this->has_toc_plugin(),
-				'sentimentKbLink'  => KB::get( 'sentiments' ),
 				'focusKeywordLink' => admin_url( 'edit.php?focus_keyword=%focus_keyword%&post_type=%post_type%' ),
-				'isUserEdit'       => Admin_Helper::is_user_edit(),
-				'socialPanelLink'  => Helper::get_admin_url( 'options-titles#setting-panel-social' ),
+				'hasTOCPlugin'     => $this->has_toc_plugin(),
 				'primaryTaxonomy'  => $this->get_primary_taxonomy(),
 			],
 		];
@@ -194,6 +191,7 @@ class Post_Screen implements IScreen {
 			'titleSentiment'            => true,
 			'titleHasPowerWords'        => true,
 			'titleHasNumber'            => true,
+			'hasContentAI'              => true,
 		];
 
 		return $tests;
@@ -223,6 +221,11 @@ class Post_Screen implements IScreen {
 	private function get_permalink_format() {
 		$post_id = $this->get_object_id();
 		$post    = get_post( $post_id );
+
+		if ( 'attachment' === $post->post_type ) {
+			return str_replace( $post->post_name, '%postname%', get_permalink( $post ) );
+		}
+
 		if ( 'auto-draft' !== $post->post_status || 'post' !== $post->post_type ) {
 			$sample_permalink = get_sample_permalink( $post_id, null, null );
 			return isset( $sample_permalink[0] ) ? $sample_permalink[0] : home_url();
@@ -272,7 +275,7 @@ class Post_Screen implements IScreen {
 	 * Enqueque scripts common for all builders.
 	 */
 	private function enqueue_commons() {
-		wp_register_style( 'rank-math-post-metabox', rank_math()->plugin_url() . 'assets/admin/css/gutenberg.css', [], rank_math()->version );
+		wp_register_style( 'rank-math-editor', rank_math()->plugin_url() . 'assets/admin/css/gutenberg.css', [], rank_math()->version );
 	}
 
 	/**
@@ -296,10 +299,10 @@ class Post_Screen implements IScreen {
 	 * Enqueue scripts for gutenberg screen.
 	 */
 	private function enqueue_for_gutenberg() {
-		wp_enqueue_style( 'rank-math-post-metabox' );
+		wp_enqueue_style( 'rank-math-editor' );
 		wp_enqueue_script( 'rank-math-formats' );
 		wp_enqueue_script(
-			'rank-math-gutenberg',
+			'rank-math-editor',
 			rank_math()->plugin_url() . 'assets/admin/js/gutenberg.js',
 			[
 				'clipboard',
@@ -313,6 +316,7 @@ class Post_Screen implements IScreen {
 				'wp-plugins',
 				'wp-wordcount',
 				'rank-math-analyzer',
+				'rank-math-app',
 			],
 			rank_math()->version,
 			true
@@ -325,12 +329,13 @@ class Post_Screen implements IScreen {
 	 * @return string
 	 */
 	private function get_current_post_type() {
+		$post_type = get_post_type();
 		if ( function_exists( 'get_current_screen' ) ) {
-			$screen = get_current_screen();
-			return $screen->post_type;
+			$screen    = get_current_screen();
+			$post_type = isset( $screen->post_type ) ? $screen->post_type : $post_type;
 		}
 
-		return get_post_type();
+		return $post_type;
 	}
 
 	/**
@@ -408,6 +413,9 @@ class Post_Screen implements IScreen {
 		}
 
 		$taxonomy = get_taxonomy( $taxonomy );
+		if ( empty( $taxonomy ) ) {
+			return false;
+		}
 
 		$this->primary_taxonomy = [
 			'title'         => $taxonomy->labels->singular_name,

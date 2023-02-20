@@ -5,7 +5,7 @@
  * @package           TrimPress
  * Plugin Name:       TrimPress
  * Description:       Trim some of the cruft from WordPress for a lighter, more secure theme!
- * Version:           1.0.1
+ * Version:           1.1
  * Author:            David Matthew
  * Author URI:        https://davidmatthew.ie
  * License:           GPL-3
@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Current plugin version, manually defined for performance reasons.
-define( 'TRIMPRESS_VERSION', '1.0.1' );
+define( 'TRIMPRESS_VERSION', '1.1' );
 
 // Load the core plugin class and create a plugin instance.
 require plugin_dir_path( __FILE__ ) . 'classes/class-trimpress.php';

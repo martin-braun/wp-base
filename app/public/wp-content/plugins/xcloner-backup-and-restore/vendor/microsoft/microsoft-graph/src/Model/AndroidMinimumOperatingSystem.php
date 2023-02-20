@@ -7,10 +7,9 @@
 *
 * @category  Library
 * @package   Microsoft.Graph
-* @copyright © Microsoft Corporation. All rights reserved.
+* @copyright (c) Microsoft Corporation. All rights reserved.
 * @license   https://opensource.org/licenses/MIT MIT License
-* @version   GIT: 1.4.0
-* @link      https://graph.microsoft.io/
+* @link      https://graph.microsoft.com
 */
 namespace Microsoft\Graph\Model;
 /**
@@ -18,18 +17,73 @@ namespace Microsoft\Graph\Model;
 *
 * @category  Model
 * @package   Microsoft.Graph
-* @copyright © Microsoft Corporation. All rights reserved.
+* @copyright (c) Microsoft Corporation. All rights reserved.
 * @license   https://opensource.org/licenses/MIT MIT License
-* @version   Release: 1.4.0
-* @link      https://graph.microsoft.io/
+* @link      https://graph.microsoft.com
 */
 class AndroidMinimumOperatingSystem extends Entity
 {
     /**
+    * Gets the v10_0
+    * Version 10.0 or later.
+    *
+    * @return bool|null The v10_0
+    */
+    public function getV10_0()
+    {
+        if (array_key_exists("v100", $this->_propDict)) {
+            return $this->_propDict["v100"];
+        } else {
+            return null;
+        }
+    }
+
+    /**
+    * Sets the v10_0
+    * Version 10.0 or later.
+    *
+    * @param bool $val The value of the v10_0
+    *
+    * @return AndroidMinimumOperatingSystem
+    */
+    public function setV10_0($val)
+    {
+        $this->_propDict["v100"] = $val;
+        return $this;
+    }
+    /**
+    * Gets the v11_0
+    * Version 11.0 or later.
+    *
+    * @return bool|null The v11_0
+    */
+    public function getV11_0()
+    {
+        if (array_key_exists("v110", $this->_propDict)) {
+            return $this->_propDict["v110"];
+        } else {
+            return null;
+        }
+    }
+
+    /**
+    * Sets the v11_0
+    * Version 11.0 or later.
+    *
+    * @param bool $val The value of the v11_0
+    *
+    * @return AndroidMinimumOperatingSystem
+    */
+    public function setV11_0($val)
+    {
+        $this->_propDict["v110"] = $val;
+        return $this;
+    }
+    /**
     * Gets the v4_0
     * Version 4.0 or later.
     *
-    * @return bool The v4_0
+    * @return bool|null The v4_0
     */
     public function getV4_0()
     {
@@ -57,7 +111,7 @@ class AndroidMinimumOperatingSystem extends Entity
     * Gets the v4_0_3
     * Version 4.0.3 or later.
     *
-    * @return bool The v4_0_3
+    * @return bool|null The v4_0_3
     */
     public function getV4_0_3()
     {
@@ -85,7 +139,7 @@ class AndroidMinimumOperatingSystem extends Entity
     * Gets the v4_1
     * Version 4.1 or later.
     *
-    * @return bool The v4_1
+    * @return bool|null The v4_1
     */
     public function getV4_1()
     {
@@ -113,7 +167,7 @@ class AndroidMinimumOperatingSystem extends Entity
     * Gets the v4_2
     * Version 4.2 or later.
     *
-    * @return bool The v4_2
+    * @return bool|null The v4_2
     */
     public function getV4_2()
     {
@@ -141,7 +195,7 @@ class AndroidMinimumOperatingSystem extends Entity
     * Gets the v4_3
     * Version 4.3 or later.
     *
-    * @return bool The v4_3
+    * @return bool|null The v4_3
     */
     public function getV4_3()
     {
@@ -169,7 +223,7 @@ class AndroidMinimumOperatingSystem extends Entity
     * Gets the v4_4
     * Version 4.4 or later.
     *
-    * @return bool The v4_4
+    * @return bool|null The v4_4
     */
     public function getV4_4()
     {
@@ -197,7 +251,7 @@ class AndroidMinimumOperatingSystem extends Entity
     * Gets the v5_0
     * Version 5.0 or later.
     *
-    * @return bool The v5_0
+    * @return bool|null The v5_0
     */
     public function getV5_0()
     {
@@ -225,7 +279,7 @@ class AndroidMinimumOperatingSystem extends Entity
     * Gets the v5_1
     * Version 5.1 or later.
     *
-    * @return bool The v5_1
+    * @return bool|null The v5_1
     */
     public function getV5_1()
     {

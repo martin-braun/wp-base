@@ -3,9 +3,9 @@ Tags: notices, notification, notifications, disable, upgrade, nag
 Contributors: webcraftic, alexkovalevv, creativemotion
 Donate link: https://clearfy.pro/disable-admin-notices/
 Requires at least: 5.2
-Tested up to: 5.8
+Tested up to: 6.1
 Requires PHP: 7.0
-Stable tag: trunk
+Stable tag: 1.3.2
 License: GPLv2
 
 Disable admin notices plugin gives you the option to hide updates warnings and inline notices in the admin panel.
@@ -62,6 +62,23 @@ If you want to help with the translation, please contact me through this site or
 3. Notifications panel (optional)
 
 == Changelog ==
+= 1.3.1 (27.05.2022) =
+* Some Fixes
+* Added: Compatibility with Wordpress 6.1
+
+= 1.3.2 (17.01.2023) =
+* Fixed: Exception error on PHP 8
+
+= 1.3.0 (27.05.2022) =
+* Added: Compatibility with Wordpress 6.0
+
+= 1.2.9 (23.03.2022) =
+* Added: Compatibility with Wordpress 5.9
+* Fixed: Minor bugs
+
+= 1.2.8 (13.01.2022) =
+* Fixed: compatibility error with plugin WP Fastest Cache
+
 = 1.2.7 (20.10.2021) =
 * Added: Compatibility with Wordpress 5.8
 * Fixed: Minor bugs

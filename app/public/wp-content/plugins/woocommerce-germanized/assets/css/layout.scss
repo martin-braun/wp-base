@@ -1,6 +1,11 @@
 p.wc-gzd-additional-info:empty {
   display: none;
 }
+
+.wc-gzd-additional-info-placeholder {
+  display: none;
+}
+
 #order_review .wc-gzd-checkbox-placeholder {
   clear: both;
 
@@ -26,7 +31,7 @@ p.wc-gzd-additional-info:empty {
   font-size: 0.9em;
   padding-left: 3px;
 }
-#order_review_heading {
+.woocommerce-gzd-checkout #order_review_heading {
   display: none;
 }
 .woocommerce-checkout .shop_table tr td p {
@@ -48,20 +53,21 @@ p.wc-gzd-additional-info:empty {
 .shop_table .product-name-inner tr td:last-child {
   text-align: right;
 }
-.cart_totals .wc-gzd-additional-wrapper {
-  text-align: right;
-  clear: both;
+
+.cart_totals, .woocommerce-checkout table.shop_table {
+  .wc-gzd-additional-wrapper {
+    text-align: right;
+    clear: both;
+  }
+
+  p.wc-gzd-additional-info {
+    display: inline-block;
+    margin-bottom: 0;
+    font-size: 0.8em;
+    font-weight: normal;
+  }
 }
-.cart_totals p.wc-gzd-additional-info {
-  width: 60%;
-  border-top: 1px solid #CCC;
-  padding-top: 0.5rem;
-  display: inline-block;
-}
-.cart_totals p.wc-gzd-additional-info, tr.order-total p.wc-gzd-additional-info {
-  font-size: 0.8em;
-  font-weight: normal;
-}
+
 .entry-content .woocommerce #payment {
   margin-bottom: 1em;
 }
@@ -108,6 +114,33 @@ p.wc-gzd-additional-info:empty {
   font-size: 0.9em;
   clear: left;
 }
+.product .defect-description:not(:empty) {
+  padding: .5em;
+  border: 2px solid #4b4f58;
+  margin: 1em 0;
+
+  p:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.deposit-packaging-type {
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+.product p.deposit-packaging-type {
+  font-size: 1.2em !important;
+}
+.wc-gzd-rating-authenticity-status {
+  display: block;
+  font-size: .9em;
+}
+.woocommerce-product-rating {
+  .wc-gzd-rating-authenticity-status {
+    display: inline-block;
+  }
+}
 .product .product_meta {
   margin-top: 1rem;
 }
@@ -116,8 +149,9 @@ p.footer-info {
   font-size: 0.9em;
   padding-bottom: 0.5rem;
 }
-.wc-gzd-item-desc p {
+.wc-gzd-item-desc p, .wc-gzd-item-defect-description p {
   font-size: 0.9em;
+  font-weight: normal;
 }
 .wc-gzd-edit-data-notice {
   background: #EEE;
@@ -128,6 +162,11 @@ p.footer-info {
   margin: 0;
   padding: 0;
 }
+
+.wc-gzd-cart-info {
+  display: block;
+}
+
 table.product-details-inner {
   table-layout:fixed;
   margin: 0;
@@ -156,6 +195,106 @@ table.product-details-inner tr td:last-child {
 }
 #shipping_parcelshop_post_number_field .optional {
   display: none !important;
+}
+
+.wc-gzd-nutri-score-value {
+  height: 4rem;
+  width: 7.0625rem;
+  display: block;
+  text-indent: -9999px;
+}
+
+.wc-gzd-placeholder-loading {
+  position: relative;
+  display: flex;
+  flex: 0 0 100%;
+  flex-flow: column;
+  overflow: hidden;
+
+  * {
+    box-sizing: border-box;
+  }
+
+  &::before {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 50%;
+    z-index: 1;
+    width: 500%;
+    margin-left: -250%;
+    background: linear-gradient(to right, rgba(255, 255, 255, 0) 46%, rgba(255, 255, 255, 0.35) 50%, rgba(255, 255, 255, 0) 54%) 50% 50%;
+    -webkit-animation: phAnimation 0.8s linear infinite;
+    animation: phAnimation 0.8s linear infinite;
+    content: " ";
+    pointer-events: none;
+  }
+
+  .wc-gzd-placeholder-row {
+    display: flex;
+    vertical-align: middle;
+    align-items: center;
+
+    > * {
+      height: 10px;
+      background-color: #e7e7e7;
+      display: block;
+    }
+
+    .wc-gzd-placeholder-row-col-4 {
+      min-width: 100px;
+    }
+  }
+}
+
+@-webkit-keyframes phAnimation {
+  0% {
+    transform: translate3d(-30%, 0, 0);
+  }
+  100% {
+    transform: translate3d(30%, 0, 0);
+  }
+}
+
+@keyframes phAnimation {
+  0% {
+    transform: translate3d(-30%, 0, 0);
+  }
+  100% {
+    transform: translate3d(30%, 0, 0);
+  }
+}
+
+/**
+ * Blocks
+ */
+.wc-block-featured-product {
+  .wc-gzd-additional-info {
+    width: 100%;
+    padding: 5px 48px 0;
+    z-index: 1;
+    color: inherit;
+    text-align: center;
+    margin: 0;
+    font-size: .9em;
+  }
+  .wc-gzd-nutri-score {
+    width: auto;
+  }
+}
+
+ul.wc-block-grid__products {
+  li.wc-block-grid__product {
+    .wc-gzd-additional-info {
+      margin: .5em 0;
+    }
+
+    .wc-gzd-additional-info:not(.deposit-packaging-type) {
+      font-size: .9em;
+      font-weight: normal;
+    }
+  }
 }
 
 /**

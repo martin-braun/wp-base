@@ -2,15 +2,16 @@
 engine = On
 {{#if os.windows}}
 extension_dir="{{extensionsDir}}"
+sys_temp_dir="C:\Windows\TEMP"
 {{/if}}
 
 ; Maxes
-max_execution_time = 7200
-max_input_time = 600
-max_input_vars = 7000
-memory_limit = 256M
-upload_max_filesize = 2048M
-post_max_size = 2048M
+max_execution_time = 0
+max_input_time = 8192
+max_input_vars = 8192
+memory_limit = 8G
+post_max_size = 8G
+upload_max_filesize = 8G
 max_file_uploads = 20
 output_buffering = 4096
 
@@ -69,9 +70,11 @@ user_dir =
 enable_dl = Off
 cgi.fix_pathinfo=1
 file_uploads = On
+upload_max_filesize = 300M
 allow_url_fopen = On
 allow_url_include = Off
 default_socket_timeout = 60
+openssl.cafile="{{wpCaBundlePath}}"
 
 {{#if os.windows}}
 ; Load extensions
@@ -79,7 +82,7 @@ extension=php_curl.dll
 extension=php_gettext.dll
 extension=php_openssl.dll
 extension=php_exif.dll
-extension=php_gd2.dll
+extension=php_gd.dll
 extension=php_ftp.dll
 extension=php_imap.dll
 extension=php_bz2.dll
@@ -87,10 +90,10 @@ extension=php_mbstring.dll
 extension=php_sodium.dll
 extension=php_tidy.dll
 extension=php_xsl.dll
-extension=php_xmlrpc.dll
 extension=php_soap.dll
 extension=php_mysqli.dll
 extension=php_pdo_mysql.dll
+extension=php_fileinfo.dll
 {{/if}}
 
 [MySQL]
@@ -123,10 +126,18 @@ mysqli.reconnect = Off
 pdo_mysql.default_socket = "{{mysql.socket}}"
 pdo_mysql.default_port = {{mysql.port}}
 
+{{#if intelChipMac}}
+[imagick]
+extension = {{extensionsDir}}/imagick.so
+{{/if}}
+
 [Date]
 [filter]
 [iconv]
 [intl]
+{{#if os.windows}}
+extension = php_intl.dll
+{{/if}}
 [sqlite]
 [sqlite3]
 [Pcre]
@@ -195,13 +206,7 @@ ldap.max_links = -1
 [mcrypt]
 [dba]
 
-[imagick]
-{{#if os.windows}}
-extension = php_imagick.dll
-{{else}}
-extension = {{extensionsDir}}/imagick.so
-{{/if}}
-
+{{#unless apache}}
 [opcache]
 {{#if os.windows}}
 zend_extension = php_opcache.dll
@@ -211,6 +216,7 @@ zend_extension = {{extensionsDir}}/opcache.so
 
 opcache.enable=1
 opcache.enable_cli=1
+{{/unless}}
 
 [xdebug]
 {{#if os.windows}}
@@ -219,10 +225,14 @@ zend_extension = php_xdebug.dll
 zend_extension = {{extensionsDir}}/xdebug.so
 {{/if}}
 
-xdebug.remote_enable=1
-xdebug.remote_connect_back=Off
-xdebug.remote_port="9000"
-xdebug.profiler_enable=0
+{{#if xdebugEnabled}}
+xdebug.mode=debug,develop
+{{else}}
+xdebug.mode=off
+{{/if}}
+xdebug.client_port=9003
+xdebug.start_with_request=trigger
+xdebug.discover_client_host=yes
 
 [Pcre]
 pcre.jit=0 {{! Disable due to limitation with macOS Notarization }}

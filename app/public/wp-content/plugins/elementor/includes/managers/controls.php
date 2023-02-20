@@ -358,6 +358,9 @@ class Controls_Manager {
 			'box-shadow',
 			'css-filter',
 			'text-shadow',
+			'flex-container',
+			'flex-item',
+			'text-stroke',
 		];
 	}
 
@@ -430,7 +433,7 @@ class Controls_Manager {
 			$control_class_id = str_replace( ' ', '_', ucwords( str_replace( '_', ' ', $control_id ) ) );
 			$class_name = __NAMESPACE__ . '\Control_' . $control_class_id;
 
-			$this->register_control( $control_id, new $class_name() );
+			$this->register( new $class_name() );
 		}
 
 		// Group Controls
@@ -447,10 +450,30 @@ class Controls_Manager {
 		 * Fires after Elementor controls are registered.
 		 *
 		 * @since 1.0.0
+		 * @deprecated 3.5.0 Use `elementor/controls/register` hook instead.
 		 *
 		 * @param Controls_Manager $this The controls manager.
 		 */
+		// TODO: Uncomment when Pro uses the new hook.
+		//Plugin::$instance->modules_manager->get_modules( 'dev-tools' )->deprecation->do_deprecated_action(
+		//	'elementor/controls/controls_registered',
+		//	[ $this ],
+		//	'3.5.0',
+		//	'elementor/controls/register'
+		//);
+
 		do_action( 'elementor/controls/controls_registered', $this );
+
+		/**
+		 * After controls registered.
+		 *
+		 * Fires after Elementor controls are registered.
+		 *
+		 * @since 3.5.0
+		 *
+		 * @param Controls_Manager $this The controls manager.
+		 */
+		do_action( 'elementor/controls/register', $this );
 	}
 
 	/**
@@ -461,12 +484,48 @@ class Controls_Manager {
 	 *
 	 * @since 1.0.0
 	 * @access public
+	 * @deprecated 3.5.0 Use `$this->register()` instead.
 	 *
 	 * @param string       $control_id       Control ID.
 	 * @param Base_Control $control_instance Control instance, usually the
 	 *                                       current instance.
 	 */
 	public function register_control( $control_id, Base_Control $control_instance ) {
+		// TODO: Uncomment when Pro uses the new hook.
+		//Plugin::$instance->modules_manager->get_modules( 'dev-tools' )->deprecation->deprecated_function(
+		//	__METHOD__,
+		//	'3.5.0',
+		//	'register'
+		//);
+
+		$this->register( $control_instance, $control_id );
+	}
+
+	/**
+	 * Register control.
+	 *
+	 * This method adds a new control to the controls list. It adds any given
+	 * control to any given control instance.
+	 *
+	 * @since 3.5.0
+	 * @access public
+	 *
+	 * @param Base_Control $control_instance Control instance, usually the current instance.
+	 * @param string       $control_id       Control ID. Deprecated parameter.
+	 *
+	 * @return void
+	 */
+	public function register( Base_Control $control_instance, $control_id = null ) {
+
+		// TODO: For BC. Remove in the future.
+		if ( $control_id ) {
+			Plugin::instance()->modules_manager->get_modules( 'dev-tools' )->deprecation->deprecated_argument(
+				'$control_id', '3.5.0'
+			);
+		} else {
+			$control_id = $control_instance->get_type();
+		}
+
 		$this->controls[ $control_id ] = $control_instance;
 	}
 
@@ -477,12 +536,35 @@ class Controls_Manager {
 	 *
 	 * @since 1.0.0
 	 * @access public
+	 * @deprecated 3.5.0 Use `$this->unregister()` instead.
 	 *
 	 * @param string $control_id Control ID.
 	 *
 	 * @return bool True if the control was removed, False otherwise.
 	 */
 	public function unregister_control( $control_id ) {
+		Plugin::$instance->modules_manager->get_modules( 'dev-tools' )->deprecation->deprecated_function(
+			__METHOD__,
+			'3.5.0',
+			'unregister'
+		);
+
+		return $this->unregister( $control_id );
+	}
+
+	/**
+	 * Unregister control.
+	 *
+	 * This method removes control from the controls list.
+	 *
+	 * @since 3.5.0
+	 * @access public
+	 *
+	 * @param string $control_id Control ID.
+	 *
+	 * @return bool Whether the controls has been unregistered.
+	 */
+	public function unregister( $control_id ) {
 		if ( ! isset( $this->controls[ $control_id ] ) ) {
 			return false;
 		}
@@ -645,6 +727,20 @@ class Controls_Manager {
 			'tabs' => [],
 			'controls' => [],
 		];
+	}
+
+	/**
+	 * Remove existing stack from the stacks cache
+	 *
+	 * Removes the stack of a passed instance from the Controls Manager's stacks cache.
+	 *
+	 * @param Controls_Stack $controls_stack
+	 * @return void
+	 */
+	public function delete_stack( Controls_Stack $controls_stack ) {
+		$stack_id = $controls_stack->get_unique_name();
+
+		unset( $this->stacks[ $stack_id ] );
 	}
 
 	/**
@@ -907,7 +1003,7 @@ class Controls_Manager {
 				'raw' => $this->get_teaser_template( [
 					'title' => esc_html__( 'Meet Our Custom CSS', 'elementor' ),
 					'messages' => $messages,
-					'link' => 'https://elementor.com/pro/?utm_source=panel-custom-css&utm_campaign=gopro&utm_medium=wp-dash',
+					'link' => 'https://go.elementor.com/go-pro-custom-css/',
 				] ),
 			]
 		);
@@ -952,7 +1048,7 @@ class Controls_Manager {
 				'raw' => $this->get_teaser_template( [
 					'title' => esc_html__( 'Meet Page Transitions', 'elementor' ),
 					'messages' => $messages,
-					'link' => 'https://elementor.com/pro/?utm_source=panel-page-transitions&utm_campaign=gopro&utm_medium=wp-dash',
+					'link' => 'https://go.elementor.com/go-pro-page-transitions/',
 				] ),
 			]
 		);
@@ -970,16 +1066,34 @@ class Controls_Manager {
 				<div class="elementor-nerd-box-message"><?php Utils::print_unescaped_internal_string( $message ); ?></div>
 			<?php }
 
-			// Show a `Go Pro` button only if the user doesn't have Pro.
+			// Show the upgrade button only if the user doesn't have Pro.
 			if ( $texts['link'] && ! Utils::has_pro() ) { ?>
-				<a class="elementor-nerd-box-link elementor-button elementor-button-default elementor-button-go-pro" href="<?php echo esc_url( Utils::get_pro_link( $texts['link'] ) ); ?>" target="_blank">
-					<?php echo esc_html__( 'Go Pro', 'elementor' ); ?>
+				<a class="elementor-nerd-box-link elementor-button elementor-button-default elementor-button-go-pro" href="<?php echo esc_url( ( $texts['link'] ) ); ?>" target="_blank">
+					<?php echo esc_html__( 'Upgrade Now', 'elementor' ); ?>
 				</a>
 			<?php } ?>
 		</div>
 		<?php
 
 		return ob_get_clean();
+	}
+
+	/**
+	 * Get Responsive Control Device Suffix
+	 *
+	 * @param array $control
+	 * @return string $device suffix
+	 */
+	public static function get_responsive_control_device_suffix( array $control ): string {
+		if ( ! empty( $control['responsive']['max'] ) ) {
+			$query_device = $control['responsive']['max'];
+		} elseif ( ! empty( $control['responsive']['min'] ) ) {
+			$query_device = $control['responsive']['min'];
+		} else {
+			return '';
+		}
+
+		return 'desktop' === $query_device ? '' : '_' . $query_device;
 	}
 
 	/**
@@ -1012,7 +1126,7 @@ class Controls_Manager {
 					'messages' => [
 						esc_html__( 'Attributes lets you add custom HTML attributes to any element.', 'elementor' ),
 					],
-					'link' => 'https://elementor.com/pro/?utm_source=panel-custom-attributes&utm_campaign=gopro&utm_medium=wp-dash',
+					'link' => 'https://go.elementor.com/go-pro-custom-attributes/',
 				] ),
 			]
 		);

@@ -10,6 +10,11 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit;
 }
 
+// Prevent data removal if Pro plugin is active.
+if ( is_plugin_active( 'wp-mail-smtp-pro/wp_mail_smtp.php' ) ) {
+	return;
+}
+
 // Load plugin file.
 require_once 'wp_mail_smtp.php';
 require_once dirname( __FILE__ ) . '/vendor/woocommerce/action-scheduler/action-scheduler.php';
@@ -147,7 +152,7 @@ if ( is_multisite() ) {
 		/*
 		 * Drop all Action Scheduler data and unschedule all plugin ActionScheduler actions.
 		 */
-		( new \WPMailSMTP\Tasks\Tasks() )->cancel_all();
+		( new \WPMailSMTP\Tasks\Tasks() )->remove_all();
 
 		$meta_table = \WPMailSMTP\Tasks\Meta::get_table_name();
 		$wpdb->query( "DROP TABLE IF EXISTS $meta_table;" ); // phpcs:ignore WordPress.DB
@@ -229,7 +234,7 @@ if ( is_multisite() ) {
 	/*
 	 * Drop all Action Scheduler data and unschedule all plugin ActionScheduler actions.
 	 */
-	( new \WPMailSMTP\Tasks\Tasks() )->cancel_all();
+	( new \WPMailSMTP\Tasks\Tasks() )->remove_all();
 
 	$meta_table = \WPMailSMTP\Tasks\Meta::get_table_name();
 	$wpdb->query( "DROP TABLE IF EXISTS $meta_table;" ); // phpcs:ignore WordPress.DB

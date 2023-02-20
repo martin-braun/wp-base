@@ -26,30 +26,127 @@ class WC_GZD_Admin_Order {
 
 	public function __construct() {
 		if ( wc_gzd_enable_additional_costs_split_tax_calculation() ) {
-			add_action( 'woocommerce_order_item_shipping_after_calculate_taxes', array(
-				$this,
-				'adjust_item_taxes'
-			), 10 );
+			add_action(
+				'woocommerce_order_item_shipping_after_calculate_taxes',
+				array(
+					$this,
+					'adjust_item_taxes',
+				),
+				10,
+				2
+			);
 
-			add_action( 'woocommerce_order_item_fee_after_calculate_taxes', array(
-				$this,
-				'adjust_item_taxes'
-			), 10 );
+			add_action(
+				'woocommerce_order_item_fee_after_calculate_taxes',
+				array(
+					$this,
+					'adjust_item_taxes',
+				),
+				10,
+				2
+			);
 
-			add_action( 'woocommerce_order_item_after_calculate_taxes', array(
-				$this,
-				'adjust_item_taxes'
-			), 10 );
+			add_action(
+				'woocommerce_order_item_after_calculate_taxes',
+				array(
+					$this,
+					'adjust_item_taxes',
+				),
+				10,
+				2
+			);
 
-			add_action( 'woocommerce_order_before_calculate_totals', array(
-				$this,
-				'set_shipping_total_filter'
-			), 500, 2 );
+			add_action(
+				'woocommerce_order_before_calculate_totals',
+				array(
+					$this,
+					'set_shipping_total_filter',
+				),
+				500,
+				2
+			);
 
-			add_action( 'woocommerce_order_after_calculate_totals', array(
-				$this,
-				'remove_shipping_total_filter'
-			), 500 );
+			add_action(
+				'woocommerce_order_after_calculate_totals',
+				array(
+					$this,
+					'remove_shipping_total_filter',
+				),
+				500
+			);
+
+			add_action(
+				'woocommerce_create_refund',
+				array(
+					$this,
+					'fix_refund_precision',
+				),
+				1,
+				2
+			);
+		}
+	}
+
+	/**
+	 * WooCommerce does by default not show full precision amounts for shipping and fees in admin panel
+	 * that's why the refund (tax) amount entered by the shop owner might differ from the actual amount (with full precision)
+	 * in the corresponding parent item. In case the rounded amounts equal, use the higher-precision amounts from the parent item instead.
+	 *
+	 * @param WC_Order_Refund $refund
+	 * @param $args
+	 *
+	 * @return void
+	 */
+	public function fix_refund_precision( $refund, $args ) {
+		if ( count( $args['line_items'] ) > 0 ) {
+			if ( $order = wc_get_order( $refund->get_parent_id() ) ) {
+				$refund_needs_save = false;
+				$items             = $order->get_items( array( 'fee', 'shipping' ) );
+				$refund_items      = $refund->get_items( array( 'fee', 'shipping' ) );
+
+				foreach ( $refund_items as $refunded_item ) {
+					$item_id = absint( $refunded_item->get_meta( '_refunded_item_id' ) );
+
+					if ( isset( $items[ $item_id ] ) ) {
+						$item                 = $items[ $item_id ];
+						$needs_save           = false;
+						$item_total_rounded   = wc_format_decimal( $item->get_total(), '' );
+						$refund_total_rounded = wc_format_decimal( $refunded_item->get_total() * -1, '' );
+
+						$item_tax_rounded   = wc_format_decimal( $item->get_total_tax(), '' );
+						$refund_tax_rounded = wc_format_decimal( $refunded_item->get_total_tax() * -1, '' );
+
+						if ( $item_total_rounded === $refund_total_rounded ) {
+							$needs_save = true;
+							$refunded_item->set_total( wc_format_refund_total( $item->get_total() ) );
+						}
+
+						if ( $item_tax_rounded === $refund_tax_rounded ) {
+							$total_taxes    = array_map( 'floatval', $item->get_taxes()['total'] );
+							$subtotal_taxes = isset( $item->get_taxes()['subtotal'] ) ? array_map( 'floatval', $item->get_taxes()['subtotal'] ) : $total_taxes;
+
+							$needs_save = true;
+							$refunded_item->set_taxes(
+								array(
+									'total'    => array_map( 'wc_format_refund_total', $total_taxes ),
+									'subtotal' => array_map( 'wc_format_refund_total', $subtotal_taxes ),
+								)
+							);
+						}
+
+						if ( $needs_save ) {
+							$refund_needs_save = true;
+
+							$refunded_item->save();
+						}
+					}
+				}
+
+				if ( $refund_needs_save ) {
+					$refund->update_taxes();
+					$refund->calculate_totals( false );
+				}
+			}
 		}
 	}
 
@@ -81,7 +178,7 @@ class WC_GZD_Admin_Order {
 	public function force_shipping_total_exact( $total, $order ) {
 		$total = 0;
 
-		foreach( $order->get_shipping_methods() as $method ) {
+		foreach ( $order->get_shipping_methods() as $method ) {
 			$total += floatval( $method->get_total() );
 		}
 
@@ -90,19 +187,22 @@ class WC_GZD_Admin_Order {
 
 	/**
 	 * @param WC_Order_Item $item
-	 * @param $for
+	 * @param array $calculate_tax_for
 	 */
-	public function adjust_item_taxes( $item ) {
-		if ( ! wc_tax_enabled() || $item->get_total() <= 0 || ! in_array( $item->get_type(), array( 'fee', 'shipping' ) ) ) {
+	public function adjust_item_taxes( $item, $calculate_tax_for = array() ) {
+		if ( ! wc_tax_enabled() || ! in_array( $item->get_type(), array( 'fee', 'shipping' ), true ) || apply_filters( 'woocommerce_gzd_skip_order_item_split_tax_calculation', false, $item ) ) {
 			return;
 		}
 
 		if ( $order = $item->get_order() ) {
+			$calculate_tax_for = empty( $calculate_tax_for ) ? $this->get_order_taxable_location( $order ) : $calculate_tax_for;
+			$tax_share_type    = 'shipping' === $item->get_type() ? 'shipping' : 'fee';
+
 			// Calculate tax shares
-			$tax_share = $this->get_order_tax_share( $order, 'shipping' === $item->get_type() ? 'shipping' : 'fee' );
+			$tax_share = apply_filters( "woocommerce_gzd_{$tax_share_type}_order_tax_shares", $this->get_order_tax_share( $order, $tax_share_type ), $item );
 
 			// Do only adjust taxes if tax share contains more than one tax rate
-			if ( $tax_share && ! empty( $tax_share ) && sizeof( $tax_share ) > 1 ) {
+			if ( $tax_share && ! empty( $tax_share ) ) {
 				$taxes    = array();
 				$old_item = $order->get_item( $item->get_id() );
 
@@ -114,9 +214,14 @@ class WC_GZD_Admin_Order {
 						$item_total += $old_item->get_total_tax();
 					}
 				} else {
-					$item_total = $item->get_total();
+					$item_total     = $item->get_total();
+					$is_adding_item = wp_doing_ajax() && isset( $_POST['action'] ) && in_array( wp_unslash( $_POST['action'] ), array( 'woocommerce_add_order_fee', 'woocommerce_add_order_shipping' ), true ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 
-					if ( wc_gzd_additional_costs_include_tax() ) {
+					/**
+					 * When adding a fee through the admin panel, Woo by default calculates taxes
+					 * based on the fee's tax class (which by default is standard). Ignore the tax data on first call.
+					 */
+					if ( ! $is_adding_item && wc_gzd_additional_costs_include_tax() ) {
 						$item_total += $item->get_total_tax();
 					}
 				}
@@ -124,7 +229,13 @@ class WC_GZD_Admin_Order {
 				$taxable_amounts = array();
 
 				foreach ( $tax_share as $tax_class => $class ) {
-					$tax_rates       = WC_Tax::get_rates_from_location( $tax_class, $this->get_order_taxable_location( $order ) );
+					if ( isset( $calculate_tax_for['country'] ) ) {
+						$calculate_tax_for['tax_class'] = $tax_class;
+						$tax_rates                      = \WC_Tax::find_rates( $calculate_tax_for );
+					} else {
+						$tax_rates = \WC_Tax::get_rates_from_location( $tax_class, $calculate_tax_for );
+					}
+
 					$taxable_amount  = $item_total * $class['share'];
 					$tax_class_taxes = WC_Tax::calc_tax( $taxable_amount, $tax_rates, wc_gzd_additional_costs_include_tax() );
 					$net_base        = wc_gzd_additional_costs_include_tax() ? ( $taxable_amount - array_sum( $tax_class_taxes ) ) : $taxable_amount;
@@ -134,7 +245,7 @@ class WC_GZD_Admin_Order {
 						'tax_share'      => $class['share'],
 						'tax_rates'      => array_keys( $tax_rates ),
 						'net_amount'     => $net_base,
-						'includes_tax'   => wc_gzd_additional_costs_include_tax()
+						'includes_tax'   => wc_gzd_additional_costs_include_tax(),
 					);
 
 					$taxes = $taxes + $tax_class_taxes;
@@ -142,6 +253,7 @@ class WC_GZD_Admin_Order {
 
 				$item->set_taxes( array( 'total' => $taxes ) );
 				$item->update_meta_data( '_split_taxes', $taxable_amounts );
+				$item->update_meta_data( '_tax_shares', $tax_share );
 
 				// The new net total equals old gross total minus new tax totals
 				if ( wc_gzd_additional_costs_include_tax() ) {
@@ -151,43 +263,29 @@ class WC_GZD_Admin_Order {
 				$order->update_meta_data( '_has_split_tax', 'yes' );
 			} else {
 				$item->delete_meta_data( '_split_taxes' );
+				$item->delete_meta_data( '_tax_shares' );
+
 				$order->delete_meta_data( '_has_split_tax' );
 			}
 
 			$order->update_meta_data( '_additional_costs_include_tax', wc_bool_to_string( wc_gzd_additional_costs_include_tax() ) );
+
+			/**
+			 * Need to manually call the order save method to make sure
+			 * meta data is persisted as $item->get_order() constructs a fresh order instance which will be lost
+			 * during global save event.
+			 */
 			$order->save();
 		}
 	}
 
 	/**
 	 * @param WC_Order $order
+	 *
+	 * @return array
 	 */
-	protected function get_order_taxable_location( $order ) {
-		$taxable_address = array(
-			WC()->countries->get_base_country(),
-			WC()->countries->get_base_state(),
-			WC()->countries->get_base_postcode(),
-			WC()->countries->get_base_city()
-		);
-
-		$tax_based_on = get_option( 'woocommerce_tax_based_on' );
-
-		if ( 'shipping' === $tax_based_on && ! $order->get_shipping_country() ) {
-			$tax_based_on = 'billing';
-		}
-
-		$country = $tax_based_on ? $order->get_billing_country() : $order->get_shipping_country();
-
-		if ( 'base' !== $tax_based_on && ! empty( $country ) ) {
-			$taxable_address = array(
-				$country,
-				'billing' === $tax_based_on ? $order->get_billing_state() : $order->get_shipping_state(),
-				'billing' === $tax_based_on ? $order->get_billing_postcode() : $order->get_shipping_postcode(),
-				'billing' === $tax_based_on ? $order->get_billing_city() : $order->get_shipping_city(),
-			);
-		}
-
-		return $taxable_address;
+	public function get_order_taxable_location( $order ) {
+		return \Vendidero\EUTaxHelper\Helper::get_order_taxable_location( $order );
 	}
 
 	/**

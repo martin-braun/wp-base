@@ -94,14 +94,6 @@ class Settings {
 		);
 
 		add_settings_field(
-			'oembed',
-			'oEmbed',
-			array( $this, 'oembed_cb' ),
-			'trimpress',
-			'section_trim'
-		);
-
-		add_settings_field(
 			'revisions',
 			__( 'Post Revisions', 'trimpress' ),
 			array( $this, 'revisions_cb' ),
@@ -162,8 +154,9 @@ class Settings {
 	 * The adj_posts field callback.
 	 */
 	public function adj_posts_cb() {
-		$this->indicate_safety( 1 );
 		?>
+
+		<span class="safety green"></span>
 
 		<input type="checkbox" name="trimpress_settings[adj_posts]" value="1" <?php checked( isset( $this->options['adj_posts'] ) ); ?>>
   		
@@ -178,9 +171,10 @@ class Settings {
 	 * The wc_cart_fragments field callback.
 	 */
 	public function wc_cart_fragments_cb() {
-		$this->indicate_safety( 2 );
 		$cart_settings_url = admin_url() . 'admin.php?page=wc-settings&tab=products';
 		?>
+
+		<span class="safety blue"></span>
 
 		<input type="checkbox" name="trimpress_settings[wc_cart_fragments]" value="1" <?php checked( isset( $this->options['wc_cart_fragments'] ) ); ?>>
   		
@@ -195,9 +189,10 @@ class Settings {
 	 * The code editor field callback.
 	 */
 	public function editors_cb() {
-		$this->indicate_safety( 1 );
 		$file_edit_url = 'https://wordpress.org/support/article/editing-wp-config-php/#disable-the-plugin-and-theme-editor';
 		?>
+
+		<span class="safety green"></span>
 
 		<input type="checkbox" name="trimpress_settings[editors]" value="1" <?php checked( isset( $this->options['editors'] ) ); ?>>
   		
@@ -212,8 +207,9 @@ class Settings {
 	 * The comment autolinks field callback.
 	 */
 	public function comment_links_cb() {
-		$this->indicate_safety( 1 );
 		?>
+
+		<span class="safety green"></span>
 
 		<input type="checkbox" name="trimpress_settings[comment_links]" value="1" <?php checked( isset( $this->options['comment_links'] ) ); ?>>
   		
@@ -228,9 +224,10 @@ class Settings {
 	 * The emojis field callback.
 	 */
 	public function emojis_cb() {
-		$this->indicate_safety( 1 );
 		?>
-
+		
+		<span class="safety green"></span>
+		
 		<input type="checkbox" name="trimpress_settings[emojis]" value="1" <?php checked( isset( $this->options['emojis'] ) ); ?>>
   		
 		<label for="trimpress_settings[emojis]"><?php _e( 'Remove', 'trimpress' ); ?></label>
@@ -244,9 +241,10 @@ class Settings {
 	 * The heartbeat field callback.
 	 */
 	public function heartbeat_cb() {
-		$this->indicate_safety( 1 );
 		$heartbeat_url = 'https://developer.wordpress.org/plugins/javascript/heartbeat-api/';
 		?>
+
+		<span class="safety green"></span>
 
 		<input type="checkbox" name="trimpress_settings[heartbeat]" value="1" <?php checked( isset( $this->options['heartbeat'] ) ); ?>>
   		
@@ -258,28 +256,13 @@ class Settings {
 	}
 
 	/**
-	 * The oembed field callback.
-	 */
-	public function oembed_cb() {
-		$this->indicate_safety( 2 );
-		?>
-
-		<input type="checkbox" name="trimpress_settings[oembed]" value="1" <?php checked( isset( $this->options['oembed'] ) ); ?>>
-  		
-		<label for="trimpress_settings[oembed]"><?php _e( 'Remove', 'trimpress' ); ?></label>
-
-		<p class="description"><?php _e( 'Removes the <code>oEmbed</code> script, which transforms <strong>YouTube</strong>, <strong>Twitter</strong> and other links into embedded media by fetching data from these sites. Remove it if you don\'t want this default behaviour.', 'trimpress' ); ?></p>
-
-		<?php
-	}
-
-	/**
 	 * The revisions field callback.
 	 */
 	public function revisions_cb() {
-		$this->indicate_safety( 1 );
 		$revisions_url = 'https://wordpress.org/support/article/editing-wp-config-php/#disable-post-revisions';
 		?>
+
+		<span class="safety green"></span>
 
 		<input type="checkbox" name="trimpress_settings[revisions]" value="1" <?php checked( isset( $this->options['revisions'] ) ); ?>>
   		
@@ -294,8 +277,9 @@ class Settings {
 	 * The shortlink field callback.
 	 */
 	public function shortlink_cb() {
-		$this->indicate_safety( 1 );
 		?>
+
+		<span class="safety green"></span>
 
 		<input type="checkbox" name="trimpress_settings[shortlink]" value="1" <?php checked( isset( $this->options['shortlink'] ) ); ?>>
   		
@@ -310,8 +294,9 @@ class Settings {
 	 * The auto_rss field callback.
 	 */
 	public function auto_rss_cb() {
-		$this->indicate_safety( 1 );
 		?>
+
+		<span class="safety green"></span>
 
 		<input type="checkbox" name="trimpress_settings[auto_rss]" value="1" <?php checked( isset( $this->options['auto_rss'] ) ); ?>>
   		
@@ -326,8 +311,9 @@ class Settings {
 	 * The rsd field callback.
 	 */
 	public function rsd_cb() {
-		$this->indicate_safety( 1 );
 		?>
+
+		<span class="safety green"></span>
 
 		<input type="checkbox" name="trimpress_settings[rsd]" value="1" <?php checked( isset( $this->options['rsd'] ) ); ?>>
   		
@@ -342,8 +328,9 @@ class Settings {
 	 * The version field callback.
 	 */
 	public function version_cb() {
-		$this->indicate_safety( 1 );
 		?>
+
+		<span class="safety green"></span>
 
 		<input type="checkbox" name="trimpress_settings[version]" value="1" <?php checked( isset( $this->options['version'] ) ); ?>>
   		
@@ -358,8 +345,9 @@ class Settings {
 	 * The wlwmanifest field callback.
 	 */
 	public function wlwmanifest_cb() {
-		$this->indicate_safety( 1 );
 		?>
+
+		<span class="safety green"></span>
 
 		<input type="checkbox" name="trimpress_settings[wlwmanifest]" value="1" <?php checked( isset( $this->options['wlwmanifest'] ) ); ?>>
   		
@@ -374,8 +362,9 @@ class Settings {
 	 * The xmlrpc field callback.
 	 */
 	public function xmlrpc_cb() {
-		$this->indicate_safety( 2 );
 		?>
+
+		<span class="safety blue"></span>
 
 		<input type="checkbox" name="trimpress_settings[xmlrpc]" value="1" <?php checked( isset( $this->options['xmlrpc'] ) ); ?>>
   		
@@ -384,27 +373,5 @@ class Settings {
 		<p class="description"><?php _e( 'Disables the <code>XML-RPC</code> interface, an older system for remote WordPress access that can be exploited by hackers. If you don\'t use <strong>Jetpack</strong> or the <strong>WordPress App</strong> it\'s generally safe to disable.', 'trimpress' ); ?></p>
 
 		<?php
-	}
-
-	/**
-	 * Indicate the relative safety of the option.
-	 * 
-	 * @param int $n The relative safety of the option.
-	 */
-	public function indicate_safety( $n ) {
-		$color;
-		$label;
-		switch( $n ) {
-			case 1:
-				$color = '#46b450';
-				$label = 'safe';
-			break;
-			case 2:
-				$color = '#00A0D2';
-				$label = 'caution';
-			break;
-			default: $color = '#469246';
-		}
-		echo '<span aria-label="' . $label . '" style="display: inline-block; width: 3px; height: 14px; margin-bottom: -3px; border-radius: 1px; background-color: ' . $color . ';"></span>';
 	}
 }

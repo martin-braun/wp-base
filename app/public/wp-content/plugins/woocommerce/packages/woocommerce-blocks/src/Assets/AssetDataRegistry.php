@@ -24,6 +24,13 @@ class AssetDataRegistry {
 	private $data = [];
 
 	/**
+	 * Contains preloaded API data.
+	 *
+	 * @var array
+	 */
+	private $preloaded_api_requests = [];
+
+	/**
 	 * Lazy data is an array of closures that will be invoked just before
 	 * asset data is generated for the enqueued script.
 	 *
@@ -77,11 +84,14 @@ class AssetDataRegistry {
 			'adminUrl'           => admin_url(),
 			'countries'          => WC()->countries->get_countries(),
 			'currency'           => $this->get_currency_data(),
+			'currentUserId'      => get_current_user_id(),
 			'currentUserIsAdmin' => current_user_can( 'manage_woocommerce' ),
 			'homeUrl'            => esc_url( home_url( '/' ) ),
 			'locale'             => $this->get_locale_data(),
+			'dashboardUrl'       => wc_get_account_endpoint_url( 'dashboard' ),
 			'orderStatuses'      => $this->get_order_statuses(),
 			'placeholderImgSrc'  => wc_placeholder_img_src(),
+			'productsSettings'   => $this->get_products_settings(),
 			'siteTitle'          => get_bloginfo( 'name' ),
 			'storePages'         => $this->get_store_pages(),
 			'wcAssetUrl'         => plugins_url( 'assets/', WC_PLUGIN_FILE ),
@@ -131,17 +141,36 @@ class AssetDataRegistry {
 	 * @return array
 	 */
 	protected function get_store_pages() {
+		$store_pages = [
+			'myaccount' => wc_get_page_id( 'myaccount' ),
+			'shop'      => wc_get_page_id( 'shop' ),
+			'cart'      => wc_get_page_id( 'cart' ),
+			'checkout'  => wc_get_page_id( 'checkout' ),
+			'privacy'   => wc_privacy_policy_page_id(),
+			'terms'     => wc_terms_and_conditions_page_id(),
+		];
+
+		if ( is_callable( '_prime_post_caches' ) ) {
+			_prime_post_caches( array_values( $store_pages ), false, false );
+		}
+
 		return array_map(
 			[ $this, 'format_page_resource' ],
-			[
-				'myaccount' => wc_get_page_id( 'myaccount' ),
-				'shop'      => wc_get_page_id( 'shop' ),
-				'cart'      => wc_get_page_id( 'cart' ),
-				'checkout'  => wc_get_page_id( 'checkout' ),
-				'privacy'   => wc_privacy_policy_page_id(),
-				'terms'     => wc_terms_and_conditions_page_id(),
-			]
+			$store_pages
 		);
+	}
+
+	/**
+	 * Get product related settings.
+	 *
+	 * Note: For the time being we are exposing only the settings that are used by blocks.
+	 *
+	 * @return array
+	 */
+	protected function get_products_settings() {
+		return [
+			'cartRedirectAfterAdd' => get_option( 'woocommerce_cart_redirect_after_add' ) === 'yes',
+		];
 	}
 
 	/**
@@ -191,11 +220,18 @@ class AssetDataRegistry {
 	 */
 	protected function initialize_core_data() {
 		/**
+		 * Filters the array of shared settings.
+		 *
 		 * Low level hook for registration of new data late in the cycle. This is deprecated.
 		 * Instead, use the data api:
-		 * Automattic\WooCommerce\Blocks\Package::container()
-		 *     ->get( Automattic\WooCommerce\Blocks\Assets\AssetDataRegistry::class )
-		 *     ->add( $key, $value )
+		 *
+		 * ```php
+		 * Automattic\WooCommerce\Blocks\Package::container()->get( Automattic\WooCommerce\Blocks\Assets\AssetDataRegistry::class )->add( $key, $value )
+		 * ```
+		 *
+		 * @deprecated
+		 * @param array $data Settings data.
+		 * @return array
 		 */
 		$settings = apply_filters( 'woocommerce_shared_settings', $this->data );
 
@@ -285,11 +321,8 @@ class AssetDataRegistry {
 	 * @param string $path REST API path to preload.
 	 */
 	public function hydrate_api_request( $path ) {
-		if ( ! isset( $this->data['preloadedApiRequests'] ) ) {
-			$this->data['preloadedApiRequests'] = [];
-		}
-		if ( ! isset( $this->data['preloadedApiRequests'][ $path ] ) ) {
-			$this->data['preloadedApiRequests'] = rest_preload_api_request( $this->data['preloadedApiRequests'], $path );
+		if ( ! isset( $this->preloaded_api_requests[ $path ] ) ) {
+			$this->preloaded_api_requests = rest_preload_api_request( $this->preloaded_api_requests, $path );
 		}
 	}
 
@@ -315,7 +348,7 @@ class AssetDataRegistry {
 		$this->api->register_script(
 			$this->handle,
 			'build/wc-settings.js',
-			[],
+			[ 'wp-api-fetch' ],
 			true
 		);
 	}
@@ -332,12 +365,16 @@ class AssetDataRegistry {
 		if ( wp_script_is( $this->handle, 'enqueued' ) ) {
 			$this->initialize_core_data();
 			$this->execute_lazy_data();
-			$data = rawurlencode( wp_json_encode( $this->data ) );
+
+			$data                   = rawurlencode( wp_json_encode( $this->data ) );
+			$preloaded_api_requests = rawurlencode( wp_json_encode( $this->preloaded_api_requests ) );
+
 			wp_add_inline_script(
 				$this->handle,
-				"var wcSettings = wcSettings || JSON.parse( decodeURIComponent( '"
-					. esc_js( $data )
-					. "' ) );",
+				"
+				var wcSettings = wcSettings || JSON.parse( decodeURIComponent( '" . esc_js( $data ) . "' ) );
+				wp.apiFetch.use( wp.apiFetch.createPreloadingMiddleware( JSON.parse( decodeURIComponent( '" . esc_js( $preloaded_api_requests ) . "' ) ) ) )
+				",
 				'before'
 			);
 		}

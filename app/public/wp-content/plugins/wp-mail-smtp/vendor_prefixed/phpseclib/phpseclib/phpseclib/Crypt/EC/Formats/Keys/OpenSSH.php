@@ -7,8 +7,6 @@
  *
  * Place in $HOME/.ssh/authorized_keys
  *
- * @category  Crypt
- * @package   EC
  * @author    Jim Wigginton <terrafrost@php.net>
  * @copyright 2015 Jim Wigginton
  * @license   http://www.opensource.org/licenses/mit-license.html  MIT License
@@ -16,20 +14,16 @@
  */
 namespace WPMailSMTP\Vendor\phpseclib3\Crypt\EC\Formats\Keys;
 
-use WPMailSMTP\Vendor\ParagonIE\ConstantTime\Base64;
-use WPMailSMTP\Vendor\phpseclib3\Math\BigInteger;
 use WPMailSMTP\Vendor\phpseclib3\Common\Functions\Strings;
 use WPMailSMTP\Vendor\phpseclib3\Crypt\Common\Formats\Keys\OpenSSH as Progenitor;
 use WPMailSMTP\Vendor\phpseclib3\Crypt\EC\BaseCurves\Base as BaseCurve;
-use WPMailSMTP\Vendor\phpseclib3\Exception\UnsupportedCurveException;
 use WPMailSMTP\Vendor\phpseclib3\Crypt\EC\Curves\Ed25519;
-use WPMailSMTP\Vendor\phpseclib3\Math\Common\FiniteField\Integer;
+use WPMailSMTP\Vendor\phpseclib3\Exception\UnsupportedCurveException;
+use WPMailSMTP\Vendor\phpseclib3\Math\BigInteger;
 /**
  * OpenSSH Formatted EC Key Handler
  *
- * @package EC
  * @author  Jim Wigginton <terrafrost@php.net>
- * @access  public
  */
 abstract class OpenSSH extends \WPMailSMTP\Vendor\phpseclib3\Crypt\Common\Formats\Keys\OpenSSH
 {
@@ -43,7 +37,6 @@ abstract class OpenSSH extends \WPMailSMTP\Vendor\phpseclib3\Crypt\Common\Format
     /**
      * Break a public or private key down into its constituent components
      *
-     * @access public
      * @param string $key
      * @param string $password optional
      * @return array
@@ -65,7 +58,8 @@ abstract class OpenSSH extends \WPMailSMTP\Vendor\phpseclib3\Crypt\Common\Format
             }
             list($curveName, $publicKey, $privateKey, $comment) = \WPMailSMTP\Vendor\phpseclib3\Common\Functions\Strings::unpackSSH2('ssis', $paddedKey);
             $curve = self::loadCurveByParam(['namedCurve' => $curveName]);
-            return ['curve' => $curve, 'dA' => $curve->convertInteger($privateKey), 'QA' => self::extractPoint("\0{$publicKey}", $curve), 'comment' => $comment];
+            $curve->rangeCheck($privateKey);
+            return ['curve' => $curve, 'dA' => $privateKey, 'QA' => self::extractPoint("\0{$publicKey}", $curve), 'comment' => $comment];
         }
         if ($parsed['type'] == 'ssh-ed25519') {
             if (\WPMailSMTP\Vendor\phpseclib3\Common\Functions\Strings::shift($parsed['publicKey'], 4) != "\0\0\0 ") {
@@ -110,7 +104,6 @@ abstract class OpenSSH extends \WPMailSMTP\Vendor\phpseclib3\Crypt\Common\Format
     /**
      * Convert an EC public key to the appropriate format
      *
-     * @access public
      * @param \phpseclib3\Crypt\EC\BaseCurves\Base $curve
      * @param \phpseclib3\Math\Common\FiniteField\Integer[] $publicKey
      * @param array $options optional
@@ -139,26 +132,26 @@ abstract class OpenSSH extends \WPMailSMTP\Vendor\phpseclib3\Crypt\Common\Format
     /**
      * Convert a private key to the appropriate format.
      *
-     * @access public
-     * @param \phpseclib3\Math\Common\FiniteField\Integer $privateKey
+     * @param \phpseclib3\Math\BigInteger $privateKey
      * @param \phpseclib3\Crypt\EC\Curves\Ed25519 $curve
      * @param \phpseclib3\Math\Common\FiniteField\Integer[] $publicKey
+     * @param string $secret optional
      * @param string $password optional
      * @param array $options optional
      * @return string
      */
-    public static function savePrivateKey(\WPMailSMTP\Vendor\phpseclib3\Math\Common\FiniteField\Integer $privateKey, \WPMailSMTP\Vendor\phpseclib3\Crypt\EC\BaseCurves\Base $curve, array $publicKey, $password = '', array $options = [])
+    public static function savePrivateKey(\WPMailSMTP\Vendor\phpseclib3\Math\BigInteger $privateKey, \WPMailSMTP\Vendor\phpseclib3\Crypt\EC\BaseCurves\Base $curve, array $publicKey, $secret = null, $password = '', array $options = [])
     {
         if ($curve instanceof \WPMailSMTP\Vendor\phpseclib3\Crypt\EC\Curves\Ed25519) {
-            if (!isset($privateKey->secret)) {
+            if (!isset($secret)) {
                 throw new \RuntimeException('Private Key does not have a secret set');
             }
-            if (\strlen($privateKey->secret) != 32) {
+            if (\strlen($secret) != 32) {
                 throw new \RuntimeException('Private Key secret is not of the correct length');
             }
             $pubKey = $curve->encodePoint($publicKey);
             $publicKey = \WPMailSMTP\Vendor\phpseclib3\Common\Functions\Strings::packSSH2('ss', 'ssh-ed25519', $pubKey);
-            $privateKey = \WPMailSMTP\Vendor\phpseclib3\Common\Functions\Strings::packSSH2('sss', 'ssh-ed25519', $pubKey, $privateKey->secret . $pubKey);
+            $privateKey = \WPMailSMTP\Vendor\phpseclib3\Common\Functions\Strings::packSSH2('sss', 'ssh-ed25519', $pubKey, $secret . $pubKey);
             return self::wrapPrivateKey($publicKey, $privateKey, $password, $options);
         }
         $alias = self::getAlias($curve);

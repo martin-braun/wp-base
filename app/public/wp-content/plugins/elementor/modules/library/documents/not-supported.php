@@ -34,10 +34,7 @@ class Not_Supported extends Library_Document {
 		$properties['register_type'] = false;
 		$properties['is_editable'] = false;
 		$properties['show_in_library'] = false;
-
-		$properties['cpt'] = [
-			Source_Local::CPT,
-		];
+		$properties['show_in_finder'] = false;
 
 		return $properties;
 	}

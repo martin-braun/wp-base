@@ -5,7 +5,8 @@ if (!defined('WPINC')) {
 }
 ?>
 <div class="collapsible-header">
-    <i class="material-icons">computer</i><?php echo __("Backblaze B2 Storage", 'xcloner-backup-and-restore') ?>
+    <i class="material-icons">computer</i>
+    <?php echo __("Backblaze B2 Storage", 'xcloner-backup-and-restore') ?>
     <div class="switch right">
         <label>
             Off
@@ -27,6 +28,10 @@ if (!defined('WPINC')) {
             <p>
                 <?php echo sprintf(__('Visit %s and get your KeyID and  applicationKey.', 'xcloner-backup-and-restore'), '<a href="https://secure.backblaze.com/b2_buckets.htm" target="_blank">https://secure.backblaze.com/b2_buckets.htm</a>') ?>
             </p>
+            <p>
+                If you specify <strong>only the bucket name</strong>, you must use the <strong>master key</strong>.<br>
+                However, if you specify <strong>both bucket name and bucket id</strong>, you do not need the master key and can use a <strong>single-bucket key</strong>.
+            </p>
         </div>
     </div>
 
@@ -38,7 +43,7 @@ if (!defined('WPINC')) {
         <div class=" col s12 m6">
             <input placeholder="<?php echo __("Backblaze KeyID", 'xcloner-backup-and-restore') ?>"
                 id="backblaze_account_id" type="text" name="xcloner_backblaze_account_id" class="validate"
-                value="<?php echo get_option("xcloner_backblaze_account_id") ?>" autocomplete="off">
+                value="<?php echo esc_attr(get_option("xcloner_backblaze_account_id")) ?>" autocomplete="off">
         </div>
     </div>
 
@@ -51,7 +56,7 @@ if (!defined('WPINC')) {
         <div class=" col s12 m6">
             <input placeholder="<?php echo __("Backblaze applicationKey", 'xcloner-backup-and-restore') ?>"
                 id="backblaze_application_key" type="text" name="xcloner_backblaze_application_key" class="validate"
-                value="<?php echo str_repeat('*', strlen(get_option("xcloner_backblaze_application_key"))) ?>"
+                value="<?php echo esc_attr(str_repeat('*', strlen(get_option("xcloner_backblaze_application_key")))) ?>"
                 autocomplete="off">
         </div>
     </div>
@@ -64,11 +69,23 @@ if (!defined('WPINC')) {
         <div class=" col s12 m6">
             <input placeholder="<?php echo __("Backblaze Bucket Name", 'xcloner-backup-and-restore') ?>"
                 id="backblaze_bucket_name" type="text" name="xcloner_backblaze_bucket_name" class="validate"
-                value="<?php echo get_option("xcloner_backblaze_bucket_name") ?>" autocomplete="off">
+                value="<?php echo esc_attr(get_option("xcloner_backblaze_bucket_name")) ?>" autocomplete="off">
         </div>
     </div>
 
-    <?=common_cleanup_html('backblaze')?>
+    <div class="row">
+        <div class="col s12 m3 label">
+            <label
+                    for="backblaze_bucket_id"><?php echo __("Backblaze Bucket ID", 'xcloner-backup-and-restore') ?></label>
+        </div>
+        <div class=" col s12 m6">
+            <input placeholder="<?php echo __("Backblaze Bucket ID", 'xcloner-backup-and-restore') ?>"
+                   id="backblaze_bucket_id" type="text" name="xcloner_backblaze_bucket_id" class="validate"
+                   value="<?php echo esc_attr(get_option("xcloner_backblaze_bucket_id")) ?>" autocomplete="off">
+        </div>
+    </div>
+
+    <?php echo common_cleanup_html('backblaze')?>
 
     <div class="row">
         <div class="col s6 m4">

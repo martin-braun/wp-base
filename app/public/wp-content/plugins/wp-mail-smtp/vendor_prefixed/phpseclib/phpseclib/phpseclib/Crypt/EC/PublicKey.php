@@ -3,8 +3,6 @@
 /**
  * EC Public Key
  *
- * @category  Crypt
- * @package   EC
  * @author    Jim Wigginton <terrafrost@php.net>
  * @copyright 2015 Jim Wigginton
  * @license   http://www.opensource.org/licenses/mit-license.html  MIT License
@@ -12,23 +10,21 @@
  */
 namespace WPMailSMTP\Vendor\phpseclib3\Crypt\EC;
 
+use WPMailSMTP\Vendor\phpseclib3\Common\Functions\Strings;
+use WPMailSMTP\Vendor\phpseclib3\Crypt\Common;
 use WPMailSMTP\Vendor\phpseclib3\Crypt\EC;
-use WPMailSMTP\Vendor\phpseclib3\Crypt\Hash;
-use WPMailSMTP\Vendor\phpseclib3\Math\BigInteger;
-use WPMailSMTP\Vendor\phpseclib3\Crypt\EC\Formats\Signature\ASN1 as ASN1Signature;
-use WPMailSMTP\Vendor\phpseclib3\Crypt\EC\BaseCurves\TwistedEdwards as TwistedEdwardsCurve;
 use WPMailSMTP\Vendor\phpseclib3\Crypt\EC\BaseCurves\Montgomery as MontgomeryCurve;
+use WPMailSMTP\Vendor\phpseclib3\Crypt\EC\BaseCurves\TwistedEdwards as TwistedEdwardsCurve;
 use WPMailSMTP\Vendor\phpseclib3\Crypt\EC\Curves\Ed25519;
 use WPMailSMTP\Vendor\phpseclib3\Crypt\EC\Formats\Keys\PKCS1;
-use WPMailSMTP\Vendor\phpseclib3\Crypt\Common;
+use WPMailSMTP\Vendor\phpseclib3\Crypt\EC\Formats\Signature\ASN1 as ASN1Signature;
+use WPMailSMTP\Vendor\phpseclib3\Crypt\Hash;
 use WPMailSMTP\Vendor\phpseclib3\Exception\UnsupportedOperationException;
-use WPMailSMTP\Vendor\phpseclib3\Common\Functions\Strings;
+use WPMailSMTP\Vendor\phpseclib3\Math\BigInteger;
 /**
  * EC Public Key
  *
- * @package EC
  * @author  Jim Wigginton <terrafrost@php.net>
- * @access  public
  */
 class PublicKey extends \WPMailSMTP\Vendor\phpseclib3\Crypt\EC implements \WPMailSMTP\Vendor\phpseclib3\Crypt\Common\PublicKey
 {
@@ -37,7 +33,6 @@ class PublicKey extends \WPMailSMTP\Vendor\phpseclib3\Crypt\EC implements \WPMai
      * Verify a signature
      *
      * @see self::verify()
-     * @access public
      * @param string $message
      * @param string $signature
      * @return mixed
@@ -90,8 +85,8 @@ class PublicKey extends \WPMailSMTP\Vendor\phpseclib3\Crypt\EC implements \WPMai
             $k = new \WPMailSMTP\Vendor\phpseclib3\Math\BigInteger($k, 256);
             list(, $k) = $k->divide($order);
             $qa = $curve->convertToInternal($this->QA);
-            $lhs = $curve->multiplyPoint($curve->getBasePoint(), $curve->convertInteger($S));
-            $rhs = $curve->multiplyPoint($qa, $curve->convertInteger($k));
+            $lhs = $curve->multiplyPoint($curve->getBasePoint(), $S);
+            $rhs = $curve->multiplyPoint($qa, $k);
             $rhs = $curve->addPoint($rhs, $R);
             $rhs = $curve->convertToAffine($rhs);
             return $lhs[0]->equals($rhs[0]) && $lhs[1]->equals($rhs[1]);

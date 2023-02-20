@@ -1,11 +1,27 @@
-.wc-modal-shipping-method-settings .form-table td .wc-gzd-additional-desc {
+.woocommerce_page_wc-settings .form-table td .wc-gzd-additional-desc {
   margin-top: 1em;
   line-height: 1.5em;
-  background: #efefef;
   padding: .5em;
+  background: #fff;
   font-style: normal;
-  font-size: 13px;
+  font-size: 14px;
   box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.1); }
+
+.woocommerce_page_wc-settings .wc-modal-shipping-method-settings .form-table td .wc-gzd-additional-desc {
+  background: #efefef; }
+
+.wc-gzd-admin-settings-shipping_provider .wc-gzd-shipment-api-connection-status {
+  padding: .2em .5em;
+  border-radius: 3px;
+  display: inline-flex;
+  white-space: nowrap;
+  border: 1px solid #CCC; }
+  .wc-gzd-admin-settings-shipping_provider .wc-gzd-shipment-api-connection-status.connection-status-error {
+    border-color: #761919;
+    color: #761919; }
+  .wc-gzd-admin-settings-shipping_provider .wc-gzd-shipment-api-connection-status.connection-status-success {
+    border-color: #5b841b;
+    color: #5b841b; }
 
 .germanized-create-label .notice-wrapper .notice {
   margin: 0;
@@ -40,41 +56,45 @@
 .germanized-create-label .show-if label {
   color: #777; }
 
-.germanized-create-label p.form-field label {
-  width: 100%;
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold; }
-
-.germanized-create-label p.form-field select, .germanized-create-label p.form-field input[type=text], .germanized-create-label p.form-field input[type=email] {
-  width: 100%;
-  max-width: 100%; }
-
-.germanized-create-label p.form-field.form-field-checkbox {
+.germanized-create-label p.form-field {
   display: flex;
-  flex-wrap: wrap;
-  flex-direction: row;
-  justify-content: flex-start;
-  margin-top: 10px !important;
-  margin-bottom: 10px !important;
-  align-items: center; }
-  .germanized-create-label p.form-field.form-field-checkbox label {
-    width: auto;
-    margin-left: .5em;
-    font-weight: normal;
-    order: 2;
-    margin-bottom: 0; }
-  .germanized-create-label p.form-field.form-field-checkbox input[type=checkbox] {
-    order: 1; }
-  .germanized-create-label p.form-field.form-field-checkbox .woocommerce-help-tip {
-    order: 3;
-    margin-left: 3px; }
-  .germanized-create-label p.form-field.form-field-checkbox .description {
+  flex-wrap: wrap; }
+  .germanized-create-label p.form-field label {
+    margin-bottom: 5px;
+    font-weight: bold;
+    display: inline-flex; }
+  .germanized-create-label p.form-field .woocommerce-help-tip {
+    display: inline-flex;
+    margin-bottom: 5px; }
+  .germanized-create-label p.form-field select, .germanized-create-label p.form-field input[type=text], .germanized-create-label p.form-field input[type=email], .germanized-create-label p.form-field input[type=date] {
     width: 100%;
-    margin-top: 5px;
-    color: #777;
-    order: 4;
-    font-style: normal; }
+    flex: 0 0 100%;
+    max-width: 100%; }
+  .germanized-create-label p.form-field.form-field-checkbox {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    justify-content: flex-start;
+    margin-top: 10px !important;
+    margin-bottom: 10px !important;
+    align-items: center; }
+    .germanized-create-label p.form-field.form-field-checkbox label {
+      width: auto;
+      margin-left: .5em;
+      font-weight: normal;
+      order: 2;
+      margin-bottom: 0; }
+    .germanized-create-label p.form-field.form-field-checkbox input[type=checkbox] {
+      order: 1; }
+    .germanized-create-label p.form-field.form-field-checkbox .woocommerce-help-tip {
+      order: 3;
+      margin-left: 3px; }
+    .germanized-create-label p.form-field.form-field-checkbox .description {
+      width: 100%;
+      margin-top: 5px;
+      color: #777;
+      order: 4;
+      font-style: normal; }
 
 table.wc-gzd-shipping-providers {
   margin-top: 1.5em; }
@@ -86,6 +106,61 @@ table.wc-gzd-shipping-providers {
     font-size: 14px; }
   table.wc-gzd-shipping-providers th {
     font-weight: 600; }
+  table.wc-gzd-shipping-providers td.sort {
+    font-size: 15px;
+    text-align: center; }
+    table.wc-gzd-shipping-providers td.sort .wc-item-reorder-nav {
+      white-space: nowrap;
+      width: 72px; }
+      table.wc-gzd-shipping-providers td.sort .wc-item-reorder-nav::before {
+        content: "\f333";
+        font-family: Dashicons;
+        text-align: center;
+        line-height: 1;
+        color: #999;
+        display: block;
+        width: 24px;
+        float: left;
+        height: 100%;
+        line-height: 24px;
+        cursor: move; }
+      table.wc-gzd-shipping-providers td.sort .wc-item-reorder-nav button {
+        position: relative;
+        overflow: hidden;
+        float: left;
+        display: block;
+        width: 24px;
+        height: 24px;
+        margin: 0;
+        background: 0 0;
+        border: none;
+        box-shadow: none;
+        color: #82878c;
+        text-indent: -9999px;
+        cursor: pointer;
+        outline: 0; }
+        table.wc-gzd-shipping-providers td.sort .wc-item-reorder-nav button::before {
+          display: inline-block;
+          position: absolute;
+          top: 0;
+          right: 0;
+          width: 100%;
+          height: 100%;
+          font: normal 20px/23px dashicons;
+          text-align: center;
+          text-indent: 0;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale; }
+        table.wc-gzd-shipping-providers td.sort .wc-item-reorder-nav button:focus {
+          color: #191e23; }
+      table.wc-gzd-shipping-providers td.sort .wc-item-reorder-nav .wc-move-down::before {
+        content: "\f347"; }
+      table.wc-gzd-shipping-providers td.sort .wc-item-reorder-nav .wc-move-up::before {
+        content: "\f343"; }
+      table.wc-gzd-shipping-providers td.sort .wc-item-reorder-nav .wc-move-disabled {
+        color: #d5d5d5 !important;
+        cursor: default;
+        pointer-events: none; }
   table.wc-gzd-shipping-providers td.wc-gzd-shipping-provider-activated, table.wc-gzd-shipping-providers th.wc-gzd-shipping-provider-activated {
     width: 1%;
     text-align: center; }
@@ -108,6 +183,18 @@ table.wc-gzd-shipping-providers {
   table.wc-gzd-shipping-providers tr:nth-child(odd) td {
     background: #f9f9f9; }
 
+.packaging-report-status {
+  background: #f8dda7;
+  color: #94660c;
+  padding: .2em .5em;
+  font-size: .9em;
+  border-radius: 3px;
+  display: inline-flex;
+  white-space: nowrap; }
+  .packaging-report-status.status-completed {
+    background: #c6e1c6;
+    color: #5b841b; }
+
 .shipment-status, .order-shipping-status, .order-return-status {
   background: #eee;
   padding: .2em .5em;
@@ -115,13 +202,13 @@ table.wc-gzd-shipping-providers {
   border-radius: 3px;
   display: inline-flex;
   white-space: nowrap; }
-  .shipment-status.status-draft, .shipment-status.status-processing, .shipment-status.status-requested, .shipment-status.status-partially-shipped, .shipment-status.status-open, .shipment-status.status-partially-returned, .order-shipping-status.status-draft, .order-shipping-status.status-processing, .order-shipping-status.status-requested, .order-shipping-status.status-partially-shipped, .order-shipping-status.status-open, .order-shipping-status.status-partially-returned, .order-return-status.status-draft, .order-return-status.status-processing, .order-return-status.status-requested, .order-return-status.status-partially-shipped, .order-return-status.status-open, .order-return-status.status-partially-returned {
+  .shipment-status.status-draft, .shipment-status.status-processing, .shipment-status.status-requested, .shipment-status.status-partially-shipped, .shipment-status.status-partially-delivered, .shipment-status.status-open, .shipment-status.status-partially-returned, .order-shipping-status.status-draft, .order-shipping-status.status-processing, .order-shipping-status.status-requested, .order-shipping-status.status-partially-shipped, .order-shipping-status.status-partially-delivered, .order-shipping-status.status-open, .order-shipping-status.status-partially-returned, .order-return-status.status-draft, .order-return-status.status-processing, .order-return-status.status-requested, .order-return-status.status-partially-shipped, .order-return-status.status-partially-delivered, .order-return-status.status-open, .order-return-status.status-partially-returned {
     background: #f8dda7;
     color: #94660c; }
   .shipment-status.status-not-shipped, .order-shipping-status.status-not-shipped, .order-return-status.status-not-shipped {
     background: #eba3a3;
     color: #761919; }
-  .shipment-status.status-delivered, .shipment-status.status-shipped, .shipment-status.status-shipped, .shipment-status.status-returned, .order-shipping-status.status-delivered, .order-shipping-status.status-shipped, .order-shipping-status.status-shipped, .order-shipping-status.status-returned, .order-return-status.status-delivered, .order-return-status.status-shipped, .order-return-status.status-shipped, .order-return-status.status-returned {
+  .shipment-status.status-delivered, .shipment-status.status-shipped, .shipment-status.status-shipped, .shipment-status.status-returned, .shipment-status.status-no-shipping-needed, .order-shipping-status.status-delivered, .order-shipping-status.status-shipped, .order-shipping-status.status-shipped, .order-shipping-status.status-returned, .order-shipping-status.status-no-shipping-needed, .order-return-status.status-delivered, .order-return-status.status-shipped, .order-return-status.status-shipped, .order-return-status.status-returned, .order-return-status.status-no-shipping-needed {
     background: #c6e1c6;
     color: #5b841b; }
   .shipment-status.shipment-type-return-status.status-shipped, .order-shipping-status.shipment-type-return-status.status-shipped, .order-return-status.shipment-type-return-status.status-shipped {
@@ -131,9 +218,11 @@ table.wc-gzd-shipping-providers {
 .woocommerce_page_wc-gzd-shipments .tablenav .actions, .woocommerce_page_wc-gzd-return-shipments .tablenav .actions {
   overflow: visible; }
 
+.woocommerce_page_wc-gzd-shipments .tablenav .wc-gzd-order-search, .woocommerce_page_wc-gzd-shipments .tablenav .wc-gzd-shipping-provider-search, .woocommerce_page_wc-gzd-return-shipments .tablenav .wc-gzd-order-search, .woocommerce_page_wc-gzd-return-shipments .tablenav .wc-gzd-shipping-provider-search {
+  width: 240px; }
+
 .woocommerce_page_wc-gzd-shipments .tablenav .select2-container, .woocommerce_page_wc-gzd-return-shipments .tablenav .select2-container {
   float: left;
-  width: 240px !important;
   font-size: 14px;
   vertical-align: middle;
   margin: 1px 6px 4px 1px; }
@@ -185,18 +274,21 @@ table.wc-gzd-shipping-providers {
     box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.4);
     background: #a46497;
     background: linear-gradient(to bottom, #a46497, #66405f), #a46497;
+    -webkit-transition: width 1s ease;
     transition: width 1s ease; }
   .woocommerce_page_wc-gzd-shipments #posts-filter .bulk-action-wrapper progress::-moz-progress-bar, .woocommerce_page_wc-gzd-return-shipments #posts-filter .bulk-action-wrapper progress::-moz-progress-bar {
     border-radius: 3px;
     box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.4);
     background: #a46497;
     background: linear-gradient(to bottom, #a46497, #66405f), #a46497;
+    -moz-transition: width 1s ease;
     transition: width 1s ease; }
   .woocommerce_page_wc-gzd-shipments #posts-filter .bulk-action-wrapper progress::-ms-fill, .woocommerce_page_wc-gzd-return-shipments #posts-filter .bulk-action-wrapper progress::-ms-fill {
     border-radius: 3px;
     box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.4);
     background: #a46497;
     background: linear-gradient(to bottom, #a46497, #66405f), #a46497;
+    -ms-transition: width 1s ease;
     transition: width 1s ease; }
 
 .woocommerce_page_wc-gzd-shipments #posts-filter.bulk-action-processing .bulk-action-wrapper, .woocommerce_page_wc-gzd-return-shipments #posts-filter.bulk-action-processing .bulk-action-wrapper {
@@ -281,6 +373,8 @@ table.wc-gzd-shipping-providers {
         content: "\f147"; }
       .woocommerce_page_wc-gzd-shipments .wp-list-table .column-actions a.button.confirm::after, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-actions a.button.confirm::after {
         content: "\f147"; }
+      .woocommerce_page_wc-gzd-shipments .wp-list-table .column-actions a.button.email::after, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-actions a.button.email::after {
+        content: "\f465"; }
       .woocommerce_page_wc-gzd-shipments .wp-list-table .column-actions a.button.generate::after, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-actions a.button.generate::after {
         content: "\f502"; }
       .woocommerce_page_wc-gzd-shipments .wp-list-table .column-actions a.button.download::after, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-actions a.button.download::after {
@@ -312,6 +406,18 @@ table.wc-gzd-shipping-providers {
       .woocommerce_page_wc-gzd-shipments .wp-list-table #the-list .column-items table.wc-gzd-shipments-preview th.wc-gzd-shipment-item-column-quantity, .woocommerce_page_wc-gzd-shipments .wp-list-table #the-list .column-items table.wc-gzd-shipments-preview td.wc-gzd-shipment-item-column-quantity, .woocommerce_page_wc-gzd-return-shipments .wp-list-table #the-list .column-items table.wc-gzd-shipments-preview th.wc-gzd-shipment-item-column-quantity, .woocommerce_page_wc-gzd-return-shipments .wp-list-table #the-list .column-items table.wc-gzd-shipments-preview td.wc-gzd-shipment-item-column-quantity {
         text-align: right;
         padding-right: .5em; }
+
+.post-type-shop_order .wp-list-table .column-shipping_status, .woocommerce_page_wc-orders .wp-list-table .column-shipping_status {
+  width: 12ch; }
+
+.post-type-shop_order .wp-list-table .shipping_status .order-shipping-status, .woocommerce_page_wc-orders .wp-list-table .shipping_status .order-shipping-status {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  line-height: 2.5em;
+  display: inline-flex;
+  max-width: 100%;
+  padding: 0 1em; }
 
 #woocommerce-gzd-order-shipments {
   border-bottom: 1px solid #c3c4c7 !important; }

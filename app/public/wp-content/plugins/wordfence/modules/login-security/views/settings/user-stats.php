@@ -8,11 +8,11 @@ if (!defined('WORDFENCE_LS_VERSION')) { exit; }
 	<div class="wfls-block-header wfls-block-header-border-bottom">
 		<div class="wfls-block-header-content">
 			<div class="wfls-block-title">
-				<strong><?php esc_html_e('User Summary', 'wordfence-2fa'); ?></strong>
+				<h3><?php esc_html_e('User Summary', 'wordfence-2fa'); ?></h3>
 			</div>
 		</div>
 		<div class="wfls-block-header-action wfls-block-header-action-text wfls-nowrap wfls-padding-add-right-responsive">
-			<a href="users.php"><?php esc_html_e('Manage Users', 'wordfence'); ?></a>
+			<a href="users.php"><?php esc_html_e('Manage Users', 'wordfence-2fa'); ?></a>
 		</div>
 	</div>
 	<div class="wfls-block-content wfls-padding-no-left wfls-padding-no-right">

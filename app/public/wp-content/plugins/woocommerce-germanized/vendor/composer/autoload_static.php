@@ -4,10 +4,12 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit9784a2d0e6a2b6237a8ce95fca74d8cc
+class ComposerStaticInit2e71a955526977ccb0709e3eaf5475ff
 {
     public static $files = array (
         '6124b4c8570aa390c21fafd04a26c69f' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
+        '241d2bc730dc592f76425fee315639b6' => __DIR__ . '/..' . '/globalcitizen/php-iban/oophp-iban.php',
+        'ac2da84b5f360a33c0c760ac23936bfb' => __DIR__ . '/..' . '/globalcitizen/php-iban/php-iban.php',
     );
 
     public static $prefixLengthsPsr4 = array (
@@ -30,6 +32,7 @@ class ComposerStaticInit9784a2d0e6a2b6237a8ce95fca74d8cc
             'Vendidero\\Germanized\\Shipments\\' => 31,
             'Vendidero\\Germanized\\DHL\\' => 25,
             'Vendidero\\Germanized\\' => 21,
+            'Vendidero\\EUTaxHelper\\' => 22,
         ),
         'P' => 
         array (
@@ -37,6 +40,8 @@ class ComposerStaticInit9784a2d0e6a2b6237a8ce95fca74d8cc
         ),
         'D' => 
         array (
+            'Digitick\\Sepa\\' => 14,
+            'Defuse\\Crypto\\' => 14,
             'DeepCopy\\' => 9,
             'DVDoug\\BoxPacker\\Test\\' => 22,
             'DVDoug\\BoxPacker\\' => 17,
@@ -84,9 +89,21 @@ class ComposerStaticInit9784a2d0e6a2b6237a8ce95fca74d8cc
         array (
             0 => __DIR__ . '/../..' . '/src',
         ),
+        'Vendidero\\EUTaxHelper\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/packages/woocommerce-eu-tax-helper/src',
+        ),
         'Psr\\Log\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/log/Psr/Log',
+        ),
+        'Digitick\\Sepa\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/digitick/sepa-xml/src',
+        ),
+        'Defuse\\Crypto\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/defuse/php-encryption/src',
         ),
         'DeepCopy\\' => 
         array (
@@ -221,11 +238,16 @@ class ComposerStaticInit9784a2d0e6a2b6237a8ce95fca74d8cc
         'Composer\\Installers\\ZikulaInstaller' => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers/ZikulaInstaller.php',
         'DVDoug\\BoxPacker\\Box' => __DIR__ . '/..' . '/dvdoug/boxpacker/src/Box.php',
         'DVDoug\\BoxPacker\\BoxList' => __DIR__ . '/..' . '/dvdoug/boxpacker/src/BoxList.php',
+        'DVDoug\\BoxPacker\\BoxSorter' => __DIR__ . '/..' . '/dvdoug/boxpacker/src/BoxSorter.php',
         'DVDoug\\BoxPacker\\ConstrainedItem' => __DIR__ . '/..' . '/dvdoug/boxpacker/src/ConstrainedItem.php',
         'DVDoug\\BoxPacker\\ConstrainedPlacementItem' => __DIR__ . '/..' . '/dvdoug/boxpacker/src/ConstrainedPlacementItem.php',
+        'DVDoug\\BoxPacker\\DefaultBoxSorter' => __DIR__ . '/..' . '/dvdoug/boxpacker/src/DefaultBoxSorter.php',
+        'DVDoug\\BoxPacker\\DefaultItemSorter' => __DIR__ . '/..' . '/dvdoug/boxpacker/src/DefaultItemSorter.php',
+        'DVDoug\\BoxPacker\\DefaultPackedBoxSorter' => __DIR__ . '/..' . '/dvdoug/boxpacker/src/DefaultPackedBoxSorter.php',
         'DVDoug\\BoxPacker\\InfalliblePacker' => __DIR__ . '/..' . '/dvdoug/boxpacker/src/InfalliblePacker.php',
         'DVDoug\\BoxPacker\\Item' => __DIR__ . '/..' . '/dvdoug/boxpacker/src/Item.php',
         'DVDoug\\BoxPacker\\ItemList' => __DIR__ . '/..' . '/dvdoug/boxpacker/src/ItemList.php',
+        'DVDoug\\BoxPacker\\ItemSorter' => __DIR__ . '/..' . '/dvdoug/boxpacker/src/ItemSorter.php',
         'DVDoug\\BoxPacker\\ItemTooLargeException' => __DIR__ . '/..' . '/dvdoug/boxpacker/src/ItemTooLargeException.php',
         'DVDoug\\BoxPacker\\LayerPacker' => __DIR__ . '/..' . '/dvdoug/boxpacker/src/LayerPacker.php',
         'DVDoug\\BoxPacker\\LayerStabiliser' => __DIR__ . '/..' . '/dvdoug/boxpacker/src/LayerStabiliser.php',
@@ -236,6 +258,7 @@ class ComposerStaticInit9784a2d0e6a2b6237a8ce95fca74d8cc
         'DVDoug\\BoxPacker\\OrientatedItemSorter' => __DIR__ . '/..' . '/dvdoug/boxpacker/src/OrientatedItemSorter.php',
         'DVDoug\\BoxPacker\\PackedBox' => __DIR__ . '/..' . '/dvdoug/boxpacker/src/PackedBox.php',
         'DVDoug\\BoxPacker\\PackedBoxList' => __DIR__ . '/..' . '/dvdoug/boxpacker/src/PackedBoxList.php',
+        'DVDoug\\BoxPacker\\PackedBoxSorter' => __DIR__ . '/..' . '/dvdoug/boxpacker/src/PackedBoxSorter.php',
         'DVDoug\\BoxPacker\\PackedItem' => __DIR__ . '/..' . '/dvdoug/boxpacker/src/PackedItem.php',
         'DVDoug\\BoxPacker\\PackedItemList' => __DIR__ . '/..' . '/dvdoug/boxpacker/src/PackedItemList.php',
         'DVDoug\\BoxPacker\\PackedLayer' => __DIR__ . '/..' . '/dvdoug/boxpacker/src/PackedLayer.php',
@@ -244,6 +267,7 @@ class ComposerStaticInit9784a2d0e6a2b6237a8ce95fca74d8cc
         'DVDoug\\BoxPacker\\Test\\ConstrainedPlacementNoStackingTestItem' => __DIR__ . '/..' . '/dvdoug/boxpacker/tests/Test/ConstrainedPlacementNoStackingTestItem.php',
         'DVDoug\\BoxPacker\\Test\\ConstrainedTestItem' => __DIR__ . '/..' . '/dvdoug/boxpacker/tests/Test/ConstrainedTestItem.php',
         'DVDoug\\BoxPacker\\Test\\LimitedSupplyTestBox' => __DIR__ . '/..' . '/dvdoug/boxpacker/tests/Test/LimitedSupplyTestBox.php',
+        'DVDoug\\BoxPacker\\Test\\PackedBoxByReferenceSorter' => __DIR__ . '/..' . '/dvdoug/boxpacker/tests/Test/PackedBoxByReferenceSorter.php',
         'DVDoug\\BoxPacker\\Test\\THPackTestItem' => __DIR__ . '/..' . '/dvdoug/boxpacker/tests/Test/THPackTestItem.php',
         'DVDoug\\BoxPacker\\Test\\TestBox' => __DIR__ . '/..' . '/dvdoug/boxpacker/tests/Test/TestBox.php',
         'DVDoug\\BoxPacker\\Test\\TestItem' => __DIR__ . '/..' . '/dvdoug/boxpacker/tests/Test/TestItem.php',
@@ -274,6 +298,46 @@ class ComposerStaticInit9784a2d0e6a2b6237a8ce95fca74d8cc
         'DeepCopy\\TypeFilter\\Spl\\SplDoublyLinkedListFilter' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/TypeFilter/Spl/SplDoublyLinkedListFilter.php',
         'DeepCopy\\TypeFilter\\TypeFilter' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/TypeFilter/TypeFilter.php',
         'DeepCopy\\TypeMatcher\\TypeMatcher' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/TypeMatcher/TypeMatcher.php',
+        'Defuse\\Crypto\\Core' => __DIR__ . '/..' . '/defuse/php-encryption/src/Core.php',
+        'Defuse\\Crypto\\Crypto' => __DIR__ . '/..' . '/defuse/php-encryption/src/Crypto.php',
+        'Defuse\\Crypto\\DerivedKeys' => __DIR__ . '/..' . '/defuse/php-encryption/src/DerivedKeys.php',
+        'Defuse\\Crypto\\Encoding' => __DIR__ . '/..' . '/defuse/php-encryption/src/Encoding.php',
+        'Defuse\\Crypto\\Exception\\BadFormatException' => __DIR__ . '/..' . '/defuse/php-encryption/src/Exception/BadFormatException.php',
+        'Defuse\\Crypto\\Exception\\CryptoException' => __DIR__ . '/..' . '/defuse/php-encryption/src/Exception/CryptoException.php',
+        'Defuse\\Crypto\\Exception\\EnvironmentIsBrokenException' => __DIR__ . '/..' . '/defuse/php-encryption/src/Exception/EnvironmentIsBrokenException.php',
+        'Defuse\\Crypto\\Exception\\IOException' => __DIR__ . '/..' . '/defuse/php-encryption/src/Exception/IOException.php',
+        'Defuse\\Crypto\\Exception\\WrongKeyOrModifiedCiphertextException' => __DIR__ . '/..' . '/defuse/php-encryption/src/Exception/WrongKeyOrModifiedCiphertextException.php',
+        'Defuse\\Crypto\\File' => __DIR__ . '/..' . '/defuse/php-encryption/src/File.php',
+        'Defuse\\Crypto\\Key' => __DIR__ . '/..' . '/defuse/php-encryption/src/Key.php',
+        'Defuse\\Crypto\\KeyOrPassword' => __DIR__ . '/..' . '/defuse/php-encryption/src/KeyOrPassword.php',
+        'Defuse\\Crypto\\KeyProtectedByPassword' => __DIR__ . '/..' . '/defuse/php-encryption/src/KeyProtectedByPassword.php',
+        'Defuse\\Crypto\\RuntimeTests' => __DIR__ . '/..' . '/defuse/php-encryption/src/RuntimeTests.php',
+        'Digitick\\Sepa\\DomBuilder\\BaseDomBuilder' => __DIR__ . '/..' . '/digitick/sepa-xml/src/DomBuilder/BaseDomBuilder.php',
+        'Digitick\\Sepa\\DomBuilder\\CustomerCreditTransferDomBuilder' => __DIR__ . '/..' . '/digitick/sepa-xml/src/DomBuilder/CustomerCreditTransferDomBuilder.php',
+        'Digitick\\Sepa\\DomBuilder\\CustomerDirectDebitTransferDomBuilder' => __DIR__ . '/..' . '/digitick/sepa-xml/src/DomBuilder/CustomerDirectDebitTransferDomBuilder.php',
+        'Digitick\\Sepa\\DomBuilder\\DomBuilderFactory' => __DIR__ . '/..' . '/digitick/sepa-xml/src/DomBuilder/DomBuilderFactory.php',
+        'Digitick\\Sepa\\DomBuilder\\DomBuilderInterface' => __DIR__ . '/..' . '/digitick/sepa-xml/src/DomBuilder/DomBuilderInterface.php',
+        'Digitick\\Sepa\\Exception\\Exception' => __DIR__ . '/..' . '/digitick/sepa-xml/src/Exception/Exception.php',
+        'Digitick\\Sepa\\Exception\\InvalidArgumentException' => __DIR__ . '/..' . '/digitick/sepa-xml/src/Exception/InvalidArgumentException.php',
+        'Digitick\\Sepa\\Exception\\InvalidPaymentMethodException' => __DIR__ . '/..' . '/digitick/sepa-xml/src/Exception/InvalidPaymentMethodException.php',
+        'Digitick\\Sepa\\Exception\\InvalidTransferFileConfiguration' => __DIR__ . '/..' . '/digitick/sepa-xml/src/Exception/InvalidTransferFileConfiguration.php',
+        'Digitick\\Sepa\\Exception\\InvalidTransferTypeException' => __DIR__ . '/..' . '/digitick/sepa-xml/src/Exception/InvalidTransferTypeException.php',
+        'Digitick\\Sepa\\GroupHeader' => __DIR__ . '/..' . '/digitick/sepa-xml/src/GroupHeader.php',
+        'Digitick\\Sepa\\PaymentInformation' => __DIR__ . '/..' . '/digitick/sepa-xml/src/PaymentInformation.php',
+        'Digitick\\Sepa\\TransferFile\\BaseTransferFile' => __DIR__ . '/..' . '/digitick/sepa-xml/src/TransferFile/BaseTransferFile.php',
+        'Digitick\\Sepa\\TransferFile\\CustomerCreditTransferFile' => __DIR__ . '/..' . '/digitick/sepa-xml/src/TransferFile/CustomerCreditTransferFile.php',
+        'Digitick\\Sepa\\TransferFile\\CustomerDirectDebitTransferFile' => __DIR__ . '/..' . '/digitick/sepa-xml/src/TransferFile/CustomerDirectDebitTransferFile.php',
+        'Digitick\\Sepa\\TransferFile\\Facade\\BaseCustomerTransferFileFacade' => __DIR__ . '/..' . '/digitick/sepa-xml/src/TransferFile/Facade/BaseCustomerTransferFileFacade.php',
+        'Digitick\\Sepa\\TransferFile\\Facade\\CustomerCreditFacade' => __DIR__ . '/..' . '/digitick/sepa-xml/src/TransferFile/Facade/CustomerCreditFacade.php',
+        'Digitick\\Sepa\\TransferFile\\Facade\\CustomerDirectDebitFacade' => __DIR__ . '/..' . '/digitick/sepa-xml/src/TransferFile/Facade/CustomerDirectDebitFacade.php',
+        'Digitick\\Sepa\\TransferFile\\Facade\\CustomerTransferFileFacadeInterface' => __DIR__ . '/..' . '/digitick/sepa-xml/src/TransferFile/Facade/CustomerTransferFileFacadeInterface.php',
+        'Digitick\\Sepa\\TransferFile\\Factory\\TransferFileFacadeFactory' => __DIR__ . '/..' . '/digitick/sepa-xml/src/TransferFile/Factory/TransferFileFacadeFactory.php',
+        'Digitick\\Sepa\\TransferFile\\TransferFileInterface' => __DIR__ . '/..' . '/digitick/sepa-xml/src/TransferFile/TransferFileInterface.php',
+        'Digitick\\Sepa\\TransferInformation\\BaseTransferInformation' => __DIR__ . '/..' . '/digitick/sepa-xml/src/TransferInformation/BaseTransferInformation.php',
+        'Digitick\\Sepa\\TransferInformation\\CustomerCreditTransferInformation' => __DIR__ . '/..' . '/digitick/sepa-xml/src/TransferInformation/CustomerCreditTransferInformation.php',
+        'Digitick\\Sepa\\TransferInformation\\CustomerDirectDebitTransferInformation' => __DIR__ . '/..' . '/digitick/sepa-xml/src/TransferInformation/CustomerDirectDebitTransferInformation.php',
+        'Digitick\\Sepa\\TransferInformation\\TransferInformationInterface' => __DIR__ . '/..' . '/digitick/sepa-xml/src/TransferInformation/TransferInformationInterface.php',
+        'Digitick\\Sepa\\Util\\StringHelper' => __DIR__ . '/..' . '/digitick/sepa-xml/src/Util/StringHelper.php',
         'FPDF' => __DIR__ . '/..' . '/setasign/fpdf/fpdf.php',
         'Psr\\Log\\AbstractLogger' => __DIR__ . '/..' . '/psr/log/Psr/Log/AbstractLogger.php',
         'Psr\\Log\\InvalidArgumentException' => __DIR__ . '/..' . '/psr/log/Psr/Log/InvalidArgumentException.php',
@@ -286,6 +350,7 @@ class ComposerStaticInit9784a2d0e6a2b6237a8ce95fca74d8cc
         'Psr\\Log\\Test\\DummyTest' => __DIR__ . '/..' . '/psr/log/Psr/Log/Test/DummyTest.php',
         'Psr\\Log\\Test\\LoggerInterfaceTest' => __DIR__ . '/..' . '/psr/log/Psr/Log/Test/LoggerInterfaceTest.php',
         'Psr\\Log\\Test\\TestLogger' => __DIR__ . '/..' . '/psr/log/Psr/Log/Test/TestLogger.php',
+        'Vendidero\\EUTaxHelper\\Helper' => __DIR__ . '/../..' . '/packages/woocommerce-eu-tax-helper/src/Helper.php',
         'Vendidero\\Germanized\\Autoloader' => __DIR__ . '/../..' . '/src/Autoloader.php',
         'Vendidero\\Germanized\\DHL\\Admin\\Admin' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-dhl/src/Admin/Admin.php',
         'Vendidero\\Germanized\\DHL\\Admin\\Importer\\DHL' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-dhl/src/Admin/Importer/DHL.php',
@@ -293,7 +358,6 @@ class ComposerStaticInit9784a2d0e6a2b6237a8ce95fca74d8cc
         'Vendidero\\Germanized\\DHL\\Admin\\Status' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-dhl/src/Admin/Status.php',
         'Vendidero\\Germanized\\DHL\\Ajax' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-dhl/src/Ajax.php',
         'Vendidero\\Germanized\\DHL\\Api\\AuthSoap' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-dhl/src/Api/AuthSoap.php',
-        'Vendidero\\Germanized\\DHL\\Api\\FinderSoap' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-dhl/src/Api/FinderSoap.php',
         'Vendidero\\Germanized\\DHL\\Api\\ImPartnerInformation' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-dhl/src/Api/ImPartnerInformation.php',
         'Vendidero\\Germanized\\DHL\\Api\\ImProductList' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-dhl/src/Api/ImProductList.php',
         'Vendidero\\Germanized\\DHL\\Api\\ImProductsSoap' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-dhl/src/Api/ImProductsSoap.php',
@@ -301,6 +365,7 @@ class ComposerStaticInit9784a2d0e6a2b6237a8ce95fca74d8cc
         'Vendidero\\Germanized\\DHL\\Api\\ImWarenpostIntRest' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-dhl/src/Api/ImWarenpostIntRest.php',
         'Vendidero\\Germanized\\DHL\\Api\\Internetmarke' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-dhl/src/Api/Internetmarke.php',
         'Vendidero\\Germanized\\DHL\\Api\\LabelSoap' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-dhl/src/Api/LabelSoap.php',
+        'Vendidero\\Germanized\\DHL\\Api\\LocationFinder' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-dhl/src/Api/LocationFinder.php',
         'Vendidero\\Germanized\\DHL\\Api\\Paket' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-dhl/src/Api/Paket.php',
         'Vendidero\\Germanized\\DHL\\Api\\ParcelRest' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-dhl/src/Api/ParcelRest.php',
         'Vendidero\\Germanized\\DHL\\Api\\Rest' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-dhl/src/Api/Rest.php',
@@ -327,6 +392,7 @@ class ComposerStaticInit9784a2d0e6a2b6237a8ce95fca74d8cc
         'Vendidero\\Germanized\\DHL\\ShippingProvider\\DeutschePost' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-dhl/src/ShippingProvider/DeutschePost.php',
         'Vendidero\\Germanized\\DHL\\ShippingProvider\\ShippingMethod' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-dhl/src/ShippingProvider/ShippingMethod.php',
         'Vendidero\\Germanized\\Packages' => __DIR__ . '/../..' . '/src/Packages.php',
+        'Vendidero\\Germanized\\PluginsHelper' => __DIR__ . '/../..' . '/src/PluginsHelper.php',
         'Vendidero\\Germanized\\Shipments\\AddressSplitter' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-shipments/src/AddressSplitter.php',
         'Vendidero\\Germanized\\Shipments\\Admin\\Admin' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-shipments/src/Admin/Admin.php',
         'Vendidero\\Germanized\\Shipments\\Admin\\BulkActionHandler' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-shipments/src/Admin/BulkActionHandler.php',
@@ -363,11 +429,16 @@ class ComposerStaticInit9784a2d0e6a2b6237a8ce95fca74d8cc
         'Vendidero\\Germanized\\Shipments\\Package' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-shipments/src/Package.php',
         'Vendidero\\Germanized\\Shipments\\Packaging' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-shipments/src/Packaging.php',
         'Vendidero\\Germanized\\Shipments\\PackagingFactory' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-shipments/src/PackagingFactory.php',
+        'Vendidero\\Germanized\\Shipments\\Packaging\\AsyncReportGenerator' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-shipments/src/Packaging/AsyncReportGenerator.php',
+        'Vendidero\\Germanized\\Shipments\\Packaging\\Report' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-shipments/src/Packaging/Report.php',
+        'Vendidero\\Germanized\\Shipments\\Packaging\\ReportHelper' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-shipments/src/Packaging/ReportHelper.php',
+        'Vendidero\\Germanized\\Shipments\\Packaging\\ReportQueue' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-shipments/src/Packaging/ReportQueue.php',
         'Vendidero\\Germanized\\Shipments\\Packing\\Helper' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-shipments/src/Packing/Helper.php',
         'Vendidero\\Germanized\\Shipments\\Packing\\OrderItem' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-shipments/src/Packing/OrderItem.php',
         'Vendidero\\Germanized\\Shipments\\Packing\\PackagingBox' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-shipments/src/Packing/PackagingBox.php',
         'Vendidero\\Germanized\\Shipments\\Packing\\ShipmentItem' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-shipments/src/Packing/ShipmentItem.php',
         'Vendidero\\Germanized\\Shipments\\Product' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-shipments/src/Product.php',
+        'Vendidero\\Germanized\\Shipments\\Rest\\ShipmentsController' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-shipments/src/Rest/ShipmentsController.php',
         'Vendidero\\Germanized\\Shipments\\ReturnReason' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-shipments/src/ReturnReason.php',
         'Vendidero\\Germanized\\Shipments\\ReturnShipment' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-shipments/src/ReturnShipment.php',
         'Vendidero\\Germanized\\Shipments\\Shipment' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-shipments/src/Shipment.php',
@@ -385,6 +456,7 @@ class ComposerStaticInit9784a2d0e6a2b6237a8ce95fca74d8cc
         'Vendidero\\Germanized\\Shipments\\WPMLHelper' => __DIR__ . '/../..' . '/packages/woocommerce-germanized-shipments/src/WPMLHelper.php',
         'Vendidero\\Germanized\\Shopmark' => __DIR__ . '/../..' . '/src/Shopmark.php',
         'Vendidero\\Germanized\\Shopmarks' => __DIR__ . '/../..' . '/src/Shopmarks.php',
+        'Vendidero\\Germanized\\Utilities\\NumberUtil' => __DIR__ . '/../..' . '/src/Utilities/NumberUtil.php',
         'Vendidero\\OneStopShop\\Admin' => __DIR__ . '/../..' . '/packages/one-stop-shop-woocommerce/src/Admin.php',
         'Vendidero\\OneStopShop\\AdminNote' => __DIR__ . '/../..' . '/packages/one-stop-shop-woocommerce/src/AdminNote.php',
         'Vendidero\\OneStopShop\\AsyncReportGenerator' => __DIR__ . '/../..' . '/packages/one-stop-shop-woocommerce/src/AsyncReportGenerator.php',
@@ -484,9 +556,9 @@ class ComposerStaticInit9784a2d0e6a2b6237a8ce95fca74d8cc
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit9784a2d0e6a2b6237a8ce95fca74d8cc::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit9784a2d0e6a2b6237a8ce95fca74d8cc::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit9784a2d0e6a2b6237a8ce95fca74d8cc::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit2e71a955526977ccb0709e3eaf5475ff::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit2e71a955526977ccb0709e3eaf5475ff::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit2e71a955526977ccb0709e3eaf5475ff::$classMap;
 
         }, null, ClassLoader::class);
     }

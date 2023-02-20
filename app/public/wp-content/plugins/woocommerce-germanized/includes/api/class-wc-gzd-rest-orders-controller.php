@@ -1,5 +1,7 @@
 <?php
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Class WC_GZD_REST_Orders_Controller
  *
@@ -42,8 +44,11 @@ class WC_GZD_REST_Orders_Controller {
 		$order               = wc_get_order( $post );
 		$response_order_data = $response->get_data();
 
-		$response_order_data['billing']['title']         = $order->get_meta( '_billing_title' );
-		$response_order_data['shipping']['title']        = $order->get_meta( '_shipping_title' );
+		$response_order_data['billing']['title']            = $order->get_meta( '_billing_title' );
+		$response_order_data['billing']['title_formatted']  = wc_gzd_get_order_customer_title( $order );
+		$response_order_data['shipping']['title']           = $order->get_meta( '_shipping_title' );
+		$response_order_data['shipping']['title_formatted'] = wc_gzd_get_order_customer_title( $order, 'shipping' );
+
 		$response_order_data['parcel_delivery_opted_in'] = $order->get_meta( '_parcel_delivery_opted_in' );
 
 		$holder     = $order->get_meta( '_direct_debit_holder' );
@@ -60,7 +65,7 @@ class WC_GZD_REST_Orders_Controller {
 			'holder'     => $holder,
 			'iban'       => $iban,
 			'bic'        => $bic,
-			'mandate_id' => $mandate_id
+			'mandate_id' => $mandate_id,
 		);
 
 		$response->set_data( $response_order_data );
@@ -140,9 +145,23 @@ class WC_GZD_REST_Orders_Controller {
 			'context'     => array( 'view', 'edit' ),
 		);
 
+		$schema_properties['billing']['properties']['title_formatted'] = array(
+			'description' => __( 'Formatted title', 'woocommerce-germanized' ),
+			'type'        => 'string',
+			'readonly'    => true,
+			'context'     => array( 'view', 'edit' ),
+		);
+
 		$schema_properties['shipping']['properties']['title'] = array(
 			'description' => __( 'Title', 'woocommerce-germanized' ),
 			'type'        => 'string',
+			'context'     => array( 'view', 'edit' ),
+		);
+
+		$schema_properties['shipping']['properties']['title_formatted'] = array(
+			'description' => __( 'Formatted title', 'woocommerce-germanized' ),
+			'type'        => 'string',
+			'readonly'    => true,
 			'context'     => array( 'view', 'edit' ),
 		);
 
@@ -161,24 +180,24 @@ class WC_GZD_REST_Orders_Controller {
 				'holder'     => array(
 					'description' => __( 'Account Holder', 'woocommerce-germanized' ),
 					'type'        => 'string',
-					'context'     => array( 'view', 'edit' )
+					'context'     => array( 'view', 'edit' ),
 				),
 				'iban'       => array(
 					'description' => __( 'IBAN', 'woocommerce-germanized' ),
 					'type'        => 'string',
-					'context'     => array( 'view', 'edit' )
+					'context'     => array( 'view', 'edit' ),
 				),
 				'bic'        => array(
 					'description' => __( 'BIC/SWIFT', 'woocommerce-germanized' ),
 					'type'        => 'string',
-					'context'     => array( 'view', 'edit' )
+					'context'     => array( 'view', 'edit' ),
 				),
 				'mandate_id' => array(
 					'description' => __( 'Mandate Reference ID', 'woocommerce-germanized' ),
 					'type'        => 'string',
-					'context'     => array( 'view', 'edit' )
-				)
-			)
+					'context'     => array( 'view', 'edit' ),
+				),
+			),
 		);
 
 		return $schema_properties;

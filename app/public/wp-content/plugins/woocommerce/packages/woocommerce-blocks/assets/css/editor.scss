@@ -1,24 +1,9 @@
-// Import the woocommerce components stylesheet
-@import "~@woocommerce/components/build-style/style.css";
-
-// Hack to hide preview overflow.
-.editor-block-preview__content {
-	overflow: hidden;
-}
-
-// Align the block icons in edit mode
-.components-placeholder__label .gridicon,
-.components-placeholder__label .material-icon {
-	margin-right: 1ch;
-	fill: currentColor;
-}
-
 // Remove the list styling, which is added back by core GB styles.
 .editor-styles-wrapper {
 	.wc-block-grid {
 		.wc-block-grid__products {
 			list-style: none;
-			margin: 0 (-$gap*0.5) $gap;
+			margin: 0 (-$gap * 0.5) $gap;
 			padding: 0;
 
 			.wc-block-grid__product {
@@ -43,22 +28,25 @@
 		margin: -$gap 0 $gap;
 	}
 
-	& + .wc-block-base-control-notice:last-child {
+	+ .wc-block-base-control-notice:last-child {
 		margin: -$gap 0 $gap-small;
 	}
 }
 
-// Selectors with extra specificity to override some editor styles.
-.woocommerce-search-list__list.woocommerce-search-list__list {
-	box-sizing: border-box;
-	margin: 0;
-	padding: 0;
+svg.wc-block-editor-components-block-icon {
+	color: $studio-woocommerce-purple-50;
 }
 
-.woocommerce-search-list__selected.woocommerce-search-list__selected > ul {
-	list-style: none;
-	margin: 0;
-	padding: 0;
+svg.wc-block-editor-components-block-icon--sparkles path {
+	fill: currentColor;
+}
+
+.block-editor-list-view-leaf.is-selected {
+	.block-editor-list-view-block-contents {
+		svg.wc-block-editor-components-block-icon {
+			color: currentColor;
+		}
+	}
 }
 
 .theme-twentytwenty {

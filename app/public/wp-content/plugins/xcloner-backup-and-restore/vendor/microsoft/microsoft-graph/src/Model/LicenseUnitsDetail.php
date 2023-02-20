@@ -7,10 +7,9 @@
 *
 * @category  Library
 * @package   Microsoft.Graph
-* @copyright © Microsoft Corporation. All rights reserved.
+* @copyright (c) Microsoft Corporation. All rights reserved.
 * @license   https://opensource.org/licenses/MIT MIT License
-* @version   GIT: 1.4.0
-* @link      https://graph.microsoft.io/
+* @link      https://graph.microsoft.com
 */
 namespace Microsoft\Graph\Model;
 /**
@@ -18,18 +17,17 @@ namespace Microsoft\Graph\Model;
 *
 * @category  Model
 * @package   Microsoft.Graph
-* @copyright © Microsoft Corporation. All rights reserved.
+* @copyright (c) Microsoft Corporation. All rights reserved.
 * @license   https://opensource.org/licenses/MIT MIT License
-* @version   Release: 1.4.0
-* @link      https://graph.microsoft.io/
+* @link      https://graph.microsoft.com
 */
 class LicenseUnitsDetail extends Entity
 {
     /**
     * Gets the enabled
-    * The number of units that are enabled.
+    * The number of units that are enabled for the active subscription of the service SKU.
     *
-    * @return int The enabled
+    * @return int|null The enabled
     */
     public function getEnabled()
     {
@@ -42,7 +40,7 @@ class LicenseUnitsDetail extends Entity
 
     /**
     * Sets the enabled
-    * The number of units that are enabled.
+    * The number of units that are enabled for the active subscription of the service SKU.
     *
     * @param int $val The value of the enabled
     *
@@ -55,9 +53,9 @@ class LicenseUnitsDetail extends Entity
     }
     /**
     * Gets the suspended
-    * The number of units that are suspended.
+    * The number of units that are suspended because the subscription of the service SKU has been cancelled. The units cannot be assigned but can still be reactivated before they are deleted.
     *
-    * @return int The suspended
+    * @return int|null The suspended
     */
     public function getSuspended()
     {
@@ -70,7 +68,7 @@ class LicenseUnitsDetail extends Entity
 
     /**
     * Sets the suspended
-    * The number of units that are suspended.
+    * The number of units that are suspended because the subscription of the service SKU has been cancelled. The units cannot be assigned but can still be reactivated before they are deleted.
     *
     * @param int $val The value of the suspended
     *
@@ -83,9 +81,9 @@ class LicenseUnitsDetail extends Entity
     }
     /**
     * Gets the warning
-    * The number of units that are in warning status.
+    * The number of units that are in warning status. When the subscription of the service SKU has expired, the customer has a grace period to renew their subscription before it is cancelled (moved to a suspended state).
     *
-    * @return int The warning
+    * @return int|null The warning
     */
     public function getWarning()
     {
@@ -98,7 +96,7 @@ class LicenseUnitsDetail extends Entity
 
     /**
     * Sets the warning
-    * The number of units that are in warning status.
+    * The number of units that are in warning status. When the subscription of the service SKU has expired, the customer has a grace period to renew their subscription before it is cancelled (moved to a suspended state).
     *
     * @param int $val The value of the warning
     *

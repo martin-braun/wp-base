@@ -24,6 +24,7 @@
 
 namespace MicrosoftAzure\Storage\Common\Internal\Authentication;
 
+use GuzzleHttp\Psr7\Query;
 use GuzzleHttp\Psr7\Request;
 use MicrosoftAzure\Storage\Common\Internal\Http\HttpFormatter;
 use MicrosoftAzure\Storage\Common\Internal\Resources;
@@ -115,7 +116,7 @@ class SharedKeyAuthScheme implements IAuthScheme
         $stringToSign[] = strtoupper($httpMethod);
 
         foreach ($this->includedHeaders as $header) {
-            $stringToSign[] = Utilities::tryGetValue($headers, $header);
+            $stringToSign[] = Utilities::tryGetValueInsensitive($header, $headers);
         }
 
         if (count($canonicalizedHeaders) > 0) {
@@ -305,7 +306,7 @@ class SharedKeyAuthScheme implements IAuthScheme
         $signedKey = $this->getAuthorizationHeader(
             $requestHeaders,
             $request->getUri(),
-            \GuzzleHttp\Psr7\parse_query(
+            Query::parse(
                 $request->getUri()->getQuery()
             ),
             $request->getMethod()

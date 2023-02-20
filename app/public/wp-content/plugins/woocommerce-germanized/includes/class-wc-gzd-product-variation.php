@@ -24,7 +24,9 @@ class WC_GZD_Product_Variation extends WC_GZD_Product {
 		'unit_price_sale'    => '',
 		'unit_price_auto'    => '',
 		'service'            => '',
-		'mini_desc'          => '',
+		'used_good'          => '',
+		'defective_copy'     => '',
+		'defect_description' => '',
 	);
 
 	protected $gzd_variation_inherited_meta_data = array(
@@ -38,6 +40,28 @@ class WC_GZD_Product_Variation extends WC_GZD_Product {
 		'min_age',
 		'default_delivery_time',
 		'delivery_time_countries',
+		'warranty_attachment_id',
+		'gtin',
+		'mpn',
+		'deposit_type',
+		'deposit_quantity',
+		'nutrient_ids',
+		'nutrient_reference_value',
+		'allergen_ids',
+		'ingredients',
+		'nutri_score',
+		'drained_weight',
+		'net_filling_quantity',
+		'alcohol_content',
+		'food_distributor',
+		'food_place_of_origin',
+		'food_description',
+		'is_food',
+		'mini_desc',
+	);
+
+	protected $gzd_variation_prevent_zero_inherit_meta_data = array(
+		'alcohol_content',
 	);
 
 	protected $gzd_variation_forced_inherited_meta_data = array(
@@ -45,6 +69,7 @@ class WC_GZD_Product_Variation extends WC_GZD_Product {
 		'unit_base',
 		'free_shipping',
 		'differential_taxation',
+		'is_food',
 	);
 
 	public function get_gzd_parent() {
@@ -62,25 +87,35 @@ class WC_GZD_Product_Variation extends WC_GZD_Product {
 	public function get_prop( $prop, $context = 'view' ) {
 		$meta_key = substr( $prop, 0, 1 ) !== '_' ? '_' . $prop : $prop;
 
-		if ( in_array( $prop, array_keys( $this->gzd_variation_level_meta ) ) ) {
+		if ( in_array( $prop, array_keys( $this->gzd_variation_level_meta ), true ) ) {
 			$value = $this->child->get_meta( $meta_key, true, $context );
 
 			if ( '' === $value ) {
 				$value = $this->gzd_variation_level_meta[ $prop ];
 			}
-
-		} elseif ( in_array( $prop, $this->gzd_variation_inherited_meta_data ) ) {
-			$value = $this->child->get_meta( $meta_key, true, $context ) ? $this->child->get_meta( $meta_key, true, $context ) : '';
+		} elseif ( in_array( $prop, $this->gzd_variation_inherited_meta_data, true ) ) {
+			$value = $this->child->get_meta( $meta_key, true, $context );
 
 			// Make sure forced inherited meta data (e.g. not choosable from admin view) is rejected if available
-			if ( in_array( $prop, $this->gzd_variation_forced_inherited_meta_data ) ) {
+			if ( in_array( $prop, $this->gzd_variation_forced_inherited_meta_data, true ) ) {
 				$value = '';
 			}
 
+			$variation_misses_value = ! $value || '' === $value;
+
+			/**
+			 * Some fields should be able to override parent values with 0, e.g. decimal fields
+			 */
+			if ( in_array( $prop, $this->gzd_variation_prevent_zero_inherit_meta_data, true ) && '0' === strval( $value ) ) {
+				$variation_misses_value = false;
+			}
+
 			// Handle meta data keys which can be empty at variation level to cause inheritance
-			if ( 'view' === $context && ( ! $value || '' === $value ) ) {
-				if ( $parent = $this->get_gzd_parent() ) {
-					$value = $parent->get_wc_product()->get_meta( $meta_key, true, $context );
+			if ( $variation_misses_value ) {
+				if ( in_array( $prop, $this->gzd_variation_forced_inherited_meta_data, true ) || 'view' === $context ) {
+					if ( $parent = $this->get_gzd_parent() ) {
+						$value = $parent->get_wc_product()->get_meta( $meta_key, true, $context );
+					}
 				}
 			}
 		} else {
@@ -95,11 +130,12 @@ class WC_GZD_Product_Variation extends WC_GZD_Product {
 		 * @param mixed $value The property value.
 		 * @param WC_GZD_Product_Variation $gzd_product The GZD product instance.
 		 * @param WC_Product_Variation $product The product instance.
+		 * @param string $context The context
 		 *
 		 * @since 3.0.0
 		 *
 		 */
-		return apply_filters( "woocommerce_gzd_get_product_variation_{$prop}", $value, $this, $this->child );
+		return apply_filters( "woocommerce_gzd_get_product_variation_{$prop}", $value, $this, $this->child, $context );
 	}
 
 	public function get_unit( $context = 'view' ) {
@@ -110,7 +146,7 @@ class WC_GZD_Product_Variation extends WC_GZD_Product {
 		}
 
 		/** This filter is documented in includes/class-wc-gzd-product-variation.php */
-		return apply_filters( "woocommerce_gzd_get_product_variation_unit", $unit, $this, $this->child );
+		return apply_filters( 'woocommerce_gzd_get_product_variation_unit', $unit, $this, $this->child );
 	}
 
 	/**
@@ -149,6 +185,18 @@ class WC_GZD_Product_Variation extends WC_GZD_Product {
 		$this->set_prop( 'differential_taxation', '' );
 	}
 
+	public function get_nutrient_ids( $context = 'view' ) {
+		$nutrient_ids = parent::get_nutrient_ids( $context );
+
+		if ( 'view' === $context ) {
+			$variation_level_nutrient_ids = (array) $this->get_prop( 'nutrient_ids', 'edit' );
+			$parent_level_nutrient_ids    = $this->get_gzd_parent() ? $this->get_gzd_parent()->get_nutrient_ids( $context ) : $nutrient_ids;
+			$nutrient_ids                 = array_replace_recursive( $parent_level_nutrient_ids, $variation_level_nutrient_ids );
+		}
+
+		return $nutrient_ids;
+	}
+
 	public function get_delivery_time_slugs( $context = 'view' ) {
 		$slugs = parent::get_delivery_time_slugs( $context );
 
@@ -173,6 +221,7 @@ class WC_GZD_Product_Variation extends WC_GZD_Product {
 	protected function is_valid_country_specific_delivery_time( $slug, $country ) {
 		$delivery_times_parent = array();
 		$default_parent        = false;
+		$default_child         = $this->get_default_delivery_time_slug();
 
 		if ( $parent = $this->get_gzd_parent() ) {
 			$delivery_times_parent = $parent->get_country_specific_delivery_times();
@@ -184,14 +233,16 @@ class WC_GZD_Product_Variation extends WC_GZD_Product {
 		/**
 		 * Do now allow storing duplicate country specific delivery times
 		 */
-		if ( $is_valid && array_key_exists( $country, $delivery_times_parent ) && $delivery_times_parent[ $country ] == $slug ) {
+		if ( $is_valid && array_key_exists( $country, $delivery_times_parent ) && $delivery_times_parent[ $country ] === $slug ) {
 			$is_valid = false;
 		}
 
 		/**
 		 * Do not allow a variation to include country-specific delivery times matching the parent's default time
+		 * in case the default delivery time of the child does not differ from the parent and the parent did not
+		 * define any country-specific times.
 		 */
-		if ( $is_valid && $default_parent && $slug == $default_parent ) {
+		if ( $is_valid && empty( $delivery_times_parent ) && $default_parent && $default_child === $default_parent && $slug === $default_parent ) {
 			$is_valid = false;
 		}
 

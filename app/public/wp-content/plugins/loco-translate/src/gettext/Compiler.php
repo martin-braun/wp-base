@@ -29,22 +29,22 @@ class Loco_gettext_Compiler {
 
     /**
      * Construct with primary file (PO) being saved
-     * @param Loco_fs_LocaleFile Localised PO file which may or may not exist yet
+     * @param Loco_fs_LocaleFile $pofile Localised PO file which may or may not exist yet
      */
     public function __construct( Loco_fs_LocaleFile $pofile ){
         $this->fs = new Loco_api_WordPressFileSystem;
         $this->files = new Loco_fs_Siblings($pofile);
-        $this->progress = new Loco_mvc_ViewParams( array(
+        $this->progress = new Loco_mvc_ViewParams( [
             'pobytes' => 0,
             'mobytes' => 0,
             'numjson' => 0,
-        ) );
+        ] );
     }
 
 
     /**
      * Set overwrite mode
-     * @param bool whether to overwrite existing files during compilation
+     * @param bool $overwrite whether to overwrite existing files during compilation
      * @return self
      */
     public function overwrite( $overwrite ){
@@ -54,8 +54,6 @@ class Loco_gettext_Compiler {
 
 
     /**
-     * @param Loco_gettext_Data
-     * @param Loco_package_Project|null
      * @return self
      */
     public function writeAll( Loco_gettext_Data $po, Loco_package_Project $project = null ){
@@ -69,7 +67,6 @@ class Loco_gettext_Compiler {
 
 
     /**
-     * @param Loco_gettext_Data PO data
      * @return int bytes written to PO file
      * @throws Loco_error_WriteException
      */
@@ -92,7 +89,6 @@ class Loco_gettext_Compiler {
 
 
     /**
-     * @param Loco_gettext_Data PO data
      * @return int bytes written to MO file
      */
     public function writeMo( Loco_gettext_Data $po ){
@@ -112,8 +108,8 @@ class Loco_gettext_Compiler {
 
 
     /**
-     * @param Loco_package_Project Translation set, required to resolve script paths
-     * @param Loco_gettext_Data PO data to export
+     * @param Loco_package_Project $project Translation set, required to resolve script paths
+     * @param Loco_gettext_Data $po PO data to export
      * @return Loco_fs_FileList All json files created
      */
     public function writeJson( Loco_package_Project $project, Loco_gettext_Data $po ){
@@ -140,9 +136,10 @@ class Loco_gettext_Compiler {
         // continue as per default, generating multiple per-script JSON
         else {
             $base_dir = $project->getBundle()->getDirectoryPath();
-            $buffer = array();
+            $buffer = [];
             /* @var Loco_gettext_Data $fragment */
             foreach( $po->exportRefs('\\.js') as $ref => $fragment ){
+                $use = null;
                 // Reference could be source js, or minified version.
                 // Some build systems may differ, but WordPress only supports this. See WP-CLI MakeJsonCommand.
                 if( substr($ref,-7) === '.min.js' ) {
@@ -153,52 +150,53 @@ class Loco_gettext_Compiler {
                     $src = $ref;
                     $min = substr($ref,0,-3).'.min.js';
                 }
-                // Try both script paths to check whether deployed script actually exists
-                $found = false;
-                foreach( array($min,$src) as $ref ){
+                // Try .js and .min.js paths to check whether deployed script actually exists
+                foreach( [$min,$src] as $try ){
                     // Hook into load_script_textdomain_relative_path like load_script_textdomain() does.
-                    $url = $project->getBundle()->getDirectoryUrl().$ref;
-                    $ref = apply_filters( 'load_script_textdomain_relative_path', $ref, $url );
-                    if( ! is_string($ref) || '' === $ref ){
+                    $url = $project->getBundle()->getDirectoryUrl().$try;
+                    $try = apply_filters( 'load_script_textdomain_relative_path', $try, $url );
+                    if( ! is_string($try) || '' === $try ){
                         continue;
                     }
-                    $file = new Loco_fs_File($ref);
+                    // by default ignore js file that is not in deployed code
+                    $file = new Loco_fs_File($try);
                     $file->normalize($base_dir);
-                    if( ! $file->exists() ){
-                        continue;
+                    if( apply_filters('loco_compile_script_reference',$file->exists(),$try,$domain) ){
+                        $use = $try;
+                        break;
                     }
-                    // add .js strings to buffer for this json and merge if already present
-                    if( array_key_exists($ref,$buffer) ){
-                        $buffer[$ref]->concat($fragment);
-                    }
-                    else {
-                        $buffer[$ref] = $fragment;
-                    }
-                    $found = true;
-                    break;
                 }
                 // if neither exists in the bundle, this is a source path that will never be resolved at runtime
-                if( ! $found ){
+                if( is_null($use) ){
                     Loco_error_AdminNotices::debug( sprintf('Skipping JSON for %s; script not found in bundle',$ref) );
                 }
-            }
-            // write all buffered fragments to their computed JSON paths
-            foreach( $buffer as $ref => $fragment ) {
-                $jsonfile = $pofile->cloneJson($ref);
-                try {
-                    $this->writeFile( $jsonfile, $fragment->msgjed($domain,$ref) );
-                    $jsons->add($jsonfile);
+                // add .js strings to buffer for this json and merge if already present
+                else if( array_key_exists($use,$buffer) ){
+                    $buffer[$use]->concat($fragment);
                 }
-                catch( Loco_error_WriteException $e ){
-                    Loco_error_AdminNotices::debug( $e->getMessage() );
-                    Loco_error_AdminNotices::warn( sprintf(__('JSON compilation failed for %s','loco-translate'),$ref));
+                else {
+                    $buffer[$use] = $fragment;
                 }
             }
-            $buffer = null;
+            if( $buffer ){
+                // write all buffered fragments to their computed JSON paths
+                foreach( $buffer as $ref => $fragment ) {
+                    $jsonfile = $this->cloneJson($pofile,$ref,$domain);
+                    try {
+                        $this->writeFile( $jsonfile, $fragment->msgjed($domain,$ref) );
+                        $jsons->add($jsonfile);
+                    }
+                    catch( Loco_error_WriteException $e ){
+                        Loco_error_AdminNotices::debug( $e->getMessage() );
+                        Loco_error_AdminNotices::warn( sprintf(__('JSON compilation failed for %s','loco-translate'),$ref));
+                    }
+                }
+                $buffer = null;
+            }
         }
         // clean up redundant JSONs including if no JSONs were compiled
         if( Loco_data_Settings::get()->jed_clean ){
-            foreach( $this->files->getJsons() as $path ){
+            foreach( $this->files->getJsons($domain) as $path ){
                 $jsonfile = new Loco_fs_File($path);
                 if( ! $jsons->has($jsonfile) ){
                     try {
@@ -213,6 +211,27 @@ class Loco_gettext_Compiler {
         $this->progress['numjson'] = $jsons->count();
         return $jsons;
     }
+
+
+    /**
+     * Clone localised file as a WordPress script translation file
+     * @return Loco_fs_File
+     */
+    private function cloneJson( Loco_fs_File $pofile, $ref, $domain ){
+        $name = $pofile->filename();
+        // Theme author PO files have no text domain, but JSON files must always be prefixed
+        if( $domain && 'default' !== $domain && preg_match('/^[a-z]{2,3}(?:_[a-z\\d_]+)?$/i',$name) ){
+            $name = $domain.'-'.$name;
+        }
+        // Hashable reference is always finally unminified, as per load_script_textdomain()
+        if( is_string($ref) && '' !== $ref ){
+            if( substr($ref,-7) === '.min.js' ) {
+                $ref = substr($ref,0,-7).'.js';
+            }
+            $name .= '-'.md5($ref);
+        }
+        return $pofile->cloneBasename( $name.'.json' );
+    } 
 
 
     /**
@@ -246,7 +265,7 @@ class Loco_gettext_Compiler {
      * @return string[]
      */
     private function getJsExtMap(){
-        $map = array('js'=>'js', 'jsx'=>'js');
+        $map = ['js'=>'js', 'jsx'=>'js'];
         $exts = Loco_data_Settings::get()->jsx_alias;
         if( is_array($exts) && $exts ){
             foreach( $exts as $ext ){
@@ -259,7 +278,7 @@ class Loco_gettext_Compiler {
 
     /**
      * @param Loco_fs_File $file
-     * @param string Serialized JSON to write to given file
+     * @param string $data Serialized JSON to write to given file
      * @return int bytes written
      */
     public function writeFile( Loco_fs_File $file, $data ){

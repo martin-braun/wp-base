@@ -27,24 +27,28 @@ abstract class WC_GZD_Compatibility {
 	}
 
 	protected static function parse_version_data( $version_data ) {
-		$version_data = wp_parse_args( $version_data, array(
-			'version'           => '1.0.0',
-			'requires_at_least' => '',
-			'tested_up_to'      => '',
-		) );
+		$version_data = wp_parse_args(
+			$version_data,
+			array(
+				'version'           => '1.0.0',
+				'requires_at_least' => '',
+				'tested_up_to'      => '',
+			)
+		);
 
 		if ( empty( $version_data['requires_at_least'] ) && empty( $version_data['tested_up_to'] ) ) {
 			$version_data['requires_at_least'] = $version_data['version'];
 			$version_data['tested_up_to']      = $version_data['version'];
 		} elseif ( empty( $version_data['tested_up_to'] ) ) {
 			$version_data['tested_up_to'] = $version_data['requires_at_least'];
-			if ( wc_gzd_get_dependencies()->compare_versions( $version_data['version'], $version_data['requires_at_least'], '>' ) ) {
+
+			if ( \Vendidero\Germanized\PluginsHelper::compare_versions( $version_data['version'], $version_data['requires_at_least'], '>' ) ) {
 				$version_data['tested_up_to'] = $version_data['version'];
 			}
 		} elseif ( empty( $version_data['requires_at_least'] ) ) {
 			$version_data['requires_at_least'] = $version_data['tested_up_to'];
 
-			if ( wc_gzd_get_dependencies()->compare_versions( $version_data['version'], $version_data['requires_at_least'], '<' ) ) {
+			if ( \Vendidero\Germanized\PluginsHelper::compare_versions( $version_data['version'], $version_data['requires_at_least'], '<' ) ) {
 				$version_data['requires_at_least'] = $version_data['version'];
 			}
 		}
@@ -57,15 +61,27 @@ abstract class WC_GZD_Compatibility {
 	}
 
 	public static function is_activated() {
-		return wc_gzd_get_dependencies()->is_plugin_activated( static::get_path() );
+		if ( ! static::is_plugin() ) {
+			if ( $current = wp_get_theme() ) {
+				if ( $current->get_template() === static::get_path() ) {
+					return true;
+				}
+			}
+
+			return false;
+		} else {
+			return \Vendidero\Germanized\PluginsHelper::is_plugin_active( static::get_path() );
+		}
+	}
+
+	public static function is_plugin() {
+		return true;
 	}
 
 	public static function is_supported() {
 		$version_data = static::get_version_data();
 
-		return
-			wc_gzd_get_dependencies()->compare_versions( $version_data['version'], $version_data['requires_at_least'], '>=' ) &&
-			wc_gzd_get_dependencies()->compare_versions( $version_data['version'], $version_data['tested_up_to'], '<=' );
+		return \Vendidero\Germanized\PluginsHelper::compare_versions( $version_data['version'], $version_data['requires_at_least'], '>=' ) && \Vendidero\Germanized\PluginsHelper::compare_versions( $version_data['version'], $version_data['tested_up_to'], '<=' );
 	}
 
 	abstract public static function get_name();

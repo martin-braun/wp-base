@@ -5,8 +5,6 @@
  *
  * PHP version 5 and 7
  *
- * @category  Math
- * @package   BigInteger
  * @author    Jim Wigginton <terrafrost@php.net>
  * @copyright 2017 Jim Wigginton
  * @license   http://www.opensource.org/licenses/mit-license.html  MIT License
@@ -14,15 +12,12 @@
  */
 namespace WPMailSMTP\Vendor\phpseclib3\Math\BigInteger\Engines;
 
-use WPMailSMTP\Vendor\phpseclib3\Crypt\RSA;
 use WPMailSMTP\Vendor\phpseclib3\Crypt\RSA\Formats\Keys\PKCS8;
 use WPMailSMTP\Vendor\phpseclib3\Math\BigInteger;
 /**
  * OpenSSL Modular Exponentiation Engine
  *
- * @package Engines
  * @author  Jim Wigginton <terrafrost@php.net>
- * @access  public
  */
 abstract class OpenSSL
 {

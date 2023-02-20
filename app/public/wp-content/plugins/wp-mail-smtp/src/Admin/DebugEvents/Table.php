@@ -298,11 +298,13 @@ class Table extends \WP_List_Table {
 	 */
 	public function get_filtered_search() {
 
-		if ( empty( $_REQUEST['search'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( empty( $_REQUEST['search'] ) ) {
 			return false;
 		}
 
-		return sanitize_text_field( $_REQUEST['search'] ); // phpcs:ignore
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		return sanitize_text_field( wp_unslash( $_REQUEST['search'] ) );
 	}
 
 	/**
@@ -394,12 +396,16 @@ class Table extends \WP_List_Table {
 		// Total amount for pagination with WHERE clause - super quick count DB request.
 		$total_items = ( new EventsCollection( $params ) )->get_count();
 
-		if ( ! empty( $_REQUEST['orderby'] ) ) { // phpcs:ignore
-			$params['orderby'] = $_REQUEST['orderby']; // phpcs:ignore
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ! empty( $_REQUEST['orderby'] ) && in_array( $_REQUEST['orderby'], [ 'event', 'type', 'content', 'initiator', 'created_at' ], true ) ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$params['orderby'] = sanitize_key( $_REQUEST['orderby'] );
 		}
 
-		if ( ! empty( $_REQUEST['order'] ) ) { // phpcs:ignore
-			$params['order'] = $_REQUEST['order']; // phpcs:ignore
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ! empty( $_REQUEST['order'] ) ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$params['order'] = strtoupper( sanitize_text_field( wp_unslash( $_REQUEST['order'] ) ) ) === 'DESC' ? 'DESC' : 'ASC';
 		}
 
 		$params['offset'] = ( $this->get_pagenum() - 1 ) * EventsCollection::$per_page;
@@ -433,14 +439,21 @@ class Table extends \WP_List_Table {
 			return;
 		}
 
-		$search = ! empty( $_REQUEST['search'] ) ? wp_unslash( $_REQUEST['search'] ) : ''; // phpcs:ignore WordPress.Security
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$search = ! empty( $_REQUEST['search'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['search'] ) ) : '';
 
-		if ( ! empty( $_REQUEST['orderby'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			echo '<input type="hidden" name="orderby" value="' . esc_attr( $_REQUEST['orderby'] ) . '" />'; // phpcs:ignore WordPress.Security
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ! empty( $_REQUEST['orderby'] ) && in_array( $_REQUEST['orderby'], [ 'event', 'type', 'content', 'initiator', 'created_at' ], true ) ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$order_by = sanitize_text_field( wp_unslash( $_REQUEST['orderby'] ) );
+			echo '<input type="hidden" name="orderby" value="' . esc_attr( $order_by ) . '" />';
 		}
 
-		if ( ! empty( $_REQUEST['order'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			echo '<input type="hidden" name="order" value="' . esc_attr( $_REQUEST['order'] ) . '" />'; // phpcs:ignore WordPress.Security
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ! empty( $_REQUEST['order'] ) ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$order = strtoupper( sanitize_text_field( wp_unslash( $_REQUEST['order'] ) ) ) === 'DESC' ? 'DESC' : 'ASC';
+			echo '<input type="hidden" name="order" value="' . esc_attr( $order ) . '" />';
 		}
 		?>
 
@@ -535,11 +548,11 @@ class Table extends \WP_List_Table {
 		?>
 		<div class="alignleft actions wp-mail-smtp-filter-date">
 
-			<input type="text" name="date" class="regular-text wp-mail-smtp-filter-date-selector"
+			<input type="text" name="date" class="regular-text wp-mail-smtp-filter-date-selector wp-mail-smtp-filter-date__control"
 						 placeholder="<?php esc_attr_e( 'Select a date range', 'wp-mail-smtp' ); ?>"
 						 value="<?php echo esc_attr( $date ); ?>">
 
-			<button type="submit" name="action" value="filter_date" class="button">
+			<button type="submit" name="action" value="filter_date" class="button wp-mail-smtp-filter-date__btn">
 				<?php esc_html_e( 'Filter', 'wp-mail-smtp' ); ?>
 			</button>
 

@@ -16,32 +16,32 @@ class Loco_config_FormModel extends Loco_config_ArrayModel {
     public function getPost(){
         $dom = $this->getDom();
         $root = $dom->documentElement;
-        $post = new Loco_mvc_PostParams( array (
+        $post = new Loco_mvc_PostParams(  [
             'name' => $root->getAttribute('name'),
-            'exclude' => array (
+            'exclude' =>  [
                 'path' => '',
-            ),
-            'conf' => array(),
-        ) );
+            ],
+            'conf' => [],
+        ] );
         /* @var LocoConfigElement $domain */
         foreach( $this->query('domain',$root) as $domain ){
             $domainName = $domain->getAttribute('name');
             /* @var LocoConfigElement $project */
             foreach( $domain as $project ){
-                $tree = array (
+                $tree =  [
                     'name' => $project->getAttribute('name'),
                     'slug' => $project->getAttribute('slug'),
                     'domain' => $domainName,
-                    'source' => array (
+                    'source' =>  [
                         'path' => '',
-                        'exclude' => array( 'path' => '' ),
-                    ),
-                    'target' => array (
+                        'exclude' => [ 'path' => '' ],
+                    ],
+                    'target' =>  [
                         'path' => '',
-                        'exclude' => array( 'path' => '' ),
-                    ),
-                    'template' => array( 'path' => '', 'locked' => false ),
-                );
+                        'exclude' => [ 'path' => '' ],
+                    ],
+                    'template' => [ 'path' => '', 'locked' => false ],
+                ];
                 $post['conf'][] = $this->collectPaths( $project, $tree );
             }
         }
@@ -56,7 +56,7 @@ class Loco_config_FormModel extends Loco_config_ArrayModel {
 
 
     private function collectPaths( LocoConfigElement $parent, array $branch ){
-        $texts = array();
+        $texts = [];
         foreach( $parent as $child ){
             $name = $child->nodeName;
             // all file types as "path" in form model
@@ -128,17 +128,18 @@ class Loco_config_FormModel extends Loco_config_ArrayModel {
         // transform posted data into internal model:
         // deliberately not configuring bundle object at this point. simply converting data for storage.
         $dom = $this->getDom();
-        $root = $dom->appendChild( $dom->createElement('bundle') );
+        $root = $dom->createElement('bundle');
         $root->setAttribute( 'name', $name );
+        $dom->appendChild($root);
         
         // bundle level excluded paths
-        if( $nodes = array_intersect_key( $post->getArrayCopy(), array( 'exclude' => '' ) ) ) {
+        if( $nodes = array_intersect_key( $post->getArrayCopy(), [ 'exclude' => '' ] ) ) {
             $this->loadStruct( $root, $nodes );
         }
         
         // collect all projects grouped by domain
-        $domains = array();
-        foreach( $confs as $i => $conf ){
+        $domains = [];
+        foreach( $confs as $conf ){
             if( ! empty($conf['removed']) ){
                 continue;
             }
@@ -147,20 +148,21 @@ class Loco_config_FormModel extends Loco_config_ArrayModel {
             }
             $domains[ $conf['domain'] ][] = $project = $dom->createElement('project');
             // project attributes
-            foreach( array('name','slug') as $attr ){
+            foreach( ['name','slug'] as $attr ){
                 if( isset($conf[$attr]) ){
                     $project->setAttribute( $attr, $conf[$attr] );
                 }
             }
             // project children
-            if( $nodes = array_intersect_key( $conf, array( 'source' => '', 'target' => '', 'template' => '' ) ) ) {
+            if( $nodes = array_intersect_key( $conf, [ 'source' => '', 'target' => '', 'template' => '' ] ) ) {
                 $this->loadStruct( $project, $nodes );
             }
         }
         // add all domains and their projects 
         foreach( $domains as $name => $projects ){
-            $parent = $root->appendChild( $dom->createElement('domain') );
-            $parent->setAttribute( 'name', $name );
+            $parent = $dom->createElement('domain');
+            $parent->setAttribute('name',$name);
+            $root->appendChild($parent);
             /* @var $project LocoConfigElement */
             foreach( $projects as $project ){
                 $parent->appendChild( $project );
@@ -183,13 +185,13 @@ class Loco_config_FormModel extends Loco_config_ArrayModel {
                 if( 'file' === $name || 'directory' === $name || 'path' === $name ){
                     // form model has multiline "path" nodes which we'll expand from non-empty lines
                     // resolving empty paths to "." must be done elsewhere. here empty means ignore.
-                    foreach( preg_split('/\\R/', trim( $data,"\n\r"), -1, PREG_SPLIT_NO_EMPTY ) as $path ){
+                    foreach( preg_split('/[\\r\\n]+/', trim( $data,"\n\r"), -1, PREG_SPLIT_NO_EMPTY ) as $path ){
                         $ext = pathinfo( $path, PATHINFO_EXTENSION );
                         $child = $parent->appendChild( $dom->createElement( $ext ? 'file' : 'directory' ) );
                         $child->appendChild( $dom->createTextNode($path) );
                     }
                 }
-                // else assume valud is an attribute
+                // else assume value is an attribute
                 else {
                     $parent->setAttribute( $name, $data );
                 }
@@ -201,7 +203,8 @@ class Loco_config_FormModel extends Loco_config_ArrayModel {
                 throw new InvalidArgumentException('Invalid datatype');
             }
             else {
-                $child = $parent->appendChild( $dom->createElement($name) );
+                $child = $dom->createElement($name);
+                $parent->appendChild($child);
                 $this->loadStruct( $child, $data );
             }
         }

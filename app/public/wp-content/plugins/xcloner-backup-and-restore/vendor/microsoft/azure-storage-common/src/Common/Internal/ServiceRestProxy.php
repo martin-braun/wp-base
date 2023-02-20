@@ -120,6 +120,11 @@ class ServiceRestProxy extends RestProxy
                         "allow_redirects" => true,
                         "exceptions" => true,
                         "decode_content" => true,
+                        "config" => [
+                            "curl" => [
+                                CURLOPT_SSLVERSION => CURL_SSLVERSION_TLSv1_2
+                            ]
+                        ]
                     ),
                     'cookies' => true,
                     'verify' => $verify,
@@ -292,16 +297,16 @@ class ServiceRestProxy extends RestProxy
 
         // add query parameters into headers
         if ($queryParams != null) {
-            $queryString = Psr7\build_query($queryParams);
+            $queryString = Psr7\Query::build($queryParams);
             $uri = $uri->withQuery($queryString);
         }
 
-        // add post parameters into bodys
+        // add post parameters into bodies
         $actualBody = null;
         if (empty($body)) {
-            if (empty($headers['content-type'])) {
-                $headers['content-type'] = 'application/x-www-form-urlencoded';
-                $actualBody = Psr7\build_query($postParameters);
+            if (empty($headers[Resources::CONTENT_TYPE])) {
+                $headers[Resources::CONTENT_TYPE] = Resources::URL_ENCODED_CONTENT_TYPE;
+                $actualBody = Psr7\Query::build($postParameters);
             }
         } else {
             $actualBody = $body;
@@ -397,22 +402,36 @@ class ServiceRestProxy extends RestProxy
                 );
             },
             function ($reason) use ($expected) {
-                if (!($reason instanceof RequestException)) {
-                    throw $reason;
-                }
-                $response = $reason->getResponse();
-                if ($response != null) {
-                    self::throwIfError(
-                        $response,
-                        $expected
-                    );
-                } else {
-                    //if could not get response but promise rejected, throw reason.
-                    throw $reason;
-                }
-                return $response;
+                return $this->onRejected($reason, $expected);
             }
         );
+    }
+
+    /**
+     * @param  string|\Exception $reason   Rejection reason.
+     * @param  array|int         $expected Expected Status Codes.
+     *
+     * @return ResponseInterface
+     */
+    protected function onRejected($reason, $expected)
+    {
+        if (!($reason instanceof \Exception)) {
+            throw new \RuntimeException($reason);
+        }
+        if (!($reason instanceof RequestException)) {
+            throw $reason;
+        }
+        $response = $reason->getResponse();
+        if ($response != null) {
+            self::throwIfError(
+                $response,
+                $expected
+            );
+        } else {
+            //if could not get response but promise rejected, throw reason.
+            throw $reason;
+        }
+        return $response;
     }
 
     /**

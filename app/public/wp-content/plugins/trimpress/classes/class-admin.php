@@ -56,28 +56,44 @@ class Admin {
 
 		<style>
 
-		.trimpress-admin .explainer {
+		.trimpress-admin p {
 			font-size: 14px;
 		}
 
-		.trimpress-admin .explainer span {
+		.trimpress-admin hr {
+			margin-bottom: 1rem;
+		}
+
+		.safety {
 			display: inline-block;
-			width: 3px;
-			height: 14px;
-			margin-bottom: -2px;
-			border-radius: 1px;
+			width: 0.2rem;
+			height: 1rem;
+			margin-bottom: -0.25rem;
+			border-radius: 0.05rem;
 		}
 
-		.trimpress-admin .explainer span:nth-child(1) {
-			background-color: #46b450;
+		.safety.green {
+			background-color: #00A32A;
 		}
 
-		.trimpress-admin .explainer span:nth-child(4) {
+		.safety.blue {
 			background-color: #00A0D2;
 		}
 
-		.trimpress-admin hr {
-			margin-top: 20px;
+		.trimpress-admin .button-secondary {
+			margin-bottom: 0;
+		}
+
+		#submit1 {
+			position: absolute;
+			margin: -47px 0 0 150px;
+		}
+
+		@media (min-width: 783px) {
+			#submit1 {
+				position: absolute;
+				margin: -37px 0 0 134px;
+			}
 		}
 
 		</style>
@@ -85,35 +101,44 @@ class Admin {
         <div class="wrap trimpress-admin">
         	
 			<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
+
+			<p>
+				
+				<span class="safety green"></span>
+				<strong><?php _e( 'Green', 'trimpress' ); ?></strong> <?php _e( 'indicates a setting is completely safe to implement.', 'trimpress' ); ?>
+				
+				<br>
+				
+				<span class="safety blue"></span>
+				<strong><?php _e( 'Blue', 'trimpress' ); ?></strong> <?php _e( 'indicates you should proceed with more caution and know the implications.', 'trimpress' ); ?>
 			
-			<p class="explainer">
-				
-				<?php 
-				
-				$green_explainer = __( '<strong>Green</strong> indicates a setting is completely safe to implement.', 'trimpress' );
-				$blue_explainer  = __( '<strong>Blue</strong> indicates you should proceed with more caution and know the implications.', 'trimpress' );
-				
-				echo sprintf( '<span></span> %s<br><span></span> %s', $green_explainer, $blue_explainer );
-				
-				?>
-				
 			</p>
 
-			<button id="btn-all-none" class="button button-secondary" style="width: 80px; height: 32px;"><?php _e( 'Select', 'trimpress' ); ?></button>
-			<select id="opt-all-none" style="width: 80px; height: 32px;">
+			<hr>
+
+			<button id="btn-all-none" class="button button-secondary">
+					<?php _e( 'Select', 'trimpress' ); ?>
+			</button>
+			
+			<select id="opt-all-none">
 				<option value="all"><?php _e( 'All', 'trimpress' ); ?></option>
 				<option value="none"><?php _e( 'None', 'trimpress' ); ?></option>
 			<select>
 			
-			<hr>
-			
 			<form action="options.php" method="post">
+
+				<button type="submit" name="submit1" id="submit1" class="button button-primary">
+					<?php _e( 'Save Settings', 'trimpress' ); ?>
+				</button>
 			
-			<?php
-			settings_fields( 'trimpress' );
-			do_settings_sections( 'trimpress' );
-			submit_button( __( 'Save Settings', 'trimpress' ) );
-			?>
+				<?php
+				settings_fields( 'trimpress' );
+				do_settings_sections( 'trimpress' );
+				?>
+
+				<button type="submit" name="submit2" id="submit2" class="button button-primary">
+					<?php _e( 'Save Settings', 'trimpress' ); ?>
+				</button>
 
 			</form>
 
@@ -124,8 +149,8 @@ class Admin {
 		/**
 	 	 * The select all/none functionality.
 		 */
-		let btn = document.getElementById('btn-all-none');
-		let opt = document.getElementById('opt-all-none');
+		const btn = document.getElementById('btn-all-none');
+		const opt = document.getElementById('opt-all-none');
 		let checkboxes = document.querySelectorAll('.trimpress-admin input[type="checkbox"]');
 		btn.addEventListener('click', function() {
 			if (opt.value === 'all') {

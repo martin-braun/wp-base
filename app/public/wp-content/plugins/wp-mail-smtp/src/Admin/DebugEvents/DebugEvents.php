@@ -4,6 +4,8 @@ namespace WPMailSMTP\Admin\DebugEvents;
 
 use WPMailSMTP\Admin\Area;
 use WPMailSMTP\Options;
+use WPMailSMTP\Tasks\DebugEventsCleanupTask;
+use WPMailSMTP\WP;
 
 /**
  * Debug Events class.
@@ -27,6 +29,51 @@ class DebugEvents {
 		add_action( 'load-wp-mail-smtp_page_wp-mail-smtp-tools', [ $this, 'screen_options' ] );
 		add_filter( 'set-screen-option', [ $this, 'set_screen_options' ], 10, 3 );
 		add_filter( 'set_screen_option_wp_mail_smtp_debug_events_per_page', [ $this, 'set_screen_options' ], 10, 3 );
+
+		// Cancel previous debug events cleanup task if retention period option was changed.
+		add_filter( 'wp_mail_smtp_options_set', [ $this, 'maybe_cancel_debug_events_cleanup_task' ] );
+
+		// Detect debug events log retention period constant change.
+		if ( Options::init()->is_const_defined( 'debug_events', 'retention_period' ) ) {
+			add_action( 'admin_init', [ $this, 'detect_debug_events_retention_period_constant_change' ] );
+		}
+	}
+
+	/**
+	 * Detect debug events retention period constant change.
+	 *
+	 * @since 3.6.0
+	 */
+	public function detect_debug_events_retention_period_constant_change() {
+
+		if ( ! WP::in_wp_admin() ) {
+			return;
+		}
+
+		if ( Options::init()->is_const_changed( 'debug_events', 'retention_period' ) ) {
+			( new DebugEventsCleanupTask() )->cancel();
+		}
+	}
+
+	/**
+	 * Cancel previous debug events cleanup task if retention period option was changed.
+	 *
+	 * @since 3.6.0
+	 *
+	 * @param array $options Currently processed options passed to a filter hook.
+	 *
+	 * @return array
+	 */
+	public function maybe_cancel_debug_events_cleanup_task( $options ) {
+
+		if ( isset( $options['debug_events']['retention_period'] ) ) {
+			// If this option has changed, cancel the recurring cleanup task and init again.
+			if ( Options::init()->is_option_changed( $options['debug_events']['retention_period'], 'debug_events', 'retention_period' ) ) {
+				( new DebugEventsCleanupTask() )->cancel();
+			}
+		}
+
+		return $options;
 	}
 
 	/**
@@ -36,7 +83,10 @@ class DebugEvents {
 	 */
 	public function process_ajax_delete_all_debug_events() {
 
-		if ( ! wp_verify_nonce( $_POST['nonce'], 'wp_mail_smtp_debug_events' ) ) { // phpcs:ignore
+		if (
+			empty( $_POST['nonce'] ) ||
+			! wp_verify_nonce( sanitize_key( $_POST['nonce'] ), 'wp_mail_smtp_debug_events' )
+		) {
 			wp_send_json_error( esc_html__( 'Access rejected.', 'wp-mail-smtp' ) );
 		}
 
@@ -50,7 +100,8 @@ class DebugEvents {
 
 		$sql = "TRUNCATE TABLE `$table`;";
 
-		$result = $wpdb->query( $sql ); // phpcs:ignore
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$result = $wpdb->query( $sql );
 
 		if ( $result !== false ) {
 			wp_send_json_success( esc_html__( 'All debug event entries were deleted successfully.', 'wp-mail-smtp' ) );
@@ -71,7 +122,10 @@ class DebugEvents {
 	 */
 	public function process_ajax_debug_event_preview() {
 
-		if ( ! wp_verify_nonce( $_POST['nonce'], 'wp_mail_smtp_debug_events' ) ) { // phpcs:ignore
+		if (
+			empty( $_POST['nonce'] ) ||
+			! wp_verify_nonce( sanitize_key( $_POST['nonce'] ), 'wp_mail_smtp_debug_events' )
+		) {
 			wp_send_json_error( esc_html__( 'Access rejected.', 'wp-mail-smtp' ) );
 		}
 
@@ -131,12 +185,15 @@ class DebugEvents {
 	 * Save the debug message.
 	 *
 	 * @since 3.0.0
+	 * @since 3.5.0 Returns Event ID.
 	 *
 	 * @param string $message The debug message.
+	 *
+	 * @return bool|int
 	 */
 	public static function add_debug( $message = '' ) {
 
-		self::add( $message, Event::TYPE_DEBUG );
+		return self::add( $message, Event::TYPE_DEBUG );
 	}
 
 	/**
@@ -175,7 +232,7 @@ class DebugEvents {
 		$events_data = $wpdb->get_results(
 			$wpdb->prepare( "SELECT id, content, initiator, event_type, created_at  FROM {$table} WHERE id IN ( {$placeholders} )", $ids )
 		);
-		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+		// phpcs:enable
 
 		if ( empty( $events_data ) ) {
 			return [];
@@ -203,7 +260,8 @@ class DebugEvents {
 		if (
 			! is_object( $screen ) ||
 			strpos( $screen->id, 'wp-mail-smtp_page_wp-mail-smtp-tools' ) === false ||
-			( isset( $_GET['tab'] ) && $_GET['tab'] !== 'debug-events' ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			! isset( $_GET['tab'] ) || $_GET['tab'] !== 'debug-events'
 		) {
 			return;
 		}
@@ -292,8 +350,17 @@ class DebugEvents {
 
 		global $wpdb;
 
+		static $is_valid = null;
+
+		// Return cached value only if table already exists.
+		if ( $is_valid === true ) {
+			return true;
+		}
+
 		$table = self::get_table_name();
 
-		return (bool) $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s;', $table ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching
+		$is_valid = (bool) $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s;', $table ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching
+
+		return $is_valid;
 	}
 }

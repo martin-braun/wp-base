@@ -10,9 +10,9 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Shipment Order
  *
- * @class 		WC_GZD_Shipment_Order
- * @version		1.0.0
- * @author 		Vendidero
+ * @class       WC_GZD_Shipment_Order
+ * @version     1.0.0
+ * @author      Vendidero
  */
 class ShippingMethod {
 
@@ -42,7 +42,7 @@ class ShippingMethod {
 
 	public function is_packstation_enabled() {
 		if ( $this->is_deutsche_post_enabled() ) {
-			return ParcelLocator::is_packstation_enabled( false );
+			return apply_filters( 'woocommerce_gzd_enable_packstation_deutsche_post', ParcelLocator::is_packstation_enabled( false ) );
 		} else {
 			return $this->method->get_option( 'dhl_parcel_pickup_packstation_enable' ) === 'yes' ? true : false;
 		}
@@ -80,7 +80,7 @@ class ShippingMethod {
 	public function is_preferred_service_enabled( $service ) {
 		$services = $this->get_enabled_preferred_services();
 
-		return in_array( $service, $services ) && $this->is_dhl_enabled();
+		return in_array( $service, $services, true ) && $this->is_dhl_enabled();
 	}
 
 	/**

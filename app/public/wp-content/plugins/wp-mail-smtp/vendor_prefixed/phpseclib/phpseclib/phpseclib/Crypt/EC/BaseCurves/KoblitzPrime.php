@@ -20,8 +20,6 @@
  *
  * PHP version 5 and 7
  *
- * @category  Crypt
- * @package   EC
  * @author    Jim Wigginton <terrafrost@php.net>
  * @copyright 2017 Jim Wigginton
  * @license   http://www.opensource.org/licenses/mit-license.html  MIT License
@@ -29,19 +27,27 @@
  */
 namespace WPMailSMTP\Vendor\phpseclib3\Crypt\EC\BaseCurves;
 
-use WPMailSMTP\Vendor\phpseclib3\Common\Functions\Strings;
-use WPMailSMTP\Vendor\phpseclib3\Math\PrimeField;
 use WPMailSMTP\Vendor\phpseclib3\Math\BigInteger;
-use WPMailSMTP\Vendor\phpseclib3\Math\PrimeField\Integer as PrimeInteger;
+use WPMailSMTP\Vendor\phpseclib3\Math\PrimeField;
 /**
  * Curves over y^2 = x^3 + b
  *
- * @package KoblitzPrime
  * @author  Jim Wigginton <terrafrost@php.net>
- * @access  public
  */
 class KoblitzPrime extends \WPMailSMTP\Vendor\phpseclib3\Crypt\EC\BaseCurves\Prime
 {
+    /**
+     * Basis
+     *
+     * @var list<array{a: BigInteger, b: BigInteger}>
+     */
+    protected $basis;
+    /**
+     * Beta
+     *
+     * @var PrimeField\Integer
+     */
+    protected $beta;
     // don't overwrite setCoefficients() with one that only accepts one parameter so that
     // one might be able to switch between KoblitzPrime and Prime more easily (for benchmarking
     // purposes).
@@ -50,7 +56,8 @@ class KoblitzPrime extends \WPMailSMTP\Vendor\phpseclib3\Crypt\EC\BaseCurves\Pri
      *
      * Uses a efficiently computable endomorphism to achieve a slight speedup
      *
-     * Adapted from https://git.io/vxbrP
+     * Adapted from:
+     * https://github.com/indutny/elliptic/blob/725bd91/lib/elliptic/curve/short.js#L219
      *
      * @return int[]
      */

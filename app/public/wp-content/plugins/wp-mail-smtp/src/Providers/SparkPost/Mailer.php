@@ -2,6 +2,8 @@
 
 namespace WPMailSMTP\Providers\SparkPost;
 
+use WPMailSMTP\ConnectionInterface;
+use WPMailSMTP\Helpers\Helpers;
 use WPMailSMTP\WP;
 use WPMailSMTP\MailCatcherInterface;
 use WPMailSMTP\Providers\MailerAbstract;
@@ -36,25 +38,26 @@ class Mailer extends MailerAbstract {
 	 *
 	 * @since 3.2.0
 	 *
-	 * @param MailCatcherInterface $phpmailer The MailCatcher object.
+	 * @param MailCatcherInterface $phpmailer  The MailCatcher object.
+	 * @param ConnectionInterface  $connection The Connection object.
 	 */
-	public function __construct( $phpmailer ) {
+	public function __construct( $phpmailer, $connection = null ) {
 
 		// Default value should be defined before the parent class constructor fires.
 		$this->url = self::API_BASE_US;
 
 		// We want to prefill everything from MailCatcher class, which extends PHPMailer.
-		parent::__construct( $phpmailer );
+		parent::__construct( $phpmailer, $connection );
 
 		// We have a special API URL to query in case of EU region.
-		if ( $this->options->get( $this->mailer, 'region' ) === 'EU' ) {
+		if ( $this->connection_options->get( $this->mailer, 'region' ) === 'EU' ) {
 			$this->url = self::API_BASE_EU;
 		}
 
 		$this->url .= '/transmissions';
 
 		// Set mailer specific headers.
-		$this->set_header( 'Authorization', $this->options->get( $this->mailer, 'api_key' ) );
+		$this->set_header( 'Authorization', $this->connection_options->get( $this->mailer, 'api_key' ) );
 		$this->set_header( 'Content-Type', 'application/json' );
 
 		// Set default body params.
@@ -383,10 +386,8 @@ class Mailer extends MailerAbstract {
 				continue;
 			}
 
-			$filetype = str_replace( ';', '', trim( $attachment[4] ) );
-
 			$data[] = [
-				'name' => empty( $attachment[2] ) ? 'file-' . wp_hash( microtime() ) . '.' . $filetype : trim( $attachment[2] ),
+				'name' => $this->get_attachment_file_name( $attachment ),
 				'data' => base64_encode( $file ), // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 				'type' => $attachment[4],
 			];
@@ -436,6 +437,7 @@ class Mailer extends MailerAbstract {
 			! empty( $this->response['body']->results->id )
 		) {
 			$this->phpmailer->addCustomHeader( 'X-Msg-ID', $this->response['body']->results->id );
+			$this->verify_sent_status = true;
 		}
 	}
 
@@ -446,39 +448,29 @@ class Mailer extends MailerAbstract {
 	 *
 	 * @return string
 	 */
-	public function get_response_error() { // phpcs:ignore Generic.Metrics.CyclomaticComplexity.TooHigh
+	public function get_response_error() { // phpcs:ignore Generic.Metrics.CyclomaticComplexity.TooHigh, Generic.Metrics.NestingLevel.MaxExceeded
 
-		if ( empty( $this->response ) ) {
-			return '';
-		}
+		$error_text[] = $this->error_message;
 
-		$body = wp_remote_retrieve_body( $this->response );
+		if ( ! empty( $this->response ) ) {
+			$body = wp_remote_retrieve_body( $this->response );
 
-		$error_text = [];
+			if ( ! empty( $body->errors ) && is_array( $body->errors ) ) {
+				foreach ( $body->errors as $error ) {
+					if ( ! empty( $error->message ) ) {
+						$message     = $error->message;
+						$code        = ! empty( $error->code ) ? $error->code : '';
+						$description = ! empty( $error->description ) ? $error->description : '';
 
-		if ( ! empty( $body->errors ) ) {
-			foreach ( $body->errors as $error ) {
-				$message = [];
-
-				if ( isset( $error->code ) ) {
-					$message[] = $error->code;
+						$error_text[] = Helpers::format_error_message( $message, $code, $description );
+					}
 				}
-
-				if ( isset( $error->message ) ) {
-					$message[] = $error->message;
-				}
-
-				if ( isset( $error->description ) ) {
-					$message[] = $error->description;
-				}
-
-				$error_text[] = implode( ' - ', $message );
+			} else {
+				$error_text[] = WP::wp_remote_get_response_error_message( $this->response );
 			}
-		} elseif ( ! empty( $this->error_message ) ) {
-			$error_text[] = $this->error_message;
 		}
 
-		return implode( PHP_EOL, array_map( 'esc_textarea', $error_text ) );
+		return implode( WP::EOL, array_map( 'esc_textarea', array_filter( $error_text ) ) );
 	}
 
 	/**
@@ -490,7 +482,7 @@ class Mailer extends MailerAbstract {
 	 */
 	public function get_debug_info() {
 
-		$options = $this->options->get_group( $this->mailer );
+		$options = $this->connection_options->get_group( $this->mailer );
 
 		$text[] = '<strong>' . esc_html__( 'API Key:', 'wp-mail-smtp' ) . '</strong> ' .
 							( ! empty( $options['api_key'] ) ? 'Yes' : 'No' );
@@ -511,7 +503,7 @@ class Mailer extends MailerAbstract {
 	 */
 	public function is_mailer_complete() {
 
-		$options = $this->options->get_group( $this->mailer );
+		$options = $this->connection_options->get_group( $this->mailer );
 
 		if ( ! empty( $options['api_key'] ) ) {
 			return true;

@@ -7,6 +7,7 @@ use Elementor\Core\Kits\Documents\Tabs\Global_Typography;
 use Elementor\Group_Control_Typography;
 use Elementor\Modules\Shapes\Module as Shapes_Module;
 use Elementor\Utils;
+use Elementor\Group_Control_Text_Stroke;
 use Elementor\Widget_Base;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -269,25 +270,15 @@ class TextPath extends Widget_Base {
 			[
 				'label' => esc_html__( 'Rotate', 'elementor' ),
 				'type' => Controls_Manager::SLIDER,
-				'size_units' => [ 'deg' ],
-				'range' => [
-					'deg' => [
-						'min' => 0,
-						'max' => 360,
-						'step' => 1,
-					],
-				],
+				'size_units' => [ 'deg', 'grad', 'rad', 'turn' ],
 				'default' => [
 					'unit' => 'deg',
-					'size' => '',
 				],
 				'tablet_default' => [
 					'unit' => 'deg',
-					'size' => '',
 				],
 				'mobile_default' => [
 					'unit' => 'deg',
-					'size' => '',
 				],
 				'selectors' => [
 					'{{WRAPPER}}' => '--rotate: {{SIZE}}{{UNIT}};',
@@ -330,17 +321,30 @@ class TextPath extends Widget_Base {
 			]
 		);
 
+		$this->add_group_control(
+			Group_Control_Text_Stroke::get_type(),
+			[
+				'name' => 'text_stroke',
+				'selector' => '{{WRAPPER}} textPath',
+			]
+		);
+
 		$this->add_responsive_control(
 			'word_spacing',
 			[
 				'label' => esc_html__( 'Word Spacing', 'elementor' ),
 				'type' => Controls_Manager::SLIDER,
-				'size_units' => [ 'px' ],
+				'size_units' => [ 'px', 'em' ],
 				'range' => [
 					'px' => [
 						'min' => -20,
 						'max' => 20,
 						'step' => 1,
+					],
+					'em' => [
+						'min' => -1,
+						'max' => 1,
+						'step' => 0.1,
 					],
 				],
 				'default' => [
@@ -444,16 +448,10 @@ class TextPath extends Widget_Base {
 			[
 				'label' => esc_html__( 'Transition Duration', 'elementor' ),
 				'type' => Controls_Manager::SLIDER,
+				'size_units' => [ 's', 'ms' ],
 				'default' => [
-					'size' => 0.3,
 					'unit' => 's',
-				],
-				'range' => [
-					's' => [
-						'min' => 0,
-						'max' => 3,
-						'step' => 0.1,
-					],
+					'size' => 0.3,
 				],
 				'selectors' => [
 					'{{WRAPPER}}' => '--transition: {{SIZE}}{{UNIT}}',
@@ -618,16 +616,10 @@ class TextPath extends Widget_Base {
 			[
 				'label' => esc_html__( 'Transition Duration', 'elementor' ),
 				'type' => Controls_Manager::SLIDER,
+				'size_units' => [ 's', 'ms' ],
 				'default' => [
-					'size' => 0.3,
 					'unit' => 's',
-				],
-				'range' => [
-					's' => [
-						'min' => 0,
-						'max' => 3,
-						'step' => 0.1,
-					],
+					'size' => 0.3,
 				],
 				'selectors' => [
 					'{{WRAPPER}}' => '--stroke-transition: {{SIZE}}{{UNIT}}',
@@ -664,16 +656,20 @@ class TextPath extends Widget_Base {
 	protected function render() {
 		$settings = $this->get_settings_for_display();
 
-		// Get the shape SVG markup.
-		if ( 'custom' !== $settings['path'] ) {
-			$path_svg = Shapes_Module::get_path_svg( $settings['path'] );
-		} else {
-			$path = get_attached_file( $settings['custom_path']['id'] );
-			$path_svg = Shapes_Module::read_svg( $path );
-		}
+		// Get the path URL.
+		$path_url = ( 'custom' === $settings['path'] )
+			? wp_get_attachment_url( $settings['custom_path']['id'] )
+			: Shapes_Module::get_path_url( $settings['path'] );
 
-		// Add Text Path text.
-		$this->add_render_attribute( 'text_path', 'class', 'e-text-path' );
+		// Remove the HTTP protocol to prevent Mixed Content error.
+		$path_url = preg_replace( '/^https?:/i', '', $path_url );
+
+		// Add Text Path attributes.
+		$this->add_render_attribute( 'text_path', [
+			'class' => 'e-text-path',
+			'data-text' => esc_attr( $settings['text'] ),
+			'data-url' => esc_url( $path_url ),
+		] );
 
 		// Add hover animation.
 		if ( ! empty( $settings['hover_animation'] ) ) {
@@ -682,9 +678,7 @@ class TextPath extends Widget_Base {
 
 		// Render.
 		?>
-		<div <?php $this->print_render_attribute_string( 'text_path' ); ?> data-text="<?php echo esc_attr( $settings['text'] ); ?>">
-			<?php Utils::print_wp_kses_extended( $path_svg, [ 'svg' ] ); ?>
-		</div>
+		<div <?php $this->print_render_attribute_string( 'text_path' ); ?>></div>
 		<?php
 	}
 }

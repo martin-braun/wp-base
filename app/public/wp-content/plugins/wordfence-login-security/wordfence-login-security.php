@@ -4,10 +4,11 @@ Plugin Name: Wordfence Login Security
 Description: Wordfence Login Security
 Author: Wordfence
 Author URI: http://www.wordfence.com/
-Version: 1.0.9
+Version: 1.1.0
 Network: true
 Requires at least: 4.5
 Requires PHP: 5.3
+@copyright Copyright (C) 2019-2023 Defiant Inc.
 */
 if (defined('WP_INSTALLING') && WP_INSTALLING) { return; }
 if (!defined('ABSPATH')) { exit; }
@@ -35,8 +36,8 @@ if ($wfCoreActive && !(isset($wfCoreLoading) && $wfCoreLoading)) {
 else {
 	define('WORDFENCE_LS_FROM_CORE', ($wfCoreActive && isset($wfCoreLoading) && $wfCoreLoading));
 	
-	define('WORDFENCE_LS_VERSION', '1.0.9');
-	define('WORDFENCE_LS_BUILD_NUMBER', '1634043539');
+	define('WORDFENCE_LS_VERSION', '1.1.0');
+	define('WORDFENCE_LS_BUILD_NUMBER', '1676399623');
 
 	define('WORDFENCE_LS_PLUGIN_BASENAME', plugin_basename(__FILE__));
 	
@@ -78,15 +79,8 @@ else {
 				$path .= '/' . strtolower($components[$i]);
 			}
 			
-			if (preg_match('/^Controller_([a-z0-9]+)$/i', $components[count($components) - 1], $matches)) {
-				$path = dirname(__FILE__) . '/classes/controller' . $path . '/' . strtolower($matches[1]) . '.php';
-				if (file_exists($path)) {
-					require_once($path);
-					return true;
-				}
-			}
-			else if (preg_match('/^Model_([a-z0-9]+)$/i', $components[count($components) - 1], $matches)) {
-				$path = dirname(__FILE__) . '/classes/model' . $path . '/' . strtolower($matches[1]) . '.php';
+			if (preg_match('/^(Controller|Model|Utility)_([a-z0-9]+)$/i', $components[count($components) - 1], $matches)) {
+				$path = dirname(__FILE__) . '/classes/' . strtolower($matches[1]) . $path . '/' . strtolower($matches[2]) . '.php';
 				if (file_exists($path)) {
 					require_once($path);
 					return true;

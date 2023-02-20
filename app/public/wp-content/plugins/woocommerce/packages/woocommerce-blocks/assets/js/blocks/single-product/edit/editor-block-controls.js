@@ -8,8 +8,8 @@ import { ToolbarGroup } from '@wordpress/components';
 /**
  * Adds controls to the editor toolbar.
  *
- * @param {Object} props Incoming props for the component.
- * @param {boolean} props.isEditing
+ * @param {Object}                props              Incoming props for the component.
+ * @param {boolean}               props.isEditing
  * @param {function(boolean):any} props.setIsEditing
  */
 const EditorBlockControls = ( { isEditing, setIsEditing } ) => {
@@ -19,7 +19,10 @@ const EditorBlockControls = ( { isEditing, setIsEditing } ) => {
 				controls={ [
 					{
 						icon: 'edit',
-						title: __( 'Edit', 'woocommerce' ),
+						title: __(
+							'Edit selected product',
+							'woocommerce'
+						),
 						onClick: () => setIsEditing( ! isEditing ),
 						isActive: isEditing,
 					},
